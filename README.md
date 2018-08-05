@@ -1,5 +1,5 @@
 # FodyTools
-A set of helper funtions to ease building of Fody weavers
+A set of helper functions to ease building of Fody weavers
 
 Use this repo as a submodule, and include (link) the source files you need in your weaver project.
 
