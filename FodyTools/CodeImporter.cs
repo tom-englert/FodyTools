@@ -296,7 +296,10 @@
                         ? (IGenericParameterProvider)target
                         : ImportType(genericParameter.DeclaringType, null);
 
-                    var parameter = new GenericParameter(genericParameter.Name, provider);
+                    var parameter = new GenericParameter(genericParameter.Name, provider)
+                    {
+                        Attributes = genericParameter.Attributes
+                    };
 
                     if (genericParameter.HasConstraints)
                     {

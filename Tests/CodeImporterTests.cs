@@ -213,6 +213,11 @@
                 return _owner;
             }
         }
+
+        public void WithArgs<T>(T value) where T : class, IList
+        {
+
+        }
     }
 
     [AttributeUsage(AttributeTargets.All)]
