@@ -1,6 +1,7 @@
 ﻿namespace Tests
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
@@ -173,15 +174,25 @@
         public Referenced Referenced { get; set; }
     }
 
-    internal class MyEventArgs : EventArgs
+    internal class MyEventArgs : EventArgs, IEnumerable<string>
     {
         public string GetValue()
         {
             return null;
         }
+
+        public IEnumerator<string> GetEnumerator()
+        {
+            throw new NotImplementedException();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 
-    internal class Referenced
+    internal class Referenced : List<string>
     {
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hReservedNull, int dwFlags);

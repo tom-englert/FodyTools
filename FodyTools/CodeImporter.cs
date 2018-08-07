@@ -20,10 +20,7 @@
     /// </summary>
     /// <remarks>
     /// The main task of this is to copy code fragments into another module so they can be used by the weaver.
-    /// It copies the whole types specified in the Import method, and automatically copies all required dependencies, where it only copies
-    /// the used fields/methods/properties of the dependencies to minimize the target code.
-    ///
-    /// TODO: interfaces are not supported yet.
+    /// It copies the types specified in the Import method, and automatically copies all required dependencies.
     /// </remarks>
     public class CodeImporter
     {
@@ -121,11 +118,15 @@
 
             _targetTypes.Add(sourceType.FullName, targetType);
 
+            foreach (var sourceTypeInterface in sourceType.Interfaces)
+            {
+                targetType.Interfaces.Add(new InterfaceImplementation(ImportType(sourceTypeInterface.InterfaceType, null)));
+            }
+
             CopyGenericParameters(sourceType, targetType);
+            CopyAttributes(sourceType, targetType);
 
             targetType.BaseType = ImportType(sourceType.BaseType, null);
-
-            CopyAttributes(sourceType, targetType);
 
             if (declaringType != null)
             {
@@ -189,10 +190,15 @@
 
             target = new MethodDefinition(source.Name, source.Attributes, VoidType)
             {
-                ImplAttributes = source.ImplAttributes
+                ImplAttributes = source.ImplAttributes,
             };
 
             _targetMethods.Add(source, target);
+
+            foreach (var sourceOverride in source.Overrides)
+            {
+                target.Overrides.Add(ImportMethodReference(sourceOverride));
+            }
 
             CopyAttributes(source, target);
             CopyGenericParameters(source, target);
@@ -388,10 +394,13 @@
             return targetInstruction;
         }
 
-        private TypeReference ImportType([NotNull] TypeReference source, MethodReference targetMethod)
+        private TypeReference ImportType([CanBeNull] TypeReference source, MethodReference targetMethod)
         {
             switch (source)
             {
+                case null:
+                    return null;
+
                 case TypeDefinition typeDefinition:
                     return ImportTypeDefinition(typeDefinition);
 
