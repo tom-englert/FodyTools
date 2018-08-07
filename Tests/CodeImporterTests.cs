@@ -12,13 +12,15 @@
 
     using Mono.Cecil;
 
+    using TomsToolbox.Core;
+
     using Xunit;
 
     public class CodeImporterTests
     {
         [Theory]
         [InlineData(typeof(Test<>))]
-        public void SmokeTest([NotNull] params Type[] types)
+        public void SimpleTypesTest([NotNull] params Type[] types)
         {
             var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
 
@@ -35,7 +37,7 @@
 
             var tempPath = Path.GetTempPath();
 
-            var targetAssemblyPath = Path.Combine(tempPath, "TargetAssembly.dll");
+            var targetAssemblyPath = Path.Combine(tempPath, "TargetAssembly1.dll");
 
             module.Write(targetAssemblyPath);
 
@@ -48,6 +50,43 @@
                 File.WriteAllText(Path.Combine(tempPath, "target.txt"), decompiledTarget);
 
                 Assert.Equal(decompiledSource, decompiledTarget);
+            }
+        }
+
+        [Theory]
+        [InlineData(typeof(WeakEventListener<,,>))]
+        [InlineData(typeof(WeakEventSource<>))]
+        public void ComplexTypesTest([NotNull] params Type[] types)
+        {
+            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
+
+            var governingType = types.First();
+
+            Debug.Assert(module != null, nameof(module) + " != null");
+            Debug.Assert(governingType?.Namespace != null, nameof(governingType) + " != null");
+
+            var target = new CodeImporter(module, governingType.Namespace);
+
+            var sourceAssemblyPath = governingType.Assembly.Location;
+
+            var imported = target.Import(types);
+
+            var tempPath = Path.GetTempPath();
+
+            var targetAssemblyPath = Path.Combine(tempPath, "TargetAssembly2.dll");
+
+            module.Write(targetAssemblyPath);
+
+            foreach (var t in imported)
+            {
+                var decompiledSource = ILDasm.Decompile(sourceAssemblyPath, t.FullName);
+                var decompiledTarget = ILDasm.Decompile(targetAssemblyPath, t.FullName);
+
+                File.WriteAllText(Path.Combine(tempPath, "source.txt"), decompiledSource);
+                File.WriteAllText(Path.Combine(tempPath, "target.txt"), decompiledTarget);
+
+                // TODO: Does not work for complex types with dependencies...
+                // Assert.Equal(decompiledSource, decompiledTarget);
             }
         }
 

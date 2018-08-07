@@ -79,7 +79,9 @@
                 action.Action();
             }
 
-            return _targetTypes.Values.Where(t => t.DeclaringType == null);
+            return _targetTypes.Values
+                .Where(t => t.DeclaringType == null)
+                .ToArray();
         }
 
         private void ImportType([NotNull] Type type)
@@ -367,8 +369,7 @@
                     break;
 
                 case FieldReference fieldReference:
-                    ExecuteDeferred(Priority.Operands, () =>
-                        targetInstruction.Operand = new FieldReference(fieldReference.Name, ImportType(fieldReference.FieldType, targetMethod), ImportType(fieldReference.DeclaringType, targetMethod)));
+                    ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = new FieldReference(fieldReference.Name, ImportType(fieldReference.FieldType, targetMethod), ImportType(fieldReference.DeclaringType, targetMethod)));
                     break;
             }
 
@@ -430,7 +431,12 @@
                 ? (targetMethod ?? throw new InvalidOperationException("Need a method reference for generic method parameter."))
                 : (IGenericParameterProvider)ImportType(source.DeclaringType, targetMethod);
 
-            return genericParameterProvider.GenericParameters[source.Position];
+            var index = source.Position;
+
+            if (index < genericParameterProvider.GenericParameters.Count)
+                return genericParameterProvider.GenericParameters[index];
+
+            return source;
         }
 
         [NotNull]
@@ -445,11 +451,10 @@
                 CallingConvention = source.CallingConvention
             };
 
-            target.DeclaringType = ImportType(source.DeclaringType, target);
-
             CopyGenericParameters(source, target);
             CopyParameters(source, target);
 
+            target.DeclaringType = ImportType(source.DeclaringType, target);
             target.ReturnType = ImportType(source.ReturnType, target);
 
             return target;
