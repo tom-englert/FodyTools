@@ -56,6 +56,7 @@
         [Theory]
         [InlineData(typeof(WeakEventListener<,,>))]
         [InlineData(typeof(WeakEventSource<>))]
+        [InlineData(typeof(WeakEventSource<>), typeof(WeakEventListener<,,>), typeof(Test<>))]
         public void ComplexTypesTest([NotNull] params Type[] types)
         {
             var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);

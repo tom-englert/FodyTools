@@ -18,6 +18,13 @@
     /// <summary>
     /// A class to import code from one module to another; like e.g. ILMerge, but only imports the specified classes and their local references.
     /// </summary>
+    /// <remarks>
+    /// The main task of this is to copy code fragments into another module so they can be used by the weaver.
+    /// It copies the whole types specified in the Import method, and automatically copies all required dependencies, where it only copies
+    /// the used fields/methods/properties of the dependencies to minimize the target code.
+    ///
+    /// TODO: interfaces are not supported yet.
+    /// </remarks>
     public class CodeImporter
     {
         [NotNull]
