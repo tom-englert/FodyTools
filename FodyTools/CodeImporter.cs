@@ -187,12 +187,14 @@
             if (_targetMethods.TryGetValue(source, out var target))
                 return target;
 
-            target = new MethodDefinition(source.Name, source.Attributes, VoidType);
-
-            CopyAttributes(source, target);
+            target = new MethodDefinition(source.Name, source.Attributes, VoidType)
+            {
+                ImplAttributes = source.ImplAttributes
+            };
 
             _targetMethods.Add(source, target);
 
+            CopyAttributes(source, target);
             CopyGenericParameters(source, target);
             CopyParameters(source, target);
 
@@ -200,12 +202,15 @@
 
             if (source.IsPInvokeImpl)
             {
-                var moduleRef = _targetModule.ModuleReferences.FirstOrDefault(mr => mr.Name == source.PInvokeInfo.Module.Name);
+                var moduleRef = _targetModule.ModuleReferences
+                    .FirstOrDefault(mr => mr.Name == source.PInvokeInfo.Module.Name);
+
                 if (moduleRef == null)
                 {
                     moduleRef = new ModuleReference(source.PInvokeInfo.Module.Name);
                     _targetModule.ModuleReferences.Add(moduleRef);
                 }
+
                 target.PInvokeInfo = new PInvokeInfo(source.PInvokeInfo.Attributes, source.PInvokeInfo.EntryPoint, moduleRef);
             }
 
@@ -480,11 +485,11 @@
 
                 case GenericInstanceMethod genericInstanceMethod:
                     elementMethod = ImportGenericInstanceMethod(genericInstanceMethod, targetType);
-                break;
+                    break;
 
                 case MethodReference sourceMethodReference:
                     elementMethod = ImportMethodReference(sourceMethodReference);
-                break;
+                    break;
             }
 
             var target = new GenericInstanceMethod(elementMethod);

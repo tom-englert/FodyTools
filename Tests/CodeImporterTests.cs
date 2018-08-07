@@ -5,6 +5,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Runtime.InteropServices;
 
     using FodyTools;
 
@@ -182,11 +183,16 @@
 
     internal class Referenced
     {
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hReservedNull, int dwFlags);
+
         private readonly Test<MyEventArgs> _owner;
+        private readonly IntPtr _hlib;
 
         public Referenced(Test<MyEventArgs> owner)
         {
             _owner = owner;
+            _hlib = LoadLibraryEx("dummy", IntPtr.Zero, 0);
         }
 
         public Test<MyEventArgs> Owner
