@@ -16,6 +16,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="*" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\DummyAssembly\DummyAssembly.csproj" />
     <ProjectReference Include="..\FodyTools\FodyTools.csproj" />
   </ItemGroup>
   <ItemGroup>

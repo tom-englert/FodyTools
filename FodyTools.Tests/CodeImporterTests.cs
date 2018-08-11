@@ -1,4 +1,4 @@
-﻿namespace Tests
+﻿namespace FodyTools.Tests
 {
     using System;
     using System.Collections;
