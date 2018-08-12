@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Linq.Expressions;
     using System.Reflection;
 
     using JetBrains.Annotations;
@@ -59,11 +60,11 @@
         }
 
         /// <summary>
-        /// Imports the specified type and it's local refernces from it's source module into the target module.
+        /// Imports the specified type and it's local references from it's source module into the target module.
         /// </summary>
         /// <param name="type">The type to import.</param>
         /// <returns>
-        /// The type definition of the imported type.
+        /// The type definition of the imported type in the target module.
         /// </returns>
         [NotNull]
         public TypeDefinition Import([NotNull] Type type)
@@ -82,6 +83,99 @@
 
             return target;
         }
+
+        /// <summary>
+        /// Imports the specified type and it's local references from it's source module into the target module.
+        /// </summary>
+        /// <typeparam name="T">The type to import.</typeparam>
+        /// <returns>
+        /// The type definition of the imported type in the target module.
+        /// </returns>
+        [NotNull]
+        public TypeDefinition Import<T>()
+        {
+            return Import(typeof(T));
+        }
+
+        /// <summary>
+        /// Imports the methods declaring type into the target module and returns the method definition
+        /// of the corresponding method in the target module.
+        /// </summary>
+        /// <typeparam name="T">The methods return value.</typeparam>
+        /// <param name="expression">The method call expression describing the source method.</param>
+        /// <returns>The method definition of the imported method.</returns>
+        /// <exception cref="ArgumentException">Only method call expression is supported. - expression</exception>
+        /// <exception cref="InvalidOperationException">Importing method failed.</exception>
+        [NotNull]
+        public MethodDefinition ImportMethod<T>([NotNull] Expression<Func<T>> expression)
+        {
+            if (!(expression.Body is MethodCallExpression methodCall))
+                throw new ArgumentException("Only method call expression is supported.", nameof(expression));
+
+            var targetType = Import(methodCall.Method.DeclaringType);
+            var methodName = methodCall.Method.Name;
+
+            var argumentTypeNames = methodCall.Arguments.Select(a => a.Type.Name).ToArray();
+
+            return targetType.Methods.Single(m => m.Name == methodName && m.Parameters.Select(p => p.ParameterType.Name).SequenceEqual(argumentTypeNames)) ?? throw new InvalidOperationException("Importing method failed.");
+        }
+
+        /// <summary>
+        /// Imports the property's declaring type into the target module and returns the property definition
+        /// of the corresponding property in the target module.
+        /// </summary>
+        /// <typeparam name="T">The property type of the property</typeparam>
+        /// <param name="expression">The property expression describing the source property.</param>
+        /// <returns>The property definition of the imported property</returns>
+        /// <exception cref="ArgumentException">
+        /// Only a member expression is supported here. - expression
+        /// or
+        /// Only a property expression is supported here. - expression
+        /// </exception>
+        [NotNull]
+        public PropertyDefinition ImportProperty<T>([NotNull] Expression<Func<T>> expression)
+        {
+            if (!(expression.Body is MemberExpression memberExpression))
+                throw new ArgumentException("Only a member expression is supported here.", nameof(expression));
+
+            var member = memberExpression.Member;
+            if (!(member is PropertyInfo))
+                throw new ArgumentException("Only a property expression is supported here.", nameof(expression));
+
+            var targetType = Import(member.DeclaringType);
+            var propertyName = member.Name;
+
+            return targetType.Properties.Single(m => m.Name == propertyName);
+        }
+
+        /// <summary>
+        /// Imports the field's declaring type into the target module and returns the field definition
+        /// of the corresponding field in the target module.
+        /// </summary>
+        /// <typeparam name="T">The field type of the field</typeparam>
+        /// <param name="expression">The field expression describing the source field.</param>
+        /// <returns>The field definition of the imported field</returns>
+        /// <exception cref="ArgumentException">
+        /// Only a member expression is supported here. - expression
+        /// or
+        /// Only a field expression is supported here. - expression
+        /// </exception>
+        [NotNull]
+        public FieldDefinition ImportField<T>([NotNull] Expression<Func<T>> expression)
+        {
+            if (!(expression.Body is MemberExpression memberExpression))
+                throw new ArgumentException("Only a member expression is supported here.", nameof(expression));
+
+            var member = memberExpression.Member;
+            if (!(member is FieldInfo))
+                throw new ArgumentException("Only a field expression is supported here.", nameof(expression));
+
+            var targetType = Import(member.DeclaringType);
+            var fieldName = member.Name;
+
+            return targetType.Fields.Single(m => m.Name == fieldName);
+        }
+
 
         /// <summary>
         /// Registers a source module.<para/>
@@ -105,7 +199,7 @@
         /// Returns a collection of the imported types.
         /// </summary>
         /// <returns>The collection of imported types.</returns>
-        [NotNull]
+        [NotNull, ItemNotNull]
         public IReadOnlyCollection<TypeDefinition> ListImportedTypes()
         {
             return _targetTypes.Values

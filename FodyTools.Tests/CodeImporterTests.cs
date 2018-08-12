@@ -1,4 +1,6 @@
-﻿namespace FodyTools.Tests
+﻿#pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
+
+namespace FodyTools.Tests
 {
     using System;
     using System.Collections;
@@ -21,8 +23,8 @@
     public class CodeImporterTests
     {
         [Theory]
-        [InlineData(typeof(Test<>))]
-        public void SimpleTypesTest([NotNull, ItemNotNull] params Type[] types)
+        [InlineData(4, typeof(Test<>))]
+        public void SimpleTypesTest(int numberOfTypes, [NotNull, ItemNotNull] params Type[] types)
         {
             var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
 
@@ -46,7 +48,11 @@
 
             module.Write(targetAssemblyPath);
 
-            foreach (var t in target.ListImportedTypes())
+            var importedTypes = target.ListImportedTypes();
+
+            Assert.Equal(numberOfTypes, importedTypes.Count);
+
+            foreach (var t in importedTypes)
             {
                 var decompiledSource = ILDasm.Decompile(sourceAssemblyPath, t.FullName);
                 var decompiledTarget = ILDasm.Decompile(targetAssemblyPath, t.FullName);
@@ -59,10 +65,10 @@
         }
 
         [Theory]
-        [InlineData(typeof(WeakEventListener<,,>))]
-        [InlineData(typeof(WeakEventSource<>))]
-        [InlineData(typeof(WeakEventSource<>), typeof(WeakEventListener<,,>), typeof(Test<>))]
-        public void ComplexTypesTest([NotNull] params Type[] types)
+        [InlineData(3, typeof(WeakEventListener<,,>))]
+        [InlineData(1, typeof(WeakEventSource<>))]
+        [InlineData(8, typeof(WeakEventSource<>), typeof(WeakEventListener<,,>), typeof(Test<>))]
+        public void ComplexTypesTest(int numberOfTypes, [NotNull] params Type[] types)
         {
             var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
 
@@ -86,7 +92,13 @@
 
             module.Write(targetAssemblyPath);
 
-            foreach (var t in target.ListImportedTypes())
+            var importedTypes = target.ListImportedTypes();
+
+            Assert.Equal(numberOfTypes, importedTypes.Count);
+
+            // TODO: Does not work for complex types with dependencies, order of methods will be different...
+            /*
+            foreach (var t in importedTypes)
             {
                 var decompiledSource = ILDasm.Decompile(sourceAssemblyPath, t.FullName);
                 var decompiledTarget = ILDasm.Decompile(targetAssemblyPath, t.FullName);
@@ -94,9 +106,91 @@
                 File.WriteAllText(Path.Combine(tempPath, "source.txt"), decompiledSource);
                 File.WriteAllText(Path.Combine(tempPath, "target.txt"), decompiledTarget);
 
-                // TODO: Does not work for complex types with dependencies...
-                // Assert.Equal(decompiledSource, decompiledTarget);
+                Assert.Equal(decompiledSource, decompiledTarget);
             }
+            */
+        }
+
+        [Fact]
+        public void ImportMethodTest()
+        {
+            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
+            var target = new CodeImporter(module, "Test");
+
+            var importedMethod1 = target.ImportMethod(() => default(MyEventArgs).GetValue());
+            var importedMethod2 = target.ImportMethod(() => default(MyEventArgs).GetValue(default));
+
+            Assert.NotEqual(importedMethod2, importedMethod1);
+            Assert.Equal(importedMethod2.DeclaringType, importedMethod1.DeclaringType);
+            Assert.Equal(importedMethod2.DeclaringType, target.ListImportedTypes().Single());
+            Assert.Empty(importedMethod1.Parameters);
+            Assert.Single(importedMethod2.Parameters);
+        }
+
+        [Fact]
+        public void ImportMethodsThrowsOnInvalidExpression()
+        {
+            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
+            var target = new CodeImporter(module, "Test");
+
+            Assert.Throws<ArgumentException>(() =>
+            {
+                target.ImportMethod(() => default(MyEventArgs).AnotherValue);
+            });
+        }
+
+        [Fact]
+        public void ImportPropertyTest()
+        {
+            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
+            var target = new CodeImporter(module, "Test");
+
+            var importedProperty = target.ImportProperty(() => default(MyEventArgs).AnotherValue);
+
+            Assert.Equal(importedProperty.DeclaringType, target.ListImportedTypes().Single());
+        }
+
+        [Fact]
+        public void ImportPropertyThrowsOnInvalidExpression()
+        {
+            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
+            var target = new CodeImporter(module, "Test");
+
+            Assert.Throws<ArgumentException>(() =>
+            {
+                target.ImportProperty(() => default(MyEventArgs).GetValue());
+            });
+            Assert.Throws<ArgumentException>(() =>
+            {
+                target.ImportProperty(() => default(MyEventArgs).field);
+            });
+        }
+
+        [Fact]
+        public void ImportFieldTest()
+        {
+            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
+            var target = new CodeImporter(module, "Test");
+
+            var importedField = target.ImportField(() => default(MyEventArgs).field);
+
+            Assert.Equal(importedField.DeclaringType, target.ListImportedTypes().Single());
+        }
+
+        [Fact]
+        public void ImportFieldThrowsOnInvalidExpression()
+        {
+            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
+            var target = new CodeImporter(module, "Test");
+
+            Assert.Throws<ArgumentException>(() =>
+            {
+                target.ImportField(() => default(MyEventArgs).GetValue());
+            });
+            Assert.Throws<ArgumentException>(() =>
+            {
+                target.ImportField(() => default(MyEventArgs).AnotherValue);
+            });
         }
 
         private static class ILDasm
@@ -174,7 +268,22 @@
 
         private Referenced GetReferenced()
         {
-            return null;
+            try
+            {
+                return null;
+            }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+            catch (Exception ex) when (ex is ArgumentException || ex is AggregateException)
+            {
+                return null;
+            }
+            finally
+            {
+                _field = 0;
+            }
         }
 
         public Referenced Referenced { get; set; }
@@ -182,7 +291,14 @@
 
     internal class MyEventArgs : EventArgs, IEnumerable<string>
     {
+        public int field;
+
         public string GetValue()
+        {
+            return null;
+        }
+
+        public string GetValue(string key)
         {
             return null;
         }
@@ -196,6 +312,8 @@
         {
             return GetEnumerator();
         }
+
+        public string AnotherValue { get; set; }
     }
 
     internal class Referenced : List<string>
