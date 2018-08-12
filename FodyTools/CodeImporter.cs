@@ -59,19 +59,16 @@
         }
 
         /// <summary>
-        /// Imports the specified types.
+        /// Imports the specified type and it's local refernces from it's source module into the target module.
         /// </summary>
-        /// <param name="types">The types to import.</param>
+        /// <param name="type">The type to import.</param>
         /// <returns>
-        /// The list of all imported types in the target module, containing the specified types and all references.
+        /// The type definition of the imported type.
         /// </returns>
         [NotNull]
-        public IEnumerable<TypeDefinition> Import([NotNull, ItemNotNull] params Type[] types)
+        public TypeDefinition Import([NotNull] Type type)
         {
-            foreach (var type in types)
-            {
-                ImportType(type);
-            }
+            var target = ImportType(type);
 
             while (true)
             {
@@ -83,26 +80,54 @@
                 action.Action();
             }
 
+            return target;
+        }
+
+        /// <summary>
+        /// Registers a source module.<para/>
+        /// Use this method before importing anything if you want to import types and their dependencies from many source modules.
+        /// However in most cases you don't need to call this.
+        /// </summary>
+        /// <param name="assembly">The assembly of the sources.</param>
+        /// <returns>The module definition of the source module.</returns>
+        public ModuleDefinition RegisterSourceModule([NotNull] Assembly assembly)
+        {
+            if (_sourceModuleDefinitions.TryGetValue(assembly, out var sourceModule))
+                return sourceModule;
+
+            sourceModule = ModuleDefinition.ReadModule(assembly.Location);
+            _sourceModuleDefinitions.Add(assembly, sourceModule);
+
+            return sourceModule;
+        }
+
+        /// <summary>
+        /// Returns a collection of the imported types.
+        /// </summary>
+        /// <returns>The collection of imported types.</returns>
+        [NotNull]
+        public IReadOnlyCollection<TypeDefinition> ListImportedTypes()
+        {
             return _targetTypes.Values
                 .Where(t => t.DeclaringType == null)
                 .ToArray();
         }
 
-        private void ImportType([NotNull] Type type)
+        [NotNull]
+        private TypeDefinition ImportType([NotNull] Type type)
         {
             var assembly = type.Assembly;
 
-            if (!_sourceModuleDefinitions.TryGetValue(assembly, out var sourceModule))
-            {
-                sourceModule = ModuleDefinition.ReadModule(assembly.Location);
-                _sourceModuleDefinitions.Add(assembly, sourceModule);
-            }
+            var sourceModule = RegisterSourceModule(assembly);
 
             var sourceType = sourceModule.GetType(type.FullName);
 
-            ImportTypeDefinition(sourceType);
+            Debug.Assert(sourceType != null);
+
+            return ImportTypeDefinition(sourceType);
         }
 
+        [ContractAnnotation("sourceType:notnull=>notnull")]
         private TypeDefinition ImportTypeDefinition(TypeDefinition sourceType)
         {
             if (sourceType == null)
@@ -188,7 +213,7 @@
             if (_targetMethods.TryGetValue(source, out var target))
                 return target;
 
-            target = new MethodDefinition(source.Name, source.Attributes, VoidType)
+            target = new MethodDefinition(source.Name, source.Attributes, TemporaryPlaceholderType)
             {
                 ImplAttributes = source.ImplAttributes,
             };
@@ -397,7 +422,7 @@
             return targetInstruction;
         }
 
-        private TypeReference ImportType([CanBeNull] TypeReference source, MethodReference targetMethod)
+        private TypeReference ImportType([CanBeNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
         {
             switch (source)
             {
@@ -468,7 +493,7 @@
         {
             Debug.Assert(source.GetType() == typeof(MethodReference));
 
-            var target = new MethodReference(source.Name, VoidType)
+            var target = new MethodReference(source.Name, TemporaryPlaceholderType)
             {
                 HasThis = source.HasThis,
                 ExplicitThis = source.ExplicitThis,
@@ -527,7 +552,7 @@
         }
 
         [NotNull]
-        private TypeReference VoidType => _targetModule.TypeSystem.Void;
+        private TypeReference TemporaryPlaceholderType => new TypeReference("temporary", "type", _targetModule, _targetModule);
 
         private class DeferredAction
         {

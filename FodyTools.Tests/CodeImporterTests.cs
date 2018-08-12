@@ -22,7 +22,7 @@
     {
         [Theory]
         [InlineData(typeof(Test<>))]
-        public void SimpleTypesTest([NotNull] params Type[] types)
+        public void SimpleTypesTest([NotNull, ItemNotNull] params Type[] types)
         {
             var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
 
@@ -35,7 +35,10 @@
 
             var sourceAssemblyPath = governingType.Assembly.Location;
 
-            var imported = target.Import(types);
+            foreach (var type in types)
+            {
+                target.Import(type);
+            }
 
             var tempPath = Path.GetTempPath();
 
@@ -43,7 +46,7 @@
 
             module.Write(targetAssemblyPath);
 
-            foreach (var t in imported)
+            foreach (var t in target.ListImportedTypes())
             {
                 var decompiledSource = ILDasm.Decompile(sourceAssemblyPath, t.FullName);
                 var decompiledTarget = ILDasm.Decompile(targetAssemblyPath, t.FullName);
@@ -72,7 +75,10 @@
 
             var sourceAssemblyPath = governingType.Assembly.Location;
 
-            var imported = target.Import(types);
+            foreach (var type in types)
+            {
+                target.Import(type);
+            }
 
             var tempPath = Path.GetTempPath();
 
@@ -80,7 +86,7 @@
 
             module.Write(targetAssemblyPath);
 
-            foreach (var t in imported)
+            foreach (var t in target.ListImportedTypes())
             {
                 var decompiledSource = ILDasm.Decompile(sourceAssemblyPath, t.FullName);
                 var decompiledTarget = ILDasm.Decompile(targetAssemblyPath, t.FullName);
@@ -142,7 +148,7 @@
     {
         private readonly EventHandler<T> _handler;
         private int _field;
-        private EventHandler<T> _delegate;
+        private readonly EventHandler<T> _delegate;
 
         public Test(EventHandler<T> handler)
         {
