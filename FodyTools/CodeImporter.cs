@@ -198,7 +198,7 @@
             if (string.IsNullOrEmpty(fileName))
                 throw new InvalidOperationException("Unable get location of assembly " + assembly);
 
-            sourceModule = ModuleDefinition.ReadModule(fileName);
+            sourceModule = ModuleDefinition.ReadModule(fileName, new ReaderParameters { ReadSymbols = true });
             _sourceModuleDefinitions.Add(assembly, sourceModule);
 
             // ReSharper disable once AssignNullToNotNullAttribute
@@ -512,7 +512,13 @@
         {
             foreach (var sourceInstruction in source.Body.Instructions)
             {
-                target.Body.Instructions.Add(CloneInstruction(sourceInstruction, target));
+                var targetInstruction = CloneInstruction(sourceInstruction, target);
+
+                target.Body.Instructions.Add(targetInstruction);
+
+                var sequencePoint = source.DebugInformation?.GetSequencePoint(sourceInstruction);
+                if (sequencePoint != null)
+                    target.DebugInformation?.SequencePoints?.Add(CloneSequencePoint(targetInstruction, sequencePoint));
             }
 
             CopyExceptionHandlers(source.Body, target.Body);
@@ -547,6 +553,27 @@
             }
 
             return targetInstruction;
+        }
+
+        private static SequencePoint CloneSequencePoint(Instruction instruction, SequencePoint sequencePoint)
+        {
+            if (sequencePoint == null)
+                return null;
+
+            var document = new Document(sequencePoint.Document.Url)
+            {
+                Language = sequencePoint.Document.Language,
+                LanguageVendor = sequencePoint.Document.LanguageVendor,
+                Type = sequencePoint.Document.Type,
+            };
+
+            return new SequencePoint(instruction, document)
+            {
+                StartLine = sequencePoint.StartLine,
+                StartColumn = sequencePoint.StartColumn,
+                EndLine = sequencePoint.EndLine,
+                EndColumn = sequencePoint.EndColumn,
+            };
         }
 
         private TypeReference ImportType([CanBeNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
