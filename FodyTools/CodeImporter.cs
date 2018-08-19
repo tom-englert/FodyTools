@@ -195,7 +195,7 @@
                 return sourceModule;
 
             var fileName = location ?? assembly.Location;
-            if (fileName == null)
+            if (string.IsNullOrEmpty(fileName))
                 throw new InvalidOperationException("Unable get location of assembly " + assembly);
 
             sourceModule = ModuleDefinition.ReadModule(fileName);
@@ -249,7 +249,7 @@
             var sourceType = sourceModule.GetType(type.FullName);
 
             if (sourceType == null)
-                throw new InvalidOperationException("Did not file type " + type.FullName + " in module " + sourceModule.FileName);
+                throw new InvalidOperationException("Did not find type " + type.FullName + " in module " + sourceModule.FileName);
 
             return ImportTypeDefinition(sourceType);
         }
