@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
@@ -178,20 +179,51 @@
 
 
         /// <summary>
-        /// Registers a source module.<para/>
+        /// Registers a source module.<para />
         /// Use this method before importing anything if you want to import types and their dependencies from many source modules.
         /// However in most cases you don't need to call this.
         /// </summary>
         /// <param name="assembly">The assembly of the sources.</param>
-        /// <returns>The module definition of the source module.</returns>
-        public ModuleDefinition RegisterSourceModule([NotNull] Assembly assembly)
+        /// <param name="location">Optional; the location. Needs to be specified e.g. if the assembly was not loaded from a file regularly and Assembly.Location is null.</param>
+        /// <returns>
+        /// The module definition of the source module.
+        /// </returns>
+        [NotNull]
+        public ModuleDefinition RegisterSourceModule([NotNull] Assembly assembly, [CanBeNull] string location = null)
         {
             if (_sourceModuleDefinitions.TryGetValue(assembly, out var sourceModule))
                 return sourceModule;
 
-            sourceModule = ModuleDefinition.ReadModule(assembly.Location);
+            var fileName = location ?? assembly.Location;
+            if (fileName == null)
+                throw new InvalidOperationException("Unable get location of assembly " + assembly);
+
+            sourceModule = ModuleDefinition.ReadModule(fileName);
             _sourceModuleDefinitions.Add(assembly, sourceModule);
 
+            // ReSharper disable once AssignNullToNotNullAttribute
+            return sourceModule;
+        }
+
+        /// <summary>
+        /// Registers the source module.<para />
+        /// Use this method before importing anything if the source assembly is not available as a file on disk.
+        /// </summary>
+        /// <param name="assembly">The assembly.</param>
+        /// <param name="stream">The stream containing the assembly.</param>
+        /// <returns>
+        /// The module definition of the source module.
+        /// </returns>
+        [NotNull]
+        public ModuleDefinition RegisterSourceModule([NotNull] Assembly assembly, [NotNull] Stream stream)
+        {
+            if (_sourceModuleDefinitions.TryGetValue(assembly, out var sourceModule))
+                return sourceModule;
+
+            sourceModule = ModuleDefinition.ReadModule(stream);
+            _sourceModuleDefinitions.Add(assembly, sourceModule);
+
+            // ReSharper disable once AssignNullToNotNullAttribute
             return sourceModule;
         }
 
@@ -216,7 +248,8 @@
 
             var sourceType = sourceModule.GetType(type.FullName);
 
-            Debug.Assert(sourceType != null);
+            if (sourceType == null)
+                throw new InvalidOperationException("Did not file type " + type.FullName + " in module " + sourceModule.FileName);
 
             return ImportTypeDefinition(sourceType);
         }
