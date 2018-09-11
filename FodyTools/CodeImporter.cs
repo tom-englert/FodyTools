@@ -510,18 +510,33 @@
 
         private void CopyInstructions([NotNull] MethodDefinition source, [NotNull] MethodDefinition target)
         {
+            var targetDebugInformation = target.DebugInformation;
+            var sourceDebugInformation = source.DebugInformation;
+
             foreach (var sourceInstruction in source.Body.Instructions)
             {
                 var targetInstruction = CloneInstruction(sourceInstruction, target);
 
                 target.Body.Instructions.Add(targetInstruction);
 
-                var sequencePoint = source.DebugInformation?.GetSequencePoint(sourceInstruction);
+                var sequencePoint = sourceDebugInformation?.GetSequencePoint(sourceInstruction);
                 if (sequencePoint != null)
-                    target.DebugInformation?.SequencePoints?.Add(CloneSequencePoint(targetInstruction, sequencePoint));
+                    targetDebugInformation?.SequencePoints?.Add(CloneSequencePoint(targetInstruction, sequencePoint));
             }
 
             CopyExceptionHandlers(source.Body, target.Body);
+
+            if (true == targetDebugInformation?.HasSequencePoints)
+            {
+                var scope = targetDebugInformation.Scope = new ScopeDebugInformation(target.Body.Instructions.First(), target.Body.Instructions.Last());
+
+                foreach (var variable in sourceDebugInformation.Scope.Variables)
+                {
+                    var targetVariable = target.Body.Variables[variable.Index];
+
+                    scope.Variables.Add(new VariableDebugInformation(targetVariable, variable.Name));
+                }
+            }
         }
 
         [NotNull]
@@ -555,19 +570,10 @@
             return targetInstruction;
         }
 
-        private static SequencePoint CloneSequencePoint(Instruction instruction, SequencePoint sequencePoint)
+        [NotNull]
+        private static SequencePoint CloneSequencePoint([NotNull] Instruction instruction, [NotNull] SequencePoint sequencePoint)
         {
-            if (sequencePoint == null)
-                return null;
-
-            var document = new Document(sequencePoint.Document.Url)
-            {
-                Language = sequencePoint.Document.Language,
-                LanguageVendor = sequencePoint.Document.LanguageVendor,
-                Type = sequencePoint.Document.Type,
-            };
-
-            return new SequencePoint(instruction, document)
+            return new SequencePoint(instruction, sequencePoint.Document)
             {
                 StartLine = sequencePoint.StartLine,
                 StartColumn = sequencePoint.StartColumn,
