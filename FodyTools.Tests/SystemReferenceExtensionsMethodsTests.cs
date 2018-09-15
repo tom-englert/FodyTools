@@ -23,8 +23,9 @@ namespace FodyTools.Tests
             var weaver = new TestWeaver();
             weaver.ExecuteTestRun(assemblyPath, false, null, null, "ImportExtensionsTests");
 
-            Assert.Equal("System.Boolean System.String::Equals(System.String,System.String,System.StringComparison)", weaver.StringEquals.FullName);
             Assert.Equal("System.String", weaver.StringType.FullName);
+            Assert.Null(weaver.OptionalType);
+            Assert.Equal("System.Boolean System.String::Equals(System.String,System.String,System.StringComparison)", weaver.StringEquals.FullName);
             Assert.Equal("System.Reflection.PropertyInfo System.Type::GetProperty(System.String,System.Reflection.BindingFlags)", weaver.GetPropertyInfo.FullName);
         }
 
@@ -34,18 +35,21 @@ namespace FodyTools.Tests
 
             public TypeReference StringType { get; set; }
 
+            public TypeReference OptionalType { get; set; }
+
             public MethodReference GetPropertyInfo { get; set; }
 
             public override void Execute()
             {
                 StringType = this.ImportType<string>();
+                OptionalType = this.TryImportType<System.Windows.Point>();
                 StringEquals = this.ImportMethod(() => string.Equals(default, default, default));
                 GetPropertyInfo = this.TryImportMethod(() => default(Type).GetProperty(default, default(BindingFlags)));
             }
 
             public override IEnumerable<string> GetAssembliesForScanning()
             {
-                return new[] { "mscorlib", "System", "System.Reflection", "System.Runtime", "netstandard" };
+                yield break;
             }
         }
     }

@@ -21,7 +21,7 @@ namespace FodyTools
             try
             {
                 var method = typeDefinition.Methods
-                    .Single(m => (m.Name == methodName) && m.Parameters.Select(p => p.ParameterType.Name).SequenceEqual(argumentTypeNames));
+                    .Single(m => (m.Name == methodName) && m.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(argumentTypeNames));
 
                 return weaver.ModuleDefinition.ImportReference(method);
             }
@@ -39,7 +39,7 @@ namespace FodyTools
                 return null;
 
             var method = typeDefinition.Methods
-                .FirstOrDefault(m => m.Name == methodName && m.Parameters.Select(p => p.ParameterType.Name).SequenceEqual(argumentTypeNames));
+                .FirstOrDefault(m => m.Name == methodName && m.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(argumentTypeNames));
 
             if (method == null)
                 return null;
@@ -49,12 +49,12 @@ namespace FodyTools
 
         public static TypeReference ImportType<T>([NotNull] this BaseModuleWeaver weaver)
         {
-            return weaver.ModuleDefinition.ImportReference(weaver.FindType(typeof(T).Name));
+            return weaver.ModuleDefinition.ImportReference(weaver.FindType(typeof(T).FullName));
         }
 
         public static TypeReference TryImportType<T>([NotNull] this BaseModuleWeaver weaver)
         {
-            if (!weaver.TryFindType(typeof(T).Name, out var typeDefinition))
+            if (!weaver.TryFindType(typeof(T).FullName, out var typeDefinition))
                 return null;
 
             return weaver.ModuleDefinition.ImportReference(typeDefinition);
@@ -66,8 +66,8 @@ namespace FodyTools
                 throw new ArgumentException("Only method call expression is supported.", nameof(expression));
 
             methodName = methodCall.Method.Name;
-            declaringTypeName = methodCall.Method.DeclaringType.Name;
-            argumentTypeNames = methodCall.Arguments.Select(a => a.Type.Name).ToArray();
+            declaringTypeName = methodCall.Method.DeclaringType.FullName;
+            argumentTypeNames = methodCall.Arguments.Select(a => a.Type.FullName).ToArray();
         }
     }
 }
