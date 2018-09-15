@@ -32,7 +32,6 @@
 
             var sequences = instructions
                 .Select(inst => sequencePointMapper.GetNext(inst.Offset))
-                .ToArray()
                 .GroupBy(item => item);
 
             InstructionSequence previous = null;

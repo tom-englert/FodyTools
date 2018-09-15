@@ -68,7 +68,7 @@ namespace FodyTools.Tests
         [InlineData(3, typeof(WeakEventListener<,,>))]
         [InlineData(1, typeof(WeakEventSource<>))]
         [InlineData(8, typeof(WeakEventSource<>), typeof(WeakEventListener<,,>), typeof(Test<>))]
-        public void ComplexTypesTest(int numberOfTypes, [NotNull] params Type[] types)
+        public void ComplexTypesTest(int numberOfTypes, [NotNull, ItemNotNull] params Type[] types)
         {
             var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
 
@@ -78,6 +78,11 @@ namespace FodyTools.Tests
             Debug.Assert(governingType?.Namespace != null, nameof(governingType) + " != null");
 
             var target = new CodeImporter(module, governingType.Namespace);
+
+            foreach (var type in types)
+            {
+                target.RegisterSourceModule(type.Assembly, readSymbols: false);
+            }
 
             var sourceAssemblyPath = governingType.Assembly.Location;
 

@@ -185,11 +185,13 @@
         /// </summary>
         /// <param name="assembly">The assembly of the sources.</param>
         /// <param name="location">Optional; the location. Needs to be specified e.g. if the assembly was not loaded from a file regularly and Assembly.Location is null.</param>
+        /// <param name="readSymbols">if set to <c>true</c>, read symbols is enabled when loading the module.</param>
         /// <returns>
         /// The module definition of the source module.
         /// </returns>
+        /// <exception cref="InvalidOperationException">Unable get location of assembly " + assembly</exception>
         [NotNull]
-        public ModuleDefinition RegisterSourceModule([NotNull] Assembly assembly, [CanBeNull] string location = null)
+        public ModuleDefinition RegisterSourceModule([NotNull] Assembly assembly, [CanBeNull] string location = null, bool readSymbols = true)
         {
             if (_sourceModuleDefinitions.TryGetValue(assembly, out var sourceModule))
                 return sourceModule;
@@ -198,7 +200,7 @@
             if (string.IsNullOrEmpty(fileName))
                 throw new InvalidOperationException("Unable get location of assembly " + assembly);
 
-            sourceModule = ModuleDefinition.ReadModule(fileName, new ReaderParameters { ReadSymbols = true });
+            sourceModule = ModuleDefinition.ReadModule(fileName, new ReaderParameters { ReadSymbols = readSymbols });
             _sourceModuleDefinitions.Add(assembly, sourceModule);
 
             // ReSharper disable once AssignNullToNotNullAttribute
