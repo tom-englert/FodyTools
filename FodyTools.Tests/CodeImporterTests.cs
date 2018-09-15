@@ -292,6 +292,13 @@ namespace FodyTools.Tests
         }
 
         public Referenced Referenced { get; set; }
+
+        public KeyValuePair<string, T> KeyValuePair { get; set; }
+
+        public KeyValuePair<U, T> GetKeyValuePair<U>()
+        {
+            return default(KeyValuePair<U, T>);
+        }
     }
 
     internal class MyEventArgs : EventArgs, IEnumerable<string>
