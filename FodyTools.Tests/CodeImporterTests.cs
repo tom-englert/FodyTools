@@ -10,8 +10,6 @@ namespace FodyTools.Tests
     using System.Linq;
     using System.Runtime.InteropServices;
 
-    using FodyTools;
-
     using JetBrains.Annotations;
 
     using Mono.Cecil;
@@ -78,13 +76,6 @@ namespace FodyTools.Tests
             Debug.Assert(governingType?.Namespace != null, nameof(governingType) + " != null");
 
             var target = new CodeImporter(module, governingType.Namespace);
-
-            foreach (var type in types)
-            {
-                target.RegisterSourceModule(type.Assembly, readSymbols: false);
-            }
-
-            var sourceAssemblyPath = governingType.Assembly.Location;
 
             foreach (var type in types)
             {

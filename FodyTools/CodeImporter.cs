@@ -196,7 +196,7 @@
             if (_sourceModuleDefinitions.TryGetValue(assembly, out var sourceModule))
                 return sourceModule;
 
-            var fileName = location ?? assembly.Location;
+            var fileName = location ?? new Uri(assembly.CodeBase, UriKind.Absolute).LocalPath;
             if (string.IsNullOrEmpty(fileName))
                 throw new InvalidOperationException("Unable get location of assembly " + assembly);
 
