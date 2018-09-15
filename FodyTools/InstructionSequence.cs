@@ -18,7 +18,7 @@ namespace FodyTools
     {
         [NotNull, ItemNotNull]
         private readonly IList<Instruction> _instructions;
-        [CanBeNull,ItemNotNull]
+        [CanBeNull, ItemNotNull]
         private readonly InstructionSequence _previous;
 
         public InstructionSequence([NotNull, ItemNotNull] IList<Instruction> instructions, [CanBeNull, ItemNotNull] InstructionSequence previous, int count, [CanBeNull] SequencePoint point)
@@ -110,9 +110,7 @@ namespace FodyTools
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            var startIndex = StartIndex;
-
-            return _instructions.Skip(startIndex).Take(Count).GetEnumerator();
+            return ((IEnumerable<Instruction>)this).GetEnumerator();
         }
 
         public void Add(Instruction item)

@@ -17,7 +17,10 @@
         public InstructionSequences([NotNull, ItemNotNull] IList<Instruction> instructions, [CanBeNull, ItemNotNull] IList<SequencePoint> sequencePoints)
             : base(CreateSequences(instructions, sequencePoints).ToArray())
         {
+            Instructions = instructions;
         }
+
+        public IList<Instruction> Instructions { get; }
 
         [NotNull, ItemNotNull]
         private static IEnumerable<InstructionSequence> CreateSequences([NotNull, ItemNotNull] IList<Instruction> instructions, [CanBeNull, ItemNotNull] IList<SequencePoint> sequencePoints)

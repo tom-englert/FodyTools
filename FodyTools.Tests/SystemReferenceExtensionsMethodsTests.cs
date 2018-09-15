@@ -1,4 +1,5 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
 
 namespace FodyTools.Tests
 {
@@ -37,11 +38,9 @@ namespace FodyTools.Tests
 
             public override void Execute()
             {
-#pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
                 StringType = this.ImportType<string>();
                 StringEquals = this.ImportMethod(() => string.Equals(default, default, default));
                 GetPropertyInfo = this.TryImportMethod(() => default(Type).GetProperty(default, default(BindingFlags)));
-#pragma warning restore CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
             }
 
             public override IEnumerable<string> GetAssembliesForScanning()
