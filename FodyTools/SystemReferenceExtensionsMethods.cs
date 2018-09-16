@@ -10,7 +10,7 @@ using Mono.Cecil;
 
 namespace FodyTools
 {
-    public static class SystemReferenceExtensionsMethods
+    internal static class SystemReferenceExtensionsMethods
     {
         public static MethodReference ImportMethod<TResult>([NotNull] this BaseModuleWeaver weaver, [NotNull] Expression<Func<TResult>> expression)
         {

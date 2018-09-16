@@ -24,7 +24,7 @@
     /// The main task of this is to copy code fragments into another module so they can be used by the weaver.
     /// It copies the types specified in the Import method, and automatically copies all required dependencies.
     /// </remarks>
-    public class CodeImporter
+    internal class CodeImporter
     {
         [NotNull]
         private static readonly ConstructorInfo _instructionConstructor = typeof(Instruction).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
