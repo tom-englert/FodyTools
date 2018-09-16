@@ -115,10 +115,26 @@
 
             var targetType = Import(methodCall.Method.DeclaringType);
             var methodName = methodCall.Method.Name;
+            var argumentTypeNames = methodCall.Arguments.Select(a => a.Type.FullName).ToArray();
 
-            var argumentTypeNames = methodCall.Arguments.Select(a => a.Type.Name).ToArray();
+            return targetType.Methods.Single(m => m.Name == methodName && m.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(argumentTypeNames)) ?? throw new InvalidOperationException("Importing method failed.");
+        }
 
-            return targetType.Methods.Single(m => m.Name == methodName && m.Parameters.Select(p => p.ParameterType.Name).SequenceEqual(argumentTypeNames)) ?? throw new InvalidOperationException("Importing method failed.");
+        /// <summary>
+        /// Imports the methods declaring type into the target module and returns the method definition
+        /// of the corresponding method in the target module.
+        /// </summary>
+        /// <param name="sourceMethod">The source method.</param>
+        /// <returns>The method definition of the imported method.</returns>
+        /// <exception cref="InvalidOperationException">Importing method failed.</exception>
+        [NotNull]
+        public MethodDefinition ImportMethodDefinition([NotNull] MethodDefinition sourceMethod)
+        {
+            var targetType = ImportTypeDefinition(sourceMethod.DeclaringType);
+            var methodName = sourceMethod.Name;
+            var argumentTypeNames = sourceMethod.Parameters.Select(a => a.ParameterType.FullName).ToArray();
+
+            return targetType.Methods.Single(m => m.Name == methodName && m.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(argumentTypeNames)) ?? throw new InvalidOperationException("Importing method failed.");
         }
 
         /// <summary>
@@ -150,6 +166,21 @@
         }
 
         /// <summary>
+        /// Imports the property's declaring type into the target module and returns the property definition
+        /// of the corresponding property in the target module.
+        /// </summary>
+        /// <param name="sourceProperty">The source property.</param>
+        /// <returns>The property definition of the imported property</returns>
+        [NotNull]
+        public PropertyDefinition ImportPropertyDefinition([NotNull] PropertyDefinition sourceProperty)
+        {
+            var targetType = ImportTypeDefinition(sourceProperty.DeclaringType);
+            var propertyName = sourceProperty.Name;
+
+            return targetType.Properties.Single(m => m.Name == propertyName);
+        }
+
+        /// <summary>
         /// Imports the field's declaring type into the target module and returns the field definition
         /// of the corresponding field in the target module.
         /// </summary>
@@ -173,6 +204,21 @@
 
             var targetType = Import(member.DeclaringType);
             var fieldName = member.Name;
+
+            return targetType.Fields.Single(m => m.Name == fieldName);
+        }
+
+        /// <summary>
+        /// Imports the field's declaring type into the target module and returns the field definition
+        /// of the corresponding field in the target module.
+        /// </summary>
+        /// <param name="sourceField">The source field.</param>
+        /// <returns>The field definition of the imported field</returns>
+        [NotNull]
+        public FieldDefinition ImportFieldDefinition([NotNull] FieldDefinition sourceField)
+        {
+            var targetType = ImportTypeDefinition(sourceField.DeclaringType);
+            var fieldName = sourceField.Name;
 
             return targetType.Fields.Single(m => m.Name == fieldName);
         }
@@ -257,7 +303,7 @@
         }
 
         [ContractAnnotation("sourceType:notnull=>notnull")]
-        private TypeDefinition ImportTypeDefinition(TypeDefinition sourceType)
+        public TypeDefinition ImportTypeDefinition(TypeDefinition sourceType)
         {
             if (sourceType == null)
                 return null;

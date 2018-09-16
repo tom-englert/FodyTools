@@ -1,4 +1,5 @@
 // ReSharper disable AnnotateCanBeNullParameter
+#pragma warning disable S112 // General exceptions should never be thrown => in indexers IndexOutOfRange exception is expected.
 
 namespace FodyTools
 {

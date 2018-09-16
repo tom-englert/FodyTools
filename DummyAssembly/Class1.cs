@@ -2,15 +2,15 @@
 {
     public class Class1
     {
-        private int field;
+        private int _field;
 
         public void Method(int param)
         {
-            field = param;
+            _field = param;
             param += 1;
-            if (param == field)
+            if (param == _field)
             {
-                field -= 1;
+                _field -= 1;
             }
         }
     }

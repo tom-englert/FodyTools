@@ -288,7 +288,7 @@ namespace FodyTools.Tests
 
         public KeyValuePair<U, T> GetKeyValuePair<U>()
         {
-            return default(KeyValuePair<U, T>);
+            return default;
         }
     }
 

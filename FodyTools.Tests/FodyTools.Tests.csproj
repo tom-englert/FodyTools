@@ -6,9 +6,9 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="FodyHelpers" Version="3.2.2" />
+    <PackageReference Include="FodyHelpers" Version="3.2.3" />
     <PackageReference Include="JetBrains.Annotations" Version="2018.2.1" />
-    <PackageReference Include="TomsToolbox.Core" Version="1.0.73" />
+    <PackageReference Include="TomsToolbox.Core" Version="1.0.74" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0">
       <PrivateAssets>all</PrivateAssets>
@@ -23,21 +23,4 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
-  
-  <!-- Workaround for https://github.com/dotnet/sdk/issues/1458 -->
-  <Target Name="_ResolveCopyLocalNuGetPackagePdbsAndXml" 
-          Condition="$(CopyLocalLockFileAssemblies) == true" 
-          AfterTargets="ResolveReferences">
-    <ItemGroup>
-      <ReferenceCopyLocalPaths 
-        Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).pdb')" 
-        Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''
-                    and Exists('%(RootDir)%(Directory)%(Filename).pdb')" />
-      <ReferenceCopyLocalPaths 
-        Include="@(ReferenceCopyLocalPaths->'%(RootDir)%(Directory)%(Filename).xml')" 
-        Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''
-                    and Exists('%(RootDir)%(Directory)%(Filename).xml')" />
-    </ItemGroup>
-  </Target>
-
 </Project>
