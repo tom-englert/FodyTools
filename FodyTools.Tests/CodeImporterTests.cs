@@ -1,4 +1,5 @@
-﻿#pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
+﻿// ReSharper disable AssignNullToNotNullAttribute
+#pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
 
 namespace FodyTools.Tests
 {
@@ -52,7 +53,7 @@ namespace FodyTools.Tests
 
             foreach (var t in importedTypes)
             {
-                var decompiledSource = FixAttributeOrder(ILDasm.Decompile(sourceAssemblyPath, t.FullName));
+                var decompiledSource =  FixAttributeOrder(ILDasm.Decompile(sourceAssemblyPath, t.FullName));
                 var decompiledTarget = FixAttributeOrder(ILDasm.Decompile(targetAssemblyPath, t.FullName));
 
                 File.WriteAllText(Path.Combine(tempPath, "source.txt"), decompiledSource);
@@ -195,10 +196,8 @@ namespace FodyTools.Tests
         private static string FixAttributeOrder([NotNull] string value)
         {
             return value.Replace(
-@"  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
-  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) ",
-@"  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 )
-  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) ");
+"  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) \r\n  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) ", 
+"  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) \r\n  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) ");
         }
 
         private static class ILDasm
