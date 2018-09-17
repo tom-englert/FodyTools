@@ -340,6 +340,7 @@
             CopyFields(sourceType, targetType);
             CopyMethods(sourceType, targetType);
             CopyProperties(sourceType, targetType);
+            CopyEvents(sourceType, targetType);
 
             return targetType;
         }
@@ -365,6 +366,22 @@
                 CopyAttributes(sourceDefinition, targetDefinition);
 
                 target.Properties.Add(targetDefinition);
+            }
+        }
+
+        private void CopyEvents([NotNull] TypeDefinition source, [NotNull] TypeDefinition target)
+        {
+            foreach (var sourceDefinition in source.Events)
+            {
+                var targetDefinition = new EventDefinition(sourceDefinition.Name, sourceDefinition.Attributes, ImportType(sourceDefinition.EventType, null))
+                {
+                    AddMethod= ImportMethodDefinition(sourceDefinition.AddMethod, target),
+                    RemoveMethod = ImportMethodDefinition(sourceDefinition.RemoveMethod, target)
+                };
+
+                CopyAttributes(sourceDefinition, targetDefinition);
+
+                target.Events.Add(targetDefinition);
             }
         }
 
@@ -474,6 +491,9 @@
             foreach (var genericParameter in source.GenericParameters)
             {
                 var parameter = new GenericParameter(genericParameter.Name, ImportType(genericParameter.DeclaringType, null));
+
+                parameter.Attributes = genericParameter.Attributes;
+
                 if (genericParameter.HasConstraints)
                 {
                     foreach (var constraint in genericParameter.Constraints)

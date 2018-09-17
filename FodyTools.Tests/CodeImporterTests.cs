@@ -52,8 +52,8 @@ namespace FodyTools.Tests
 
             foreach (var t in importedTypes)
             {
-                var decompiledSource = ILDasm.Decompile(sourceAssemblyPath, t.FullName);
-                var decompiledTarget = ILDasm.Decompile(targetAssemblyPath, t.FullName);
+                var decompiledSource = FixAttributeOrder(ILDasm.Decompile(sourceAssemblyPath, t.FullName));
+                var decompiledTarget = FixAttributeOrder(ILDasm.Decompile(targetAssemblyPath, t.FullName));
 
                 File.WriteAllText(Path.Combine(tempPath, "source.txt"), decompiledSource);
                 File.WriteAllText(Path.Combine(tempPath, "target.txt"), decompiledTarget);
@@ -66,6 +66,8 @@ namespace FodyTools.Tests
         [InlineData(3, typeof(WeakEventListener<,,>))]
         [InlineData(1, typeof(WeakEventSource<>))]
         [InlineData(8, typeof(WeakEventSource<>), typeof(WeakEventListener<,,>), typeof(Test<>))]
+        [InlineData(2, typeof(AutoWeakIndexer<,>))]
+        [InlineData(2, typeof(CollectionExtensions))]
         public void ComplexTypesTest(int numberOfTypes, [NotNull, ItemNotNull] params Type[] types)
         {
             var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
@@ -189,6 +191,16 @@ namespace FodyTools.Tests
             });
         }
 
+        [NotNull]
+        private static string FixAttributeOrder([NotNull] string value)
+        {
+            return value.Replace(
+@"  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) ",
+@"  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 )
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) ");
+        }
+
         private static class ILDasm
         {
             private static readonly string _ilDasmPath = FindILDasm();
@@ -247,6 +259,8 @@ namespace FodyTools.Tests
             _delegate = OnEvent;
         }
 
+        public event EventHandler<T> Tested;
+
         public int Value()
         {
             return _field;
@@ -259,7 +273,7 @@ namespace FodyTools.Tests
 
         public void OnEvent(object sender, T e)
         {
-
+            Tested?.Invoke(this, e);
         }
 
         private Referenced GetReferenced()
