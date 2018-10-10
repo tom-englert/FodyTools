@@ -15,7 +15,6 @@ namespace FodyTools.Tests
     using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Drawing.Drawing2D;
     using System.IO;
     using System.Linq;
     using System.Runtime.InteropServices;
@@ -31,9 +30,12 @@ namespace FodyTools.Tests
     using TomsToolbox.Core;
 
     using Xunit;
+    using Xunit.Abstractions;
 
     public class CodeImporterTests
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
         [NotNull]
         private static string TempPath
         {
@@ -49,6 +51,11 @@ namespace FodyTools.Tests
         {
             AssemblyModuleResolver,
             LocalModuleResolver
+        }
+
+        public CodeImporterTests(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
         }
 
         [Theory]
@@ -81,7 +88,7 @@ namespace FodyTools.Tests
 
             module.Write(targetAssemblyPath);
 
-            Assert.True(PEVerify.Verify(targetAssemblyPath));
+            Assert.True(PEVerify.Verify(_testOutputHelper, targetAssemblyPath));
 
             var importedTypes = target.ListImportedTypes();
 
@@ -142,7 +149,7 @@ namespace FodyTools.Tests
 
             VerifyTypes(importedTypes, targetAssemblyPath);
 
-            Assert.True(PEVerify.Verify(targetAssemblyPath));
+            Assert.True(PEVerify.Verify(_testOutputHelper, targetAssemblyPath));
         }
 
         [Fact]
@@ -341,7 +348,7 @@ namespace FodyTools.Tests
 
             module.Write(targetAssemblyPath);
 
-            Assert.True(PEVerify.Verify(targetAssemblyPath));
+            Assert.True(PEVerify.Verify(_testOutputHelper, targetAssemblyPath));
 
             var il = ILDasm.Decompile(targetAssemblyPath);
 
@@ -445,7 +452,7 @@ namespace FodyTools.Tests
         {
             private static readonly string _peVerifyPath = SdkTool.Find("PEVerify.exe");
 
-            public static bool Verify(string assemblyPath)
+            public static bool Verify(ITestOutputHelper testOutputHelper, string assemblyPath)
             {
                 var workingDirectory = Path.GetDirectoryName(assemblyPath);
 
@@ -473,6 +480,9 @@ namespace FodyTools.Tests
 
                     if (process.ExitCode != 0)
                     {
+                        testOutputHelper.WriteLine(_peVerifyPath);
+                        testOutputHelper.WriteLine(output);
+                        
                         return false;
                     }
                 }
