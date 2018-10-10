@@ -456,7 +456,10 @@ namespace FodyTools.Tests
             {
                 var workingDirectory = Path.GetDirectoryName(assemblyPath);
 
-                var ignoreCodes = new string[] { };
+                var ignoreCodes = new []
+                {
+                    "0x80131869" // can't resolve reference => PEVerify can't find the referenced dll...
+                };
 
                 var processStartInfo = new ProcessStartInfo(_peVerifyPath)
                 {
