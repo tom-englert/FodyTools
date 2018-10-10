@@ -109,7 +109,7 @@
                 return target;
             }
 
-            if (IsExternalReference(typeReference))
+            if (IsLocalOrExternalReference(typeReference))
                 return typeReference;
 
             return ProcessDeferredActions(ImportTypeDefinition(typeReference.Resolve()));
@@ -724,7 +724,7 @@
         {
             Debug.Assert(source.GetType() == typeof(TypeReference));
 
-            if (IsExternalReference(source))
+            if (IsLocalOrExternalReference(source))
                 return TargetModule.ImportReference(source);
 
             var typeDefinition = source.Resolve();
@@ -811,7 +811,7 @@
             return target;
         }
 
-        private bool IsExternalReference([NotNull] TypeReference typeReference)
+        private bool IsLocalOrExternalReference([NotNull] TypeReference typeReference)
         {
             var scope = typeReference.Scope;
 
@@ -831,8 +831,10 @@
                     return false;
             }
 
-            return TargetModule.Assembly.FullName != assemblyName
-                && !_sourceModuleDefinitions.ContainsKey(assemblyName)
+            if (string.Equals(TargetModule.Assembly.FullName, assemblyName, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return !_sourceModuleDefinitions.ContainsKey(assemblyName)
                 && !ResolveModule(typeReference, assemblyName);
         }
 
