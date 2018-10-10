@@ -30,6 +30,20 @@ namespace DummyAssembly
             {
                 _field -= 1;
             }
+
+            switch (param)
+            {
+                    case 1:
+                        break;
+
+                    case 2:
+                        param = param - 1;
+                        break;
+
+                    default:
+                        _field = param - 2;
+                        break;
+            }
         }
 
         [Sequence(5)]

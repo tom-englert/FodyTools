@@ -610,9 +610,13 @@
             var sourceInstructions = sourceBody.Instructions;
             var targetInstructions = targetBody.Instructions;
 
+            var instructionMap = new Dictionary<Instruction, Instruction>();
+
             foreach (var sourceInstruction in sourceInstructions)
             {
-                var targetInstruction = CloneInstruction(sourceInstruction, target);
+                var targetInstruction = CloneInstruction(sourceInstruction, target, instructionMap);
+
+                instructionMap.Add(sourceInstruction, targetInstruction);
 
                 targetInstructions.Add(targetInstruction);
 
@@ -637,9 +641,9 @@
         }
 
         [NotNull]
-        private Instruction CloneInstruction([NotNull] Instruction source, [NotNull] MethodDefinition targetMethod)
+        private Instruction CloneInstruction([NotNull] Instruction source, [NotNull] MethodDefinition targetMethod, [NotNull] Dictionary<Instruction, Instruction> instructionMap)
         {
-            var targetInstruction = source; // (Instruction)_instructionConstructor.Invoke(new[] { source.OpCode, source.Operand });
+            var targetInstruction = (Instruction)_instructionConstructor.Invoke(new[] { source.OpCode, source.Operand });
 
             switch (targetInstruction.Operand)
             {
@@ -662,6 +666,14 @@
 
                 case FieldReference fieldReference:
                     ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = new FieldReference(fieldReference.Name, ImportType(fieldReference.FieldType, targetMethod), ImportType(fieldReference.DeclaringType, targetMethod)));
+                    break;
+
+                case Instruction instruction:
+                    ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = instructionMap[instruction]);
+                    break;
+
+                case Instruction[] instructions:
+                    ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = instructions.Select(instruction => instructionMap[instruction]).ToArray());
                     break;
             }
 
