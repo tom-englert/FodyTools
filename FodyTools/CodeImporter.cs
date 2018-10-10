@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Linq.Expressions;
@@ -30,16 +31,17 @@
         private static readonly ConstructorInfo _instructionConstructor = typeof(Instruction).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
 
         [NotNull]
-        private readonly Dictionary<Assembly, ModuleDefinition> _sourceModuleDefinitions = new Dictionary<Assembly, ModuleDefinition>();
+        private readonly Dictionary<string, ModuleDefinition> _sourceModuleDefinitions = new Dictionary<string, ModuleDefinition>();
+
         [NotNull]
-        private readonly Dictionary<string, TypeDefinition> _targetTypes = new Dictionary<string, TypeDefinition>();
+        private readonly Dictionary<string, TypeDefinition> _targetTypesBySourceName = new Dictionary<string, TypeDefinition>();
+
+        [NotNull]
+        private readonly HashSet<TypeDefinition> _targetTypes = new HashSet<TypeDefinition>();
+
         [NotNull]
         private readonly Dictionary<MethodDefinition, MethodDefinition> _targetMethods = new Dictionary<MethodDefinition, MethodDefinition>();
 
-        [NotNull]
-        private readonly string _targetNamespace;
-        [NotNull]
-        private readonly ModuleDefinition _targetModule;
         [NotNull]
         private readonly IList<DeferredAction> _deferredActions = new List<DeferredAction>();
 
@@ -53,12 +55,18 @@
         /// Initializes a new instance of the <see cref="CodeImporter"/> class.
         /// </summary>
         /// <param name="targetModule">The target module into which the specified code will be imported.</param>
-        /// <param name="targetNamespace">The target namespace in the target module that will contain the imported classes.</param>
-        public CodeImporter([NotNull] ModuleDefinition targetModule, [NotNull] string targetNamespace)
+        public CodeImporter([NotNull] ModuleDefinition targetModule)
         {
-            _targetModule = targetModule;
-            _targetNamespace = targetNamespace;
+            TargetModule = targetModule;
         }
+
+        [NotNull]
+        public ModuleDefinition TargetModule { get; }
+
+        [CanBeNull]
+        public IModuleResolver ModuleResolver { get; set; }
+
+        public bool HideImportedTypes { get; set; } = true;
 
         /// <summary>
         /// Imports the specified type and it's local references from it's source module into the target module.
@@ -70,19 +78,7 @@
         [NotNull]
         public TypeDefinition Import([NotNull] Type type)
         {
-            var target = ImportType(type);
-
-            while (true)
-            {
-                var action = _deferredActions.OrderBy(a => (int)a.Priority).FirstOrDefault();
-                if (action == null)
-                    break;
-
-                _deferredActions.Remove(action);
-                action.Action();
-            }
-
-            return target;
+            return ImportType(type);
         }
 
         /// <summary>
@@ -96,6 +92,27 @@
         public TypeDefinition Import<T>()
         {
             return Import(typeof(T));
+        }
+
+        [NotNull]
+        public TypeReference Import([NotNull] TypeReference typeReference)
+        {
+            if (typeReference is GenericInstanceType source)
+            {
+                var target = new GenericInstanceType(Import(source.ElementType));
+
+                foreach (var genericArgument in source.GenericArguments)
+                {
+                    target.GenericArguments.Add(Import(genericArgument));
+                }
+
+                return target;
+            }
+
+            if (IsExternalReference(typeReference))
+                return typeReference;
+
+            return ProcessDeferredActions(ImportTypeDefinition(typeReference.Resolve()));
         }
 
         /// <summary>
@@ -116,23 +133,6 @@
             var targetType = Import(methodCall.Method.DeclaringType);
             var methodName = methodCall.Method.Name;
             var argumentTypeNames = methodCall.Arguments.Select(a => a.Type.FullName).ToArray();
-
-            return targetType.Methods.Single(m => m.Name == methodName && m.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(argumentTypeNames)) ?? throw new InvalidOperationException("Importing method failed.");
-        }
-
-        /// <summary>
-        /// Imports the methods declaring type into the target module and returns the method definition
-        /// of the corresponding method in the target module.
-        /// </summary>
-        /// <param name="sourceMethod">The source method.</param>
-        /// <returns>The method definition of the imported method.</returns>
-        /// <exception cref="InvalidOperationException">Importing method failed.</exception>
-        [NotNull]
-        public MethodDefinition ImportMethodDefinition([NotNull] MethodDefinition sourceMethod)
-        {
-            var targetType = ImportTypeDefinition(sourceMethod.DeclaringType);
-            var methodName = sourceMethod.Name;
-            var argumentTypeNames = sourceMethod.Parameters.Select(a => a.ParameterType.FullName).ToArray();
 
             return targetType.Methods.Single(m => m.Name == methodName && m.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(argumentTypeNames)) ?? throw new InvalidOperationException("Importing method failed.");
         }
@@ -166,21 +166,6 @@
         }
 
         /// <summary>
-        /// Imports the property's declaring type into the target module and returns the property definition
-        /// of the corresponding property in the target module.
-        /// </summary>
-        /// <param name="sourceProperty">The source property.</param>
-        /// <returns>The property definition of the imported property</returns>
-        [NotNull]
-        public PropertyDefinition ImportPropertyDefinition([NotNull] PropertyDefinition sourceProperty)
-        {
-            var targetType = ImportTypeDefinition(sourceProperty.DeclaringType);
-            var propertyName = sourceProperty.Name;
-
-            return targetType.Properties.Single(m => m.Name == propertyName);
-        }
-
-        /// <summary>
         /// Imports the field's declaring type into the target module and returns the field definition
         /// of the corresponding field in the target module.
         /// </summary>
@@ -209,82 +194,100 @@
         }
 
         /// <summary>
-        /// Imports the field's declaring type into the target module and returns the field definition
-        /// of the corresponding field in the target module.
+        /// Imports the event's declaring type into the target module and returns the event definition
+        /// of the corresponding event in the target module.
         /// </summary>
-        /// <param name="sourceField">The source field.</param>
-        /// <returns>The field definition of the imported field</returns>
+        /// <typeparam name="T">The event type of the event</typeparam>
+        /// <param name="expression">The event expression describing the source event.</param>
+        /// <returns>The event definition of the imported event</returns>
+        /// <exception cref="ArgumentException">
+        /// Only a member expression is supported here. - expression
+        /// or
+        /// Only a event expression is supported here. - expression
+        /// </exception>
         [NotNull]
-        public FieldDefinition ImportFieldDefinition([NotNull] FieldDefinition sourceField)
+        public EventDefinition ImportEvent<T>([NotNull] Expression<Func<T>> expression)
         {
-            var targetType = ImportTypeDefinition(sourceField.DeclaringType);
-            var fieldName = sourceField.Name;
+            if (!(expression.Body is MemberExpression memberExpression))
+                throw new ArgumentException("Only a member expression is supported here.", nameof(expression));
 
-            return targetType.Fields.Single(m => m.Name == fieldName);
-        }
+            var member = memberExpression.Member;
+            if (!(member is EventInfo))
+                throw new ArgumentException("Only a event expression is supported here.", nameof(expression));
 
+            var targetType = Import(member.DeclaringType);
+            var eventName = member.Name;
 
-        /// <summary>
-        /// Registers a source module.<para />
-        /// Use this method before importing anything if you want to import types and their dependencies from many source modules.
-        /// However in most cases you don't need to call this.
-        /// </summary>
-        /// <param name="assembly">The assembly of the sources.</param>
-        /// <param name="location">Optional; the location. Needs to be specified e.g. if the assembly was not loaded from a file regularly and Assembly.Location is null.</param>
-        /// <param name="readSymbols">if set to <c>true</c>, read symbols is enabled when loading the module.</param>
-        /// <returns>
-        /// The module definition of the source module.
-        /// </returns>
-        /// <exception cref="InvalidOperationException">Unable get location of assembly " + assembly</exception>
-        [NotNull]
-        public ModuleDefinition RegisterSourceModule([NotNull] Assembly assembly, [CanBeNull] string location = null, bool readSymbols = true)
-        {
-            if (_sourceModuleDefinitions.TryGetValue(assembly, out var sourceModule))
-                return sourceModule;
-
-            var fileName = location ?? new Uri(assembly.CodeBase, UriKind.Absolute).LocalPath;
-            if (string.IsNullOrEmpty(fileName))
-                throw new InvalidOperationException("Unable get location of assembly " + assembly);
-
-            sourceModule = ModuleDefinition.ReadModule(fileName, new ReaderParameters { ReadSymbols = readSymbols });
-            _sourceModuleDefinitions.Add(assembly, sourceModule);
-
-            // ReSharper disable once AssignNullToNotNullAttribute
-            return sourceModule;
-        }
-
-        /// <summary>
-        /// Registers the source module.<para />
-        /// Use this method before importing anything if the source assembly is not available as a file on disk.
-        /// </summary>
-        /// <param name="assembly">The assembly.</param>
-        /// <param name="stream">The stream containing the assembly.</param>
-        /// <returns>
-        /// The module definition of the source module.
-        /// </returns>
-        [NotNull]
-        public ModuleDefinition RegisterSourceModule([NotNull] Assembly assembly, [NotNull] Stream stream)
-        {
-            if (_sourceModuleDefinitions.TryGetValue(assembly, out var sourceModule))
-                return sourceModule;
-
-            sourceModule = ModuleDefinition.ReadModule(stream);
-            _sourceModuleDefinitions.Add(assembly, sourceModule);
-
-            // ReSharper disable once AssignNullToNotNullAttribute
-            return sourceModule;
+            return targetType.Events.Single(m => m.Name == eventName);
         }
 
         /// <summary>
         /// Returns a collection of the imported types.
         /// </summary>
         /// <returns>The collection of imported types.</returns>
-        [NotNull, ItemNotNull]
-        public IReadOnlyCollection<TypeDefinition> ListImportedTypes()
+        [NotNull]
+        public IDictionary<string, TypeDefinition> ListImportedTypes()
         {
-            return _targetTypes.Values
-                .Where(t => t.DeclaringType == null)
-                .ToArray();
+            return _targetTypesBySourceName
+                .Where(t => t.Value?.DeclaringType == null)
+                .ToDictionary(item => item.Key, item => item.Value);
+        }
+
+        [NotNull]
+        public ICollection<ModuleDefinition> ListImportedModules()
+        {
+            return _sourceModuleDefinitions.Values;
+        }
+
+        [NotNull]
+        private ModuleDefinition RegisterSourceModule([NotNull] Assembly assembly)
+        {
+            var assemblyName = assembly.FullName;
+
+            if (_sourceModuleDefinitions.TryGetValue(assemblyName, out var sourceModule) && (sourceModule != null))
+                return sourceModule;
+
+            var fileName = new Uri(assembly.CodeBase, UriKind.Absolute).LocalPath;
+            if (string.IsNullOrEmpty(fileName))
+                throw new InvalidOperationException("Unable get location of assembly " + assembly);
+
+            sourceModule = ModuleDefinition.ReadModule(fileName);
+
+            try
+            {
+                sourceModule.ReadSymbols();
+            }
+            catch
+            {
+                // module has no symbols, just go without...
+            }
+
+            _sourceModuleDefinitions[assemblyName] = sourceModule;
+
+            // ReSharper disable once AssignNullToNotNullAttribute
+            return sourceModule;
+        }
+
+        private void RegisterSourceModule([NotNull] ModuleDefinition sourceModule)
+        {
+            var assemblyName = sourceModule.Assembly.FullName;
+
+            if (_sourceModuleDefinitions.ContainsKey(assemblyName))
+                return;
+
+            if (!sourceModule.HasSymbols)
+            {
+                try
+                {
+                    sourceModule.ReadSymbols();
+                }
+                catch
+                {
+                    // module has no symbols, just go without...
+                }
+            }
+
+            _sourceModuleDefinitions[assemblyName] = sourceModule;
         }
 
         [NotNull]
@@ -299,24 +302,29 @@
             if (sourceType == null)
                 throw new InvalidOperationException("Did not find type " + type.FullName + " in module " + sourceModule.FileName);
 
-            return ImportTypeDefinition(sourceType);
+            return ProcessDeferredActions(ImportTypeDefinition(sourceType));
         }
 
         [ContractAnnotation("sourceType:notnull=>notnull")]
-        public TypeDefinition ImportTypeDefinition(TypeDefinition sourceType)
+        private TypeDefinition ImportTypeDefinition(TypeDefinition sourceType)
         {
             if (sourceType == null)
                 return null;
 
-            if (_targetTypes.TryGetValue(sourceType.FullName, out var targetType))
+            if (_targetTypesBySourceName.TryGetValue(sourceType.FullName, out var targetType))
                 return targetType;
 
-            var declaringType = ImportTypeDefinition(sourceType.DeclaringType);
-            var targetNamespace = declaringType != null ? null : _targetNamespace;
+            if (_targetTypes.Contains(sourceType))
+                return sourceType;
 
-            targetType = new TypeDefinition(targetNamespace, sourceType.Name, sourceType.Attributes) { DeclaringType = declaringType };
+            RegisterSourceModule(sourceType.Module);
 
-            _targetTypes.Add(sourceType.FullName, targetType);
+            targetType = new TypeDefinition(sourceType.Namespace, sourceType.Name, sourceType.Attributes);
+
+            _targetTypesBySourceName.Add(sourceType.FullName, targetType);
+            _targetTypes.Add(targetType);
+
+            targetType.DeclaringType = ImportTypeDefinition(sourceType.DeclaringType);
 
             foreach (var sourceTypeInterface in sourceType.Interfaces)
             {
@@ -328,13 +336,18 @@
 
             targetType.BaseType = ImportType(sourceType.BaseType, null);
 
-            if (declaringType != null)
+            if (targetType.IsNested)
             {
-                declaringType.NestedTypes.Add(targetType);
+                targetType.DeclaringType.NestedTypes.Add(targetType);
             }
             else
             {
-                _targetModule.Types.Add(targetType);
+                if (HideImportedTypes)
+                {
+                    targetType.IsPublic = false;
+                }
+
+                TargetModule.Types.Add(targetType);
             }
 
             CopyFields(sourceType, targetType);
@@ -375,7 +388,7 @@
             {
                 var targetDefinition = new EventDefinition(sourceDefinition.Name, sourceDefinition.Attributes, ImportType(sourceDefinition.EventType, null))
                 {
-                    AddMethod= ImportMethodDefinition(sourceDefinition.AddMethod, target),
+                    AddMethod = ImportMethodDefinition(sourceDefinition.AddMethod, target),
                     RemoveMethod = ImportMethodDefinition(sourceDefinition.RemoveMethod, target)
                 };
 
@@ -397,49 +410,49 @@
             }
         }
 
-        private MethodDefinition ImportMethodDefinition([CanBeNull] MethodDefinition source, [NotNull] TypeDefinition targetType)
+        private MethodDefinition ImportMethodDefinition([CanBeNull] MethodDefinition sourceDefinition, [NotNull] TypeDefinition targetType)
         {
-            if (source == null)
+            if (sourceDefinition == null)
                 return null;
 
-            if (_targetMethods.TryGetValue(source, out var target))
+            if (_targetMethods.TryGetValue(sourceDefinition, out var target))
                 return target;
 
-            target = new MethodDefinition(source.Name, source.Attributes, TemporaryPlaceholderType)
+            target = new MethodDefinition(sourceDefinition.Name, sourceDefinition.Attributes, TemporaryPlaceholderType)
             {
-                ImplAttributes = source.ImplAttributes,
+                ImplAttributes = sourceDefinition.ImplAttributes,
             };
 
-            _targetMethods.Add(source, target);
+            _targetMethods.Add(sourceDefinition, target);
 
-            foreach (var sourceOverride in source.Overrides)
+            foreach (var sourceOverride in sourceDefinition.Overrides)
             {
                 target.Overrides.Add(ImportMethodReference(sourceOverride));
             }
 
-            CopyAttributes(source, target);
-            CopyGenericParameters(source, target);
-            CopyParameters(source, target);
+            CopyAttributes(sourceDefinition, target);
+            CopyGenericParameters(sourceDefinition, target);
+            CopyParameters(sourceDefinition, target);
 
             targetType.Methods.Add(target);
 
-            if (source.IsPInvokeImpl)
+            if (sourceDefinition.IsPInvokeImpl)
             {
-                var moduleRef = _targetModule.ModuleReferences
-                    .FirstOrDefault(mr => mr.Name == source.PInvokeInfo.Module.Name);
+                var moduleRef = TargetModule.ModuleReferences
+                    .FirstOrDefault(mr => mr.Name == sourceDefinition.PInvokeInfo.Module.Name);
 
                 if (moduleRef == null)
                 {
-                    moduleRef = new ModuleReference(source.PInvokeInfo.Module.Name);
-                    _targetModule.ModuleReferences.Add(moduleRef);
+                    moduleRef = new ModuleReference(sourceDefinition.PInvokeInfo.Module.Name);
+                    TargetModule.ModuleReferences.Add(moduleRef);
                 }
 
-                target.PInvokeInfo = new PInvokeInfo(source.PInvokeInfo.Attributes, source.PInvokeInfo.EntryPoint, moduleRef);
+                target.PInvokeInfo = new PInvokeInfo(sourceDefinition.PInvokeInfo.Attributes, sourceDefinition.PInvokeInfo.EntryPoint, moduleRef);
             }
 
-            target.ReturnType = ImportType(source.ReturnType, target);
+            target.ReturnType = ImportType(sourceDefinition.ReturnType, target);
 
-            ImportMethodBody(source, target);
+            ImportMethodBody(sourceDefinition, target);
 
             return target;
         }
@@ -452,7 +465,7 @@
                 {
                     var attributeType = ImportType(customAttribute.AttributeType, null);
 
-                    target.CustomAttributes.Add(new CustomAttribute(_targetModule.ImportReference(attributeType.Resolve().GetConstructors().FirstOrDefault()), customAttribute.GetBlob()));
+                    target.CustomAttributes.Add(new CustomAttribute(TargetModule.ImportReference(attributeType.Resolve().GetConstructors().FirstOrDefault()), customAttribute.GetBlob()));
                 }
             }
         }
@@ -479,7 +492,11 @@
         {
             foreach (var sourceParameter in sourceMethod.Parameters)
             {
-                targetMethod.Parameters.Add(new ParameterDefinition(sourceParameter.Name, sourceParameter.Attributes, ImportType(sourceParameter.ParameterType, targetMethod)));
+                var targetParameter = new ParameterDefinition(sourceParameter.Name, sourceParameter.Attributes, ImportType(sourceParameter.ParameterType, targetMethod));
+
+                CopyAttributes(sourceParameter, targetParameter);
+
+                targetMethod.Parameters.Add(targetParameter);
             }
         }
 
@@ -490,9 +507,10 @@
 
             foreach (var genericParameter in source.GenericParameters)
             {
-                var parameter = new GenericParameter(genericParameter.Name, ImportType(genericParameter.DeclaringType, null));
-
-                parameter.Attributes = genericParameter.Attributes;
+                var parameter = new GenericParameter(genericParameter.Name, ImportType(genericParameter.DeclaringType, null))
+                {
+                    Attributes = genericParameter.Attributes
+                };
 
                 if (genericParameter.HasConstraints)
                 {
@@ -551,22 +569,27 @@
                 {
                     targetHandler.TryStart = targetInstructions[sourceInstructions.IndexOf(sourceHandler.TryStart)];
                 }
+
                 if (sourceHandler.TryEnd != null)
                 {
                     targetHandler.TryEnd = targetInstructions[sourceInstructions.IndexOf(sourceHandler.TryEnd)];
                 }
+
                 if (sourceHandler.HandlerStart != null)
                 {
                     targetHandler.HandlerStart = targetInstructions[sourceInstructions.IndexOf(sourceHandler.HandlerStart)];
                 }
+
                 if (sourceHandler.HandlerEnd != null)
                 {
                     targetHandler.HandlerEnd = targetInstructions[sourceInstructions.IndexOf(sourceHandler.HandlerEnd)];
                 }
+
                 if (sourceHandler.FilterStart != null)
                 {
                     targetHandler.FilterStart = targetInstructions[sourceInstructions.IndexOf(sourceHandler.FilterStart)];
                 }
+
                 if (sourceHandler.CatchType != null)
                 {
                     targetHandler.CatchType = ImportType(sourceHandler.CatchType, null);
@@ -581,26 +604,32 @@
             var targetDebugInformation = target.DebugInformation;
             var sourceDebugInformation = source.DebugInformation;
 
-            foreach (var sourceInstruction in source.Body.Instructions)
+            var sourceBody = source.Body;
+            var targetBody = target.Body;
+
+            var sourceInstructions = sourceBody.Instructions;
+            var targetInstructions = targetBody.Instructions;
+
+            foreach (var sourceInstruction in sourceInstructions)
             {
                 var targetInstruction = CloneInstruction(sourceInstruction, target);
 
-                target.Body.Instructions.Add(targetInstruction);
+                targetInstructions.Add(targetInstruction);
 
                 var sequencePoint = sourceDebugInformation?.GetSequencePoint(sourceInstruction);
                 if (sequencePoint != null)
                     targetDebugInformation?.SequencePoints?.Add(CloneSequencePoint(targetInstruction, sequencePoint));
             }
 
-            CopyExceptionHandlers(source.Body, target.Body);
+            CopyExceptionHandlers(sourceBody, targetBody);
 
             if (true == targetDebugInformation?.HasSequencePoints)
             {
-                var scope = targetDebugInformation.Scope = new ScopeDebugInformation(target.Body.Instructions.First(), target.Body.Instructions.Last());
+                var scope = targetDebugInformation.Scope = new ScopeDebugInformation(targetInstructions.First(), targetInstructions.Last());
 
                 foreach (var variable in sourceDebugInformation.Scope.Variables)
                 {
-                    var targetVariable = target.Body.Variables[variable.Index];
+                    var targetVariable = targetBody.Variables[variable.Index];
 
                     scope.Variables.Add(new VariableDebugInformation(targetVariable, variable.Name));
                 }
@@ -610,16 +639,17 @@
         [NotNull]
         private Instruction CloneInstruction([NotNull] Instruction source, [NotNull] MethodDefinition targetMethod)
         {
-            var targetInstruction = (Instruction)_instructionConstructor.Invoke(new[] { source.OpCode, source.Operand });
+            var targetInstruction = source; // (Instruction)_instructionConstructor.Invoke(new[] { source.OpCode, source.Operand });
 
             switch (targetInstruction.Operand)
             {
                 case MethodDefinition sourceMethodDefinition:
-                    ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = ImportMethodDefinition(sourceMethodDefinition, targetMethod.DeclaringType));
+                    var targetType = ImportTypeDefinition(sourceMethodDefinition.DeclaringType);
+                    ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = ImportMethodDefinition(sourceMethodDefinition, targetType));
                     break;
 
                 case GenericInstanceMethod genericInstanceMethod:
-                    ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = ImportGenericInstanceMethod(genericInstanceMethod, targetMethod.DeclaringType));
+                    ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = ImportGenericInstanceMethod(genericInstanceMethod));
                     break;
 
                 case MethodReference sourceMethodReference:
@@ -673,19 +703,21 @@
                     return new ArrayType(ImportType(arrayType.ElementType, targetMethod), arrayType.Rank);
 
                 default:
-                    return ImportTypeReference(source);
+                    return ImportTypeReference(source, targetMethod);
             }
         }
 
         [NotNull]
-        private TypeReference ImportTypeReference([NotNull] TypeReference source)
+        private TypeReference ImportTypeReference([NotNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
         {
             Debug.Assert(source.GetType() == typeof(TypeReference));
 
             if (IsExternalReference(source))
-                return _targetModule.ImportReference(source);
+                return TargetModule.ImportReference(source);
 
-            return new TypeReference(_targetNamespace, source.Name, _targetModule, source.Scope, source.IsValueType);
+            var typeDefinition = source.Resolve();
+
+            return ImportType(typeDefinition, targetMethod);
         }
 
         [NotNull]
@@ -738,18 +770,18 @@
         }
 
         [NotNull]
-        private MethodReference ImportGenericInstanceMethod([NotNull] GenericInstanceMethod source, TypeDefinition targetType)
+        private MethodReference ImportGenericInstanceMethod([NotNull] GenericInstanceMethod source)
         {
             var elementMethod = source.ElementMethod;
 
             switch (source.ElementMethod)
             {
                 case MethodDefinition sourceMethodDefinition:
-                    elementMethod = ImportMethodDefinition(sourceMethodDefinition, targetType);
+                    elementMethod = ImportMethodDefinition(sourceMethodDefinition, ImportTypeDefinition(sourceMethodDefinition.DeclaringType));
                     break;
 
                 case GenericInstanceMethod genericInstanceMethod:
-                    elementMethod = ImportGenericInstanceMethod(genericInstanceMethod, targetType);
+                    elementMethod = ImportGenericInstanceMethod(genericInstanceMethod);
                     break;
 
                 case MethodReference sourceMethodReference:
@@ -769,9 +801,40 @@
 
         private bool IsExternalReference([NotNull] TypeReference typeReference)
         {
-            var moduleDefinition = typeReference.Resolve()?.Module;
+            var scope = typeReference.Scope;
 
-            return _targetModule != moduleDefinition && !_sourceModuleDefinitions.ContainsValue(moduleDefinition);
+            string assemblyName;
+
+            switch (scope)
+            {
+                case AssemblyNameReference assemblyNameReference:
+                    assemblyName = assemblyNameReference.FullName;
+                    break;
+
+                case ModuleDefinition moduleDefinition:
+                    assemblyName = moduleDefinition.Assembly.FullName;
+                    break;
+
+                default:
+                    return false;
+            }
+
+            return TargetModule.Assembly.FullName != assemblyName
+                && !_sourceModuleDefinitions.ContainsKey(assemblyName)
+                && !ResolveModule(typeReference, assemblyName);
+        }
+
+        private bool ResolveModule([NotNull] TypeReference typeReference, [NotNull] string assemblyName)
+        {
+            var module = ModuleResolver?.Resolve(typeReference, assemblyName);
+
+            if (module != null)
+            {
+                RegisterSourceModule(module);
+                return true;
+            }
+
+            return false;
         }
 
         private void ExecuteDeferred(Priority priority, [NotNull] Action action)
@@ -780,7 +843,23 @@
         }
 
         [NotNull]
-        private TypeReference TemporaryPlaceholderType => new TypeReference("temporary", "type", _targetModule, _targetModule);
+        private TypeReference TemporaryPlaceholderType => new TypeReference("temporary", "type", TargetModule, TargetModule);
+
+        [ContractAnnotation("target:notnull=>notnull")]
+        private TypeDefinition ProcessDeferredActions(TypeDefinition target)
+        {
+            while (true)
+            {
+                var action = _deferredActions.OrderBy(a => (int)a.Priority).FirstOrDefault();
+                if (action == null)
+                    break;
+
+                _deferredActions.Remove(action);
+                action.Action();
+            }
+
+            return target;
+        }
 
         private class DeferredAction
         {
@@ -794,6 +873,52 @@
 
             [NotNull]
             public Action Action { get; }
+        }
+    }
+
+    internal interface IModuleResolver
+    {
+        [CanBeNull]
+        ModuleDefinition Resolve([NotNull] TypeReference typeReference, [NotNull] string assemblyName);
+    }
+
+    internal class AssemblyModuleResolver : IModuleResolver
+    {
+        [NotNull]
+        private readonly HashSet<string> _assemblyNames;
+
+        public AssemblyModuleResolver([NotNull, ItemNotNull] params Assembly[] assemblies)
+        {
+            _assemblyNames = new HashSet<string>(assemblies.Select(a => a.FullName));
+        }
+
+        public ModuleDefinition Resolve(TypeReference typeReference, string assemblyName)
+        {
+            return _assemblyNames.Contains(assemblyName) ? typeReference.Resolve()?.Module : null;
+        }
+    }
+
+    internal class LocalReferenceModuleResolver : IModuleResolver
+    {
+        [NotNull]
+        private readonly HashSet<string> _ignoredAssemblyNames = new HashSet<string>();
+
+        public ModuleDefinition Resolve(TypeReference typeReference, string assemblyName)
+        {
+            if (_ignoredAssemblyNames.Contains(assemblyName))
+                return null;
+
+            var module = typeReference.Resolve().Module;
+
+            var moduleFileName = module.FileName;
+
+            if (Path.GetDirectoryName(moduleFileName) == @".")
+            {
+                return module;
+            }
+
+            _ignoredAssemblyNames.Add(assemblyName);
+            return null;
         }
     }
 }
