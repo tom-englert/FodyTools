@@ -19,7 +19,7 @@ namespace FodyTools.Tests
         [Fact]
         public void ImportSystemReferences_Test()
         {
-            var assemblyPath = Path.Combine(CodeBaseLocation.CurrentDirectory, "DummyAssembly.dll");
+            var assemblyPath = Path.Combine(Directories.Target, "DummyAssembly.dll");
             var weaver = new TestWeaver();
             weaver.ExecuteTestRun(assemblyPath, false, null, null, "ImportExtensionsTests");
 
@@ -42,7 +42,9 @@ namespace FodyTools.Tests
             public override void Execute()
             {
                 StringType = this.ImportType<string>();
-                OptionalType = this.TryImportType<System.Windows.Point>();
+                #if NETFRAMEWORK
+                OptionalType = this.TryImportType<System.Windows.Point>(); // does not exist at all in .netcore
+                #endif
                 StringEquals = this.ImportMethod(() => string.Equals(default, default, default));
                 GetPropertyInfo = this.TryImportMethod(() => default(Type).GetProperty(default, default(BindingFlags)));
             }

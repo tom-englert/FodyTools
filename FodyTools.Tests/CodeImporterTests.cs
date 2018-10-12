@@ -1,12 +1,4 @@
 ﻿// ReSharper disable AssignNullToNotNullAttribute
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-
-using TomsToolbox.Core;
-
 #pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
 
 namespace FodyTools.Tests
@@ -20,8 +12,6 @@ namespace FodyTools.Tests
     using System.Runtime.InteropServices;
     using System.Text.RegularExpressions;
 
-    using Fody;
-
     using JetBrains.Annotations;
 
     using Mono.Cecil;
@@ -32,8 +22,18 @@ namespace FodyTools.Tests
     using Xunit;
     using Xunit.Abstractions;
 
+    using CollectionExtensions = TomsToolbox.Core.CollectionExtensions;
+
     public class CodeImporterTests
     {
+
+#if NETFRAMEWORK
+        private const string Framework = "NET";
+#else
+        private const string Framework = "CORE";
+#endif
+
+        [NotNull]
         private readonly ITestOutputHelper _testOutputHelper;
 
         [NotNull]
@@ -41,7 +41,8 @@ namespace FodyTools.Tests
         {
             get
             {
-                var tempPath = Path.Combine(Path.GetTempPath(), "CodeImporter");
+
+                var tempPath = Path.Combine(Path.GetTempPath(), "CodeImporter", Framework);
                 Directory.CreateDirectory(tempPath);
                 return tempPath;
             }
@@ -53,7 +54,7 @@ namespace FodyTools.Tests
             LocalModuleResolver
         }
 
-        public CodeImporterTests(ITestOutputHelper testOutputHelper)
+        public CodeImporterTests([NotNull] ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
         }
@@ -63,19 +64,23 @@ namespace FodyTools.Tests
         [InlineData(7, AssemblyResolver.LocalModuleResolver, typeof(Test<>))]
         public void SimpleTypesTest(int numberOfTypes, AssemblyResolver assemblyResolver, [NotNull, ItemNotNull] params Type[] types)
         {
-            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
+            var assemblyPath = Path.Combine(Directories.Target, "EmptyAssembly.dll");
+            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
 
             var governingType = types.First();
 
             Debug.Assert(module != null, nameof(module) + " != null");
             Debug.Assert(governingType?.Namespace != null, nameof(governingType) + " != null");
 
-            var moduleResolver = assemblyResolver == AssemblyResolver.AssemblyModuleResolver ? (IModuleResolver)new AssemblyModuleResolver(typeof(AssemblyExtensions).Assembly) : new LocalReferenceModuleResolver();
+            var moduleResolver = assemblyResolver == AssemblyResolver.AssemblyModuleResolver
+                ? (IModuleResolver)new AssemblyModuleResolver(typeof(AssemblyExtensions).Assembly)
+                : new LocalReferenceModuleResolver();
+
+            var targetAssemblyPath = Path.Combine(TempPath, "TargetAssembly1.dll");
 
             var target = new CodeImporter(module)
             {
                 ModuleResolver = moduleResolver,
-                // else IL comparison will fail:
                 HideImportedTypes = false
             };
 
@@ -84,29 +89,25 @@ namespace FodyTools.Tests
                 target.Import(type);
             }
 
-            var targetAssemblyPath = Path.Combine(TempPath, "TargetAssembly1.dll");
-
             module.Write(targetAssemblyPath);
-
-            Assert.True(PEVerify.Verify(_testOutputHelper, targetAssemblyPath));
 
             var importedTypes = target.ListImportedTypes();
 
+            Assert.True(PEVerify.Verify(_testOutputHelper, targetAssemblyPath));
             Assert.Equal(numberOfTypes, importedTypes.Count);
 
-            VerifyTypes(importedTypes, targetAssemblyPath);
+            VerifyTypes(importedTypes, targetAssemblyPath, typeof(Test<>));
         }
 
         [Theory]
-        [InlineData(4, typeof(WeakEventListener<,,>))]
-        [InlineData(4, typeof(WeakEventSource<>))]
-        [InlineData(14, typeof(WeakEventSource<>), typeof(WeakEventListener<,,>), typeof(Test<>))]
+        [InlineData(3, typeof(WeakEventListener<,,>))]
+        [InlineData(3, typeof(WeakEventSource<>))]
+        [InlineData(13, typeof(WeakEventSource<>), typeof(WeakEventListener<,,>), typeof(Test<>))]
         [InlineData(4, typeof(AutoWeakIndexer<,>))]
         [InlineData(2, typeof(CollectionExtensions))]
         public void ComplexTypesTest(int numberOfTypes, [NotNull, ItemNotNull] params Type[] types)
         {
-          //  var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
-            var assemblyPath = Path.Combine(CodeBaseLocation.CurrentDirectory, "DummyAssembly.dll");
+            var assemblyPath = Path.Combine(Directories.Target, "EmptyAssembly.dll");
             var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
 
             var governingType = types.First();
@@ -134,20 +135,25 @@ namespace FodyTools.Tests
             var sourceAssemblyPath = Path.Combine(tempPath, "SourceAssembly2.dll");
 
             var sourceModule = ModuleDefinition.ReadModule(new Uri(governingType.Assembly.CodeBase).LocalPath);
-            var awi = sourceModule.Types.FirstOrDefault(t => t.Name.StartsWith("AutoWeakIndexer"));
-            var en = awi.NestedTypes.FirstOrDefault(t => t.Name.Contains("GetEnumerator"));
-            var move = en.Methods.FirstOrDefault(m => m.Name.StartsWith("MoveNext"));
-            move.Body.Instructions.Insert(1, Instruction.Create(OpCodes.Nop));
-            move.Body.MaxStackSize = 0;
 
             sourceModule.Assembly.Name.Name = "SourceAssembly";
             sourceModule.Write(sourceAssemblyPath);
 
             var importedTypes = target.ListImportedTypes();
 
+            if (importedTypes.ContainsKey("TomsToolbox.Core.NetStandardExtensions"))
+            {
+                numberOfTypes += 1;
+            }
+
+            foreach (var type in importedTypes)
+            {
+                _testOutputHelper.WriteLine(type.Key);
+            }
+
             Assert.Equal(numberOfTypes, importedTypes.Count);
 
-            VerifyTypes(importedTypes, targetAssemblyPath);
+            VerifyTypes(importedTypes, targetAssemblyPath, typeof(Test<>));
 
             Assert.True(PEVerify.Verify(_testOutputHelper, targetAssemblyPath));
         }
@@ -155,7 +161,8 @@ namespace FodyTools.Tests
         [Fact]
         public void ImportMethodTest()
         {
-            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
+            var assemblyPath = Path.Combine(Directories.Target, "EmptyAssembly.dll");
+            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
             var target = new CodeImporter(module);
 
             var importedMethod1 = target.ImportMethod(() => default(MyEventArgs).GetValue());
@@ -174,10 +181,7 @@ namespace FodyTools.Tests
             var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
             var target = new CodeImporter(module);
 
-            Assert.Throws<ArgumentException>(() =>
-            {
-                target.ImportMethod(() => default(MyEventArgs).AnotherValue);
-            });
+            Assert.Throws<ArgumentException>(() => { target.ImportMethod(() => default(MyEventArgs).AnotherValue); });
         }
 
         [Fact]
@@ -197,14 +201,8 @@ namespace FodyTools.Tests
             var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
             var target = new CodeImporter(module);
 
-            Assert.Throws<ArgumentException>(() =>
-            {
-                target.ImportProperty(() => default(MyEventArgs).GetValue());
-            });
-            Assert.Throws<ArgumentException>(() =>
-            {
-                target.ImportProperty(() => default(MyEventArgs).field);
-            });
+            Assert.Throws<ArgumentException>(() => { target.ImportProperty(() => default(MyEventArgs).GetValue()); });
+            Assert.Throws<ArgumentException>(() => { target.ImportProperty(() => default(MyEventArgs).field); });
         }
 
         [Fact]
@@ -237,105 +235,20 @@ namespace FodyTools.Tests
         [Fact]
         public void ILMerge()
         {
-            var assemblyPath = Path.Combine(CodeBaseLocation.CurrentDirectory, "DummyAssembly.dll");
+            var assemblyPath = Path.Combine(Directories.Target, "DummyAssembly.dll");
             var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
 
-            var codeImporter = new CodeImporter(module) { ModuleResolver = new LocalReferenceModuleResolver() };
-
-            var types = module.Types.ToArray();
-
-            ILMergeAttributes(codeImporter, module);
-            ILMergeAttributes(codeImporter, module.Assembly);
-
-            foreach (var type in types)
+            var codeImporter = new CodeImporter(module)
             {
-                ILMergeAttributes(codeImporter, type);
+                HideImportedTypes = false,
+                ModuleResolver = new LocalReferenceModuleResolver()
+            };
 
-                foreach (var fieldDefinition in type.Fields)
-                {
-                    fieldDefinition.FieldType = codeImporter.Import(fieldDefinition.FieldType);
-                    ILMergeAttributes(codeImporter, fieldDefinition);
-                }
-
-                foreach (var eventDefinition in type.Events)
-                {
-                    eventDefinition.EventType = codeImporter.Import(eventDefinition.EventType);
-                    ILMergeAttributes(codeImporter, eventDefinition);
-                }
-
-                foreach (var propertyDefinition in type.Properties)
-                {
-                    propertyDefinition.PropertyType = codeImporter.Import(propertyDefinition.PropertyType);
-                    ILMergeAttributes(codeImporter, propertyDefinition);
-
-                    if (!propertyDefinition.HasParameters)
-                        continue;
-
-                    foreach (var parameter in propertyDefinition.Parameters)
-                    {
-                        parameter.ParameterType = codeImporter.Import(parameter.ParameterType);
-                    }
-                }
-
-                foreach (var methodDefinition in type.Methods)
-                {
-                    methodDefinition.ReturnType = codeImporter.Import(methodDefinition.ReturnType);
-                    ILMergeAttributes(codeImporter, methodDefinition);
-
-                    var methodBody = methodDefinition.Body;
-                    if (methodBody == null)
-                        continue;
-
-                    foreach (var variable in methodBody.Variables)
-                    {
-                        variable.VariableType = codeImporter.Import(variable.VariableType);
-                    }
-
-                    foreach (var instruction in methodBody.Instructions)
-                    {
-                        switch (instruction.Operand)
-                        {
-                            case MethodDefinition _:
-                                break;
-
-                            case GenericInstanceMethod genericInstanceMethod:
-                                for (var index = 0; index < genericInstanceMethod.GenericArguments.Count; index++)
-                                {
-                                    genericInstanceMethod.GenericArguments[index] = codeImporter.Import(genericInstanceMethod.GenericArguments[index]);
-                                }
-
-                                genericInstanceMethod.ReturnType = codeImporter.Import(genericInstanceMethod.ReturnType);
-                                break;
-
-                            case MethodReference sourceMethodReference:
-                                sourceMethodReference.DeclaringType = codeImporter.Import(sourceMethodReference.DeclaringType);
-                                sourceMethodReference.ReturnType = codeImporter.Import(sourceMethodReference.ReturnType);
-                                break;
-
-                            case TypeDefinition _:
-                                break;
-
-                            case TypeReference typeReference:
-                                instruction.Operand = codeImporter.Import(typeReference);
-                                break;
-
-                            case FieldReference fieldReference:
-                                fieldReference.FieldType = codeImporter.Import(fieldReference.FieldType);
-                                break;
-                        }
-                    }
-                }
-            }
-
-            var importedTypes = codeImporter.ListImportedTypes();
-
-            var importedAssemblyNames = new HashSet<string>(codeImporter.ListImportedModules().Select(m => m.Assembly.FullName));
-
-            module.AssemblyReferences.RemoveRange(ar => importedAssemblyNames.Contains(ar.FullName));
+            codeImporter.ILMerge();
 
             var tempPath = TempPath;
 
-            foreach (var file in new DirectoryInfo(CodeBaseLocation.CurrentDirectory).EnumerateFiles())
+            foreach (var file in new DirectoryInfo(Directories.Target).EnumerateFiles())
             {
                 file.CopyTo(Path.Combine(tempPath, file.Name), true);
             }
@@ -348,35 +261,20 @@ namespace FodyTools.Tests
 
             module.Write(targetAssemblyPath);
 
-            Assert.True(PEVerify.Verify(_testOutputHelper, targetAssemblyPath));
+            var allTypes = module.Types.ToDictionary(t => t.FullName);
+
+            VerifyTypes(allTypes, targetAssemblyPath, typeof(FodyTools.SimpleSampleClass));
 
             var il = ILDasm.Decompile(targetAssemblyPath);
 
             File.WriteAllText(Path.ChangeExtension(targetAssemblyPath, ".il"), il);
+
+            Assert.True(PEVerify.Verify(_testOutputHelper, targetAssemblyPath));
         }
 
-        private void ILMergeAttributes(CodeImporter codeImporter, ICustomAttributeProvider attributeProvider)
+        private static void VerifyTypes([NotNull] IDictionary<string, TypeDefinition> importedTypes, [NotNull] string targetAssemblyPath, [NotNull] Type typeInSourceAssembly)
         {
-            if (!attributeProvider.HasCustomAttributes)
-                return;
-
-            foreach (var attribute in attributeProvider.CustomAttributes)
-            {
-                attribute.Constructor.DeclaringType = codeImporter.Import(attribute.Constructor.DeclaringType);
-
-                if (!attribute.HasConstructorArguments)
-                    continue;
-
-                for (var index = 0; index < attribute.ConstructorArguments.Count; index++)
-                {
-                    attribute.ConstructorArguments[index] = new CustomAttributeArgument(attribute.ConstructorArguments[index].Type, attribute.ConstructorArguments[index].Value);
-                }
-            }
-        }
-
-        private static void VerifyTypes([NotNull] IDictionary<string, TypeDefinition> importedTypes, string targetAssemblyPath)
-        {
-            var sourceAssemblyPath = new Uri(typeof(Test<>).Assembly.CodeBase).LocalPath;
+            var sourceAssemblyPath = new Uri(typeInSourceAssembly.Assembly.CodeBase).LocalPath;
             var toolboxAssemblyPath = new Uri(typeof(AssemblyExtensions).Assembly.CodeBase).LocalPath;
             var tempPath = TempPath;
 
@@ -389,7 +287,7 @@ namespace FodyTools.Tests
                 var decompiled = ILDasm.Decompile(assemblyPath, t.Key);
 
                 var decompiledSource = FixSourceNamespaces(FixIndenting(FixAttributeOrder(decompiled)));
-                var decompiledTarget = FixTargetNamespaces(FixIndenting(FixAttributeOrder(ILDasm.Decompile(targetAssemblyPath, t.Value.FullName))));
+                var decompiledTarget = FixSystemNamespaces(FixIndenting(FixAttributeOrder(ILDasm.Decompile(targetAssemblyPath, t.Value.FullName))));
 
                 File.WriteAllText(Path.Combine(tempPath, "source.txt"), decompiledSource);
                 File.WriteAllText(Path.Combine(tempPath, "target.txt"), decompiledTarget);
@@ -418,18 +316,19 @@ namespace FodyTools.Tests
         [NotNull]
         static string FixSourceNamespaces([NotNull] string value)
         {
-            return value
-                    .Replace("[TomsToolbox.Core]", "")
-                    .Replace("[System.Core]", "[mscorlib]")
-                   ;
+            return FixSystemNamespaces(value.Replace("[TomsToolbox.Core]", ""));
         }
 
         [NotNull]
-        static string FixTargetNamespaces([NotNull] string value)
+        static string FixSystemNamespaces([NotNull] string value)
         {
-            return value
-                    .Replace("[System.Core]", "[mscorlib]")
-                   ;
+            var regex = new Regex(@"\[System\.[\.\w]+\]");
+
+            var result = regex.Replace(value, "[System]");
+
+            result = result.Replace("[mscorlib]", "[System]");
+
+            return result;
         }
 
         [NotNull]
@@ -456,7 +355,7 @@ namespace FodyTools.Tests
             {
                 var workingDirectory = Path.GetDirectoryName(assemblyPath);
 
-                var ignoreCodes = new []
+                var ignoreCodes = new[]
                 {
                     "0x80131869" // can't resolve reference => PEVerify can't find the referenced dll...
                 };
@@ -485,7 +384,7 @@ namespace FodyTools.Tests
                     {
                         testOutputHelper.WriteLine(_peVerifyPath);
                         testOutputHelper.WriteLine(output);
-                        
+
                         return false;
                     }
                 }
@@ -653,8 +552,10 @@ namespace FodyTools.Tests
 
     internal class Referenced : List<string>
     {
+#if NETFRAMEWORK
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr LoadLibraryEx(string lpFileName, IntPtr hReservedNull, int dwFlags);
+#endif
 
         private readonly Test<MyEventArgs> _owner;
         private readonly IntPtr _hlib;
@@ -662,7 +563,9 @@ namespace FodyTools.Tests
         public Referenced(Test<MyEventArgs> owner)
         {
             _owner = owner;
+#if NETFRAMEWORK
             _hlib = LoadLibraryEx("dummy", IntPtr.Zero, 0);
+#endif
         }
 
         public Test<MyEventArgs> Owner

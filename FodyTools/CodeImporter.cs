@@ -24,7 +24,7 @@
     /// The main task of this is to copy code fragments into another module so they can be used by the weaver.
     /// It copies the types specified in the Import method, and automatically copies all required dependencies.
     /// </remarks>
-    internal class CodeImporter
+    internal sealed class CodeImporter
     {
         [NotNull]
         private static readonly ConstructorInfo _instructionConstructor = typeof(Instruction).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
@@ -66,8 +66,6 @@
         public IModuleResolver ModuleResolver { get; set; }
 
         public bool HideImportedTypes { get; set; } = true;
-
-        public bool ImportPropertiesAndEvents  { get; set; } = true;
 
         /// <summary>
         /// Imports the specified type and it's local references from it's source module into the target module.
@@ -122,6 +120,11 @@
                 return typeReference;
 
             return ProcessDeferredActions(ImportTypeDefinition(typeDefinition));
+        }
+
+        public GenericInstanceMethod Import(GenericInstanceMethod method)
+        {
+            return ProcessDeferredActions(ImportGenericInstanceMethod(method));
         }
 
         /// <summary>
@@ -364,12 +367,8 @@
 
             CopyFields(sourceType, targetType);
             CopyMethods(sourceType, targetType);
-
-            if (ImportPropertiesAndEvents)
-            {
-                CopyProperties(sourceType, targetType);
-                CopyEvents(sourceType, targetType);
-            }
+            CopyProperties(sourceType, targetType);
+            CopyEvents(sourceType, targetType);
 
             return targetType;
         }
@@ -741,7 +740,9 @@
             Debug.Assert(source.GetType() == typeof(TypeReference));
 
             if (IsLocalOrExternalReference(source))
+            {
                 return TargetModule.ImportReference(source);
+            }
 
             var typeDefinition = source.Resolve();
 
@@ -798,7 +799,7 @@
         }
 
         [NotNull]
-        public MethodReference ImportGenericInstanceMethod([NotNull] GenericInstanceMethod source)
+        private GenericInstanceMethod ImportGenericInstanceMethod([NotNull] GenericInstanceMethod source)
         {
             var elementMethod = source.ElementMethod;
 
@@ -876,7 +877,8 @@
         private TypeReference TemporaryPlaceholderType => new TypeReference("temporary", "type", TargetModule, TargetModule);
 
         [ContractAnnotation("target:notnull=>notnull")]
-        private TypeDefinition ProcessDeferredActions(TypeDefinition target)
+        private T ProcessDeferredActions<T>(T target)
+            where T : class
         {
             while (true)
             {
@@ -903,6 +905,167 @@
 
             [NotNull]
             public Action Action { get; }
+        }
+    }
+
+    internal static class ILMergeExtensions
+    {
+        public static void ILMerge([NotNull] this CodeImporter codeImporter)
+        {
+            var module = codeImporter.TargetModule;
+
+            var existingTypes = module.GetTypes().ToArray();
+
+            MergeAttributes(codeImporter, module);
+            MergeAttributes(codeImporter, module.Assembly);
+
+            foreach (var typeDefinition in existingTypes)
+            {
+                MergeAttributes(codeImporter, typeDefinition);
+                MergeGenericParameters(codeImporter, typeDefinition);
+
+                typeDefinition.BaseType = codeImporter.Import(typeDefinition.BaseType);
+
+                foreach (var fieldDefinition in typeDefinition.Fields)
+                {
+                    MergeAttributes(codeImporter, fieldDefinition);
+                    fieldDefinition.FieldType = codeImporter.Import(fieldDefinition.FieldType);
+                }
+
+                foreach (var eventDefinition in typeDefinition.Events)
+                {
+                    MergeAttributes(codeImporter, eventDefinition);
+                    eventDefinition.EventType = codeImporter.Import(eventDefinition.EventType);
+                }
+
+                foreach (var propertyDefinition in typeDefinition.Properties)
+                {
+                    MergeAttributes(codeImporter, propertyDefinition);
+
+                    propertyDefinition.PropertyType = codeImporter.Import(propertyDefinition.PropertyType);
+
+                    if (!propertyDefinition.HasParameters)
+                        continue;
+
+                    foreach (var parameter in propertyDefinition.Parameters)
+                    {
+                        MergeAttributes(codeImporter, parameter);
+                        parameter.ParameterType = codeImporter.Import(parameter.ParameterType);
+                    }
+                }
+
+                foreach (var methodDefinition in typeDefinition.Methods)
+                {
+                    MergeAttributes(codeImporter, methodDefinition);
+                    MergeGenericParameters(codeImporter, methodDefinition);
+
+                    methodDefinition.ReturnType = codeImporter.Import(methodDefinition.ReturnType);
+
+                    foreach (var parameter in methodDefinition.Parameters)
+                    {
+                        MergeAttributes(codeImporter, parameter);
+                        parameter.ParameterType = codeImporter.Import(parameter.ParameterType);
+                    }
+
+                    var methodBody = methodDefinition.Body;
+                    if (methodBody == null)
+                        continue;
+
+                    foreach (var variable in methodBody.Variables)
+                    {
+                        variable.VariableType = codeImporter.Import(variable.VariableType);
+                    }
+
+                    foreach (var instruction in methodBody.Instructions)
+                    {
+                        switch (instruction.Operand)
+                        {
+                            case MethodDefinition _:
+                                break;
+
+                            case GenericInstanceMethod genericInstanceMethod:
+                                instruction.Operand = codeImporter.Import(genericInstanceMethod);
+                                break;
+
+                            case MethodReference methodReference:
+                                // instruction.Operand = codeImporter.ImportMethodReference(methodReference);
+                                methodReference.DeclaringType = codeImporter.Import(methodReference.DeclaringType);
+                                methodReference.ReturnType = codeImporter.Import(methodReference.ReturnType);
+                                foreach (var parameter in methodReference.Parameters)
+                                {
+                                    parameter.ParameterType = codeImporter.Import(parameter.ParameterType);
+                                }
+                                break;
+
+                            case TypeDefinition _:
+                                break;
+
+                            case TypeReference typeReference:
+                                instruction.Operand = codeImporter.Import(typeReference);
+                                break;
+
+                            case FieldReference fieldReference:
+                                fieldReference.FieldType = codeImporter.Import(fieldReference.FieldType);
+                                break;
+                        }
+                    }
+                }
+            }
+
+            var importedAssemblyNames = new HashSet<string>(codeImporter.ListImportedModules().Select(m => m.Assembly.FullName));
+
+            module.AssemblyReferences.RemoveAll(ar => importedAssemblyNames.Contains(ar.FullName));
+        }
+
+        private static void MergeGenericParameters(CodeImporter codeImporter, IGenericParameterProvider provider)
+        {
+            if (provider?.HasGenericParameters != true)
+                return;
+
+            foreach (var parameter in provider.GenericParameters)
+            {
+                MergeTypes(codeImporter, parameter.Constraints);
+            }
+        }
+
+        private static void MergeTypes(CodeImporter codeImporter, [NotNull] IList<TypeReference> types)
+        {
+            for (int i = 0; i < types.Count; i++)
+            {
+                types[i] = codeImporter.Import(types[i]);
+            }
+        }
+
+        private static void MergeAttributes(CodeImporter codeImporter, ICustomAttributeProvider attributeProvider)
+        {
+            if (attributeProvider?.HasCustomAttributes != true)
+                return;
+
+            foreach (var attribute in attributeProvider.CustomAttributes)
+            {
+                attribute.Constructor.DeclaringType = codeImporter.Import(attribute.Constructor.DeclaringType);
+
+                if (!attribute.HasConstructorArguments)
+                    continue;
+
+                for (var index = 0; index < attribute.ConstructorArguments.Count; index++)
+                {
+                    attribute.ConstructorArguments[index] = new CustomAttributeArgument(attribute.ConstructorArguments[index].Type, attribute.ConstructorArguments[index].Value);
+                }
+            }
+        }
+
+        public static void RemoveAll<T>([NotNull, ItemCanBeNull] this ICollection<T> target, [NotNull] Func<T, bool> condition)
+        {
+            target.RemoveAll(target.Where(condition).ToArray());
+        }
+
+        public static void RemoveAll<T>([NotNull, ItemCanBeNull] this ICollection<T> target, [NotNull, ItemCanBeNull] IEnumerable<T> items)
+        {
+            foreach (var i in items)
+            {
+                target.Remove(i);
+            }
         }
     }
 
