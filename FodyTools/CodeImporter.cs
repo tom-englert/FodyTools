@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Linq.Expressions;
@@ -94,9 +93,12 @@
             return Import(typeof(T));
         }
 
-        [NotNull]
-        public TypeReference Import([NotNull] TypeReference typeReference)
+        [ContractAnnotation("typeReference:notnull=>notnull")]
+        public TypeReference Import([CanBeNull] TypeReference typeReference)
         {
+            if (typeReference == null)
+                return null;
+
             if (typeReference is GenericInstanceType source)
             {
                 var target = new GenericInstanceType(Import(source.ElementType));
@@ -112,7 +114,12 @@
             if (IsLocalOrExternalReference(typeReference))
                 return typeReference;
 
-            return ProcessDeferredActions(ImportTypeDefinition(typeReference.Resolve()));
+            var typeDefinition = typeReference.Resolve();
+
+            if (typeDefinition == null)
+                return typeReference;
+
+            return ProcessDeferredActions(ImportTypeDefinition(typeDefinition));
         }
 
         /// <summary>
@@ -315,6 +322,9 @@
                 return targetType;
 
             if (_targetTypes.Contains(sourceType))
+                return sourceType;
+
+            if (IsLocalOrExternalReference(sourceType))
                 return sourceType;
 
             RegisterSourceModule(sourceType.Module);
@@ -782,7 +792,7 @@
         }
 
         [NotNull]
-        private MethodReference ImportGenericInstanceMethod([NotNull] GenericInstanceMethod source)
+        public MethodReference ImportGenericInstanceMethod([NotNull] GenericInstanceMethod source)
         {
             var elementMethod = source.ElementMethod;
 
