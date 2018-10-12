@@ -61,7 +61,9 @@ namespace FodyTools.Tests
 
         [Theory]
         [InlineData(7, AssemblyResolver.AssemblyModuleResolver, typeof(Test<>))]
+#if !NETCOREAPP
         [InlineData(7, AssemblyResolver.LocalModuleResolver, typeof(Test<>))]
+#endif
         public void SimpleTypesTest(int numberOfTypes, AssemblyResolver assemblyResolver, [NotNull, ItemNotNull] params Type[] types)
         {
             var assemblyPath = Path.Combine(Directories.Target, "EmptyAssembly.dll");
@@ -92,6 +94,11 @@ namespace FodyTools.Tests
             module.Write(targetAssemblyPath);
 
             var importedTypes = target.ListImportedTypes();
+
+            foreach (var type in importedTypes)
+            {
+                _testOutputHelper.WriteLine(type.Key);
+            }
 
             Assert.True(PEVerify.Verify(_testOutputHelper, targetAssemblyPath));
             Assert.Equal(numberOfTypes, importedTypes.Count);
@@ -241,7 +248,7 @@ namespace FodyTools.Tests
             var codeImporter = new CodeImporter(module)
             {
                 HideImportedTypes = false,
-                ModuleResolver = new LocalReferenceModuleResolver()
+                ModuleResolver = new AssemblyModuleResolver(typeof(TomsToolbox.Core.AssemblyExtensions).Assembly)
             };
 
             codeImporter.ILMerge();
@@ -357,12 +364,15 @@ namespace FodyTools.Tests
 
                 var ignoreCodes = new[]
                 {
-                    "0x80131869" // can't resolve reference => PEVerify can't find the referenced dll...
+                    "0x80131869", // can't resolve reference => PEVerify can't find the referenced dll...
+                    #if NETCOREAPP
+                    "0x80070002"  // The system cannot find the file specified.
+                    #endif
                 };
 
                 var processStartInfo = new ProcessStartInfo(_peVerifyPath)
                 {
-                    Arguments = $"\"{assemblyPath}\" /hresult /nologo /ignore={string.Join(",", ignoreCodes)}",
+                    Arguments = $"\"{assemblyPath}\" /hresult /VERBOSE /nologo /ignore={string.Join(",", ignoreCodes)}",
                     WorkingDirectory = workingDirectory,
                     CreateNoWindow = true,
                     UseShellExecute = false,
