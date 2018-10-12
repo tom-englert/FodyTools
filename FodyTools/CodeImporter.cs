@@ -67,6 +67,8 @@
 
         public bool HideImportedTypes { get; set; } = true;
 
+        public bool ImportPropertiesAndEvents  { get; set; } = true;
+
         /// <summary>
         /// Imports the specified type and it's local references from it's source module into the target module.
         /// </summary>
@@ -362,8 +364,12 @@
 
             CopyFields(sourceType, targetType);
             CopyMethods(sourceType, targetType);
-            CopyProperties(sourceType, targetType);
-            CopyEvents(sourceType, targetType);
+
+            if (ImportPropertiesAndEvents)
+            {
+                CopyProperties(sourceType, targetType);
+                CopyEvents(sourceType, targetType);
+            }
 
             return targetType;
         }
