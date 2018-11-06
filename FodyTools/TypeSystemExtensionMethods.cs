@@ -12,6 +12,32 @@ namespace FodyTools
 {
     internal static class TypeSystemExtensionMethods
     {
+        [NotNull]
+        public static MethodReference ImportMethod<T>([NotNull] this BaseModuleWeaver weaver, [NotNull] string name, [NotNull, ItemNotNull] params Type[] parameters)
+        {
+            var typeDefinition = weaver.FindType(typeof(T).FullName);
+
+            return weaver.ModuleDefinition.ImportReference(typeDefinition.FindMethod(name, parameters));
+        }
+
+        [NotNull]
+        public static MethodReference ImportMethod<T, TP1>([NotNull] this BaseModuleWeaver weaver, [NotNull] string name)
+        {
+            return ImportMethod<T>(weaver, name, typeof(TP1));
+        }
+
+        [NotNull]
+        public static MethodReference ImportMethod<T, TP1, TP2>([NotNull] this BaseModuleWeaver weaver, [NotNull] string name)
+        {
+            return ImportMethod<T>(weaver, name, typeof(TP1), typeof(TP2));
+        }
+
+        [NotNull]
+        public static MethodReference ImportMethod<T, TP1, TP2, TP3>([NotNull] this BaseModuleWeaver weaver, [NotNull] string name)
+        {
+            return ImportMethod<T>(weaver, name, typeof(TP1), typeof(TP2), typeof(TP3));
+        }
+
         public static MethodReference ImportMethod<TResult>([NotNull] this BaseModuleWeaver weaver, [NotNull] Expression<Func<TResult>> expression)
         {
             GetMethodInfo(expression, out var methodName, out var declaringTypeName, out var argumentTypeNames);
@@ -68,6 +94,12 @@ namespace FodyTools
             methodName = methodCall.Method.Name;
             declaringTypeName = methodCall.Method.DeclaringType.FullName;
             argumentTypeNames = methodCall.Arguments.Select(a => a.Type.FullName).ToArray();
+        }
+
+        [NotNull]
+        private static MethodDefinition FindMethod([NotNull] this TypeDefinition type, [NotNull] string name, [NotNull, ItemNotNull] params Type[] parameters)
+        {
+            return type.Methods.First(x => (x.Name == name) && x.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(parameters.Select(p => p.FullName)));
         }
     }
 }
