@@ -1,15 +1,16 @@
-﻿using System;
-using System.Linq;
-using System.Linq.Expressions;
-
-using Fody;
-
-using JetBrains.Annotations;
-
-using Mono.Cecil;
-
-namespace FodyTools
+﻿namespace FodyTools
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Linq.Expressions;
+
+    using Fody;
+
+    using JetBrains.Annotations;
+
+    using Mono.Cecil;
+
     internal static class TypeSystemExtensionMethods
     {
         [NotNull]
@@ -40,14 +41,14 @@ namespace FodyTools
 
         public static MethodReference ImportMethod<TResult>([NotNull] this BaseModuleWeaver weaver, [NotNull] Expression<Func<TResult>> expression)
         {
-            GetMethodInfo(expression, out var methodName, out var declaringTypeName, out var argumentTypeNames);
+            GetMethodInfo(expression, out var methodName, out var declaringTypeName, out var argumentTypes);
 
             var typeDefinition = weaver.FindType(declaringTypeName);
 
             try
             {
                 var method = typeDefinition.Methods
-                    .Single(m => (m.Name == methodName) && m.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(argumentTypeNames));
+                    .Single(m => m.Name == methodName && ParametersMatch(m.Parameters, argumentTypes));
 
                 return weaver.ModuleDefinition.ImportReference(method);
             }
@@ -59,13 +60,13 @@ namespace FodyTools
 
         public static MethodReference TryImportMethod<TResult>([NotNull] this BaseModuleWeaver weaver, [NotNull] Expression<Func<TResult>> expression)
         {
-            GetMethodInfo(expression, out var methodName, out var declaringTypeName, out var argumentTypeNames);
+            GetMethodInfo(expression, out var methodName, out var declaringTypeName, out var argumentTypes);
 
             if (!weaver.TryFindType(declaringTypeName, out var typeDefinition))
                 return null;
 
             var method = typeDefinition.Methods
-                .FirstOrDefault(m => m.Name == methodName && m.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(argumentTypeNames));
+                .FirstOrDefault(m => m.Name == methodName && ParametersMatch(m.Parameters, argumentTypes));
 
             if (method == null)
                 return null;
@@ -86,20 +87,56 @@ namespace FodyTools
             return weaver.ModuleDefinition.ImportReference(typeDefinition);
         }
 
-        private static void GetMethodInfo<TResult>([NotNull] Expression<Func<TResult>> expression, out string methodName, out string declaringTypeName, out string[] argumentTypeNames)
+        private static void GetMethodInfo<TResult>([NotNull] Expression<Func<TResult>> expression, out string methodName, out string declaringTypeName, out Type[] argumentTypes)
         {
             if (!(expression.Body is MethodCallExpression methodCall))
                 throw new ArgumentException("Only method call expression is supported.", nameof(expression));
 
             methodName = methodCall.Method.Name;
             declaringTypeName = methodCall.Method.DeclaringType.FullName;
-            argumentTypeNames = methodCall.Arguments.Select(a => a.Type.FullName).ToArray();
+            argumentTypes = methodCall.Arguments.Select(a => a.Type).ToArray();
         }
 
         [NotNull]
         private static MethodDefinition FindMethod([NotNull] this TypeDefinition type, [NotNull] string name, [NotNull, ItemNotNull] params Type[] parameters)
         {
             return type.Methods.First(x => (x.Name == name) && x.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(parameters.Select(p => p.FullName)));
+        }
+
+        private static bool ParametersMatch([NotNull] IList<ParameterDefinition> parameters, [NotNull] IList<Type> argumentTypes)
+        {
+            if (parameters.Count != argumentTypes.Count)
+                return false;
+
+            var genericParameterMap = new Dictionary<string, Type>();
+
+            for (int i = 0; i < parameters.Count; i++)
+            {
+                var parameterType = parameters[i].ParameterType;
+                var argumentType = argumentTypes[i];
+
+                if (parameterType.ContainsGenericParameter)
+                {
+                    // for generic parameters just verify that every generic type matches to the same placeholder type.
+                    var elementTypeName = parameterType.GetElementType().FullName;
+
+                    if (genericParameterMap.TryGetValue(elementTypeName, out var mappedType))
+                    {
+                        if (mappedType != argumentType)
+                            return false;
+                    }
+                    else 
+                    {
+                        genericParameterMap.Add(elementTypeName, argumentType);
+                    }
+                }
+                else if (parameterType.GetElementType().FullName != argumentType.FullName)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }
