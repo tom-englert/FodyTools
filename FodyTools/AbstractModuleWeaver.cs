@@ -11,6 +11,8 @@
     using Mono.Cecil;
     using Mono.Cecil.Cil;
 
+    using TypeSystem = Fody.TypeSystem;
+
     /// <summary>
     /// A generic logger interface to decouple implementation.
     /// </summary>
@@ -61,6 +63,16 @@
         /// <returns><c>true</c> if the type was found and value contains a valid item.</returns>
         [ContractAnnotation("value:null => false")]
         bool TryFindType([NotNull] string typeName, out TypeDefinition value);
+
+        /// <summary>
+        /// Gets the fody basic type system.
+        /// </summary>
+        TypeSystem TypeSystem { get; }
+
+        /// <summary>
+        /// Gets the module definition of the target module.
+        /// </summary>
+        ModuleDefinition ModuleDefinition { get; }
     }
 
     /// <summary>

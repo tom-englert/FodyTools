@@ -52,7 +52,7 @@ namespace FodyTools
 
         public void Insert(int index, Instruction item)
         {
-            if ((index < 0) || (index >= Count))
+            if ((index < 0) || (index > Count))
                 throw new IndexOutOfRangeException();
 
             var startIndex = StartIndex;

@@ -29,7 +29,7 @@ namespace FodyTools.Tests
             Assert.Equal("System.Reflection.PropertyInfo System.Type::GetProperty(System.String,System.Reflection.BindingFlags)", weaver.GetPropertyInfo.FullName);
         }
 
-        class TestWeaver : BaseModuleWeaver
+        class TestWeaver : AbstractModuleWeaver
         {
             public MethodReference StringEquals { get; set; }
 
