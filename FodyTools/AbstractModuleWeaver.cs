@@ -16,7 +16,7 @@
     /// <summary>
     /// A generic logger interface to decouple implementation.
     /// </summary>
-    public interface ILogger
+    internal interface ILogger
     {
         /// <summary>
         /// Logs a debug message.
@@ -45,7 +45,7 @@
     /// <summary>
     /// A generic type system interface to decouple implementation.
     /// </summary>
-    public interface ITypeSystem
+    internal interface ITypeSystem
     {
         /// <summary>
         /// Finds the type in the assemblies that the weaver has registered for scanning.
