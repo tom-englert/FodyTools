@@ -304,13 +304,13 @@
         #endregion
 
         [NotNull]
-        private static string GetFullName([NotNull] Type type)
+        public static string GetFullName([NotNull] this Type type)
         {
             // type.FullName may contain extra generic info!
             return type.Namespace + "." + type.Name;
         }
 
-        private static void GetMemberInfo<TResult>([NotNull] Expression<Func<TResult>> expression, [NotNull] out Type declaringType, [NotNull] out string memberName)
+        public static void GetMemberInfo<TResult>([NotNull] this Expression<Func<TResult>> expression, [NotNull] out Type declaringType, [NotNull] out string memberName)
         {
             switch (expression.Body)
             {
@@ -324,7 +324,7 @@
             }
         }
 
-        private static void GetMethodInfo<TResult>([NotNull] Expression<Func<TResult>> expression, out Type declaringType, [NotNull] out string methodName, [NotNull] out Type[] argumentTypes)
+        public static void GetMethodInfo<TResult>([NotNull] this Expression<Func<TResult>> expression, out Type declaringType, [NotNull] out string methodName, [NotNull] out Type[] argumentTypes)
         {
             switch (expression.Body)
             {
@@ -345,17 +345,17 @@
             }
         }
 
-        private static bool ParametersMatch([NotNull] IList<ParameterDefinition> parameters, [NotNull] IList<Type> argumentTypes)
+        public static bool ParametersMatch([NotNull] this IList<ParameterDefinition> parameters, [NotNull] IList<Type> argumentTypes)
         {
             if (parameters.Count != argumentTypes.Count)
                 return false;
 
-            var genericParameterMap = new Dictionary<string, Type>();
+            var genericParameterMap = new Dictionary<string, string>();
 
             for (var i = 0; i < parameters.Count; i++)
             {
                 var parameterType = parameters[i].ParameterType;
-                var argumentType = argumentTypes[i];
+                var argumentType = argumentTypes[i].GetFullName();
 
                 if (parameterType.ContainsGenericParameter)
                 {
@@ -372,7 +372,7 @@
                         genericParameterMap.Add(elementTypeName, argumentType);
                     }
                 }
-                else if (parameterType.GetElementType().FullName != GetFullName(argumentType))
+                else if (parameterType.GetElementType().FullName != argumentType)
                 {
                     return false;
                 }

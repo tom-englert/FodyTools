@@ -139,14 +139,11 @@
         [NotNull]
         public MethodDefinition ImportMethod<T>([NotNull] Expression<Func<T>> expression)
         {
-            if (!(expression.Body is MethodCallExpression methodCall))
-                throw new ArgumentException("Only method call expression is supported.", nameof(expression));
+            expression.GetMethodInfo(out var declaringType, out var methodName, out var argumentTypes);
 
-            var targetType = Import(methodCall.Method.DeclaringType);
-            var methodName = methodCall.Method.Name;
-            var argumentTypeNames = methodCall.Arguments.Select(a => a.Type.FullName).ToArray();
+            var targetType = Import(declaringType);
 
-            return targetType.Methods.Single(m => m.Name == methodName && m.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(argumentTypeNames)) ?? throw new InvalidOperationException("Importing method failed.");
+            return targetType.Methods.Single(m => m.Name == methodName && m.Parameters.ParametersMatch(argumentTypes)) ?? throw new InvalidOperationException("Importing method failed.");
         }
 
         /// <summary>
@@ -309,10 +306,10 @@
 
             var sourceModule = RegisterSourceModule(assembly);
 
-            var sourceType = sourceModule.GetType(type.FullName);
+            var sourceType = sourceModule.GetType(type.GetFullName());
 
             if (sourceType == null)
-                throw new InvalidOperationException("Did not find type " + type.FullName + " in module " + sourceModule.FileName);
+                throw new InvalidOperationException("Did not find type " + type.GetFullName() + " in module " + sourceModule.FileName);
 
             return ProcessDeferredActions(ImportTypeDefinition(sourceType));
         }
@@ -442,7 +439,16 @@
 
             foreach (var sourceOverride in sourceDefinition.Overrides)
             {
-                target.Overrides.Add(ImportMethodReference(sourceOverride));
+                switch (sourceOverride)
+                {
+                    case MethodDefinition methodDefinition:
+                        target.Overrides.Add(ImportMethodDefinition(methodDefinition, targetType));
+                        break;
+
+                    default:
+                        target.Overrides.Add(ImportMethodReference(sourceOverride));
+                        break;
+                }
             }
 
             CopyAttributes(sourceDefinition, target);
@@ -480,7 +486,11 @@
                 {
                     var attributeType = ImportType(customAttribute.AttributeType, null);
 
-                    target.CustomAttributes.Add(new CustomAttribute(TargetModule.ImportReference(attributeType.Resolve().GetConstructors().FirstOrDefault()), customAttribute.GetBlob()));
+                    var constructor = attributeType.Resolve().GetConstructors().Where(ctor => !ctor.IsStatic).FirstOrDefault();
+                    if (constructor != null)
+                    {
+                        target.CustomAttributes.Add(new CustomAttribute(TargetModule.ImportReference(constructor), customAttribute.GetBlob()));
+                    }
                 }
             }
         }
@@ -729,6 +739,9 @@
                 case ArrayType arrayType:
                     return new ArrayType(ImportType(arrayType.ElementType, targetMethod), arrayType.Rank);
 
+                case RequiredModifierType requiredModifierType:
+                    return new RequiredModifierType(ImportType(requiredModifierType.ModifierType, targetMethod), ImportType(requiredModifierType.ElementType, targetMethod));
+
                 default:
                     return ImportTypeReference(source, targetMethod);
             }
@@ -737,7 +750,7 @@
         [NotNull]
         private TypeReference ImportTypeReference([NotNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
         {
-            Debug.Assert(source.GetType() == typeof(TypeReference));
+            Debug.Assert((source.GetType() == typeof(TypeReference)) || (source is TypeSpecification));
 
             if (IsLocalOrExternalReference(source))
             {
@@ -745,6 +758,9 @@
             }
 
             var typeDefinition = source.Resolve();
+
+            if (typeDefinition == null)
+                throw new InvalidOperationException($"Unable to resolve type {source}");
 
             return ImportType(typeDefinition, targetMethod);
         }

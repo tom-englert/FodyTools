@@ -183,6 +183,45 @@ namespace FodyTools.Tests
         }
 
         [Fact]
+        public void ImportGenericConstructorTest()
+        {
+            var assemblyPath = Path.Combine(Directories.Target, "EmptyAssembly.dll");
+            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
+            var target = new CodeImporter(module);
+
+            var importedMethod1 = target.ImportMethod(() => new ComplexSampleClass<T1, T2>(default, default, default));
+            var importedMethod2 = target.ImportMethod(() => default(ComplexSampleClass<T1, T2>).SomeMethod<T>(default, default, default));
+
+            Assert.NotEqual(importedMethod2, importedMethod1);
+            Assert.Equal(importedMethod2.DeclaringType, importedMethod1.DeclaringType);
+            Assert.Equal(importedMethod2.DeclaringType, target.ListImportedTypes().Single().Value);
+            Assert.Equal(3, importedMethod1.Parameters.Count);
+            Assert.Equal(3, importedMethod2.Parameters.Count);
+            Assert.Equal(".ctor", importedMethod1.Name);
+        }
+
+        private class T : TomsToolbox.Core.DelegateComparer<AutoWeakIndexer<int, string>>
+        {
+            public T() : base(null)
+            {
+            }
+        }
+
+        private class T2 : ITimeService
+        {
+            public DateTime Now { get; }
+            public DateTime Today { get; }
+            public DateTime UtcNow { get; }
+        }
+
+        private class T1 : DelegateComparer<T2> {
+            public T1([NotNull] Func<T2, T2, int> comparer) : base(comparer)
+            {
+            }
+        }
+
+ 
+        [Fact]
         public void ImportMethodsThrowsOnInvalidExpression()
         {
             var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
