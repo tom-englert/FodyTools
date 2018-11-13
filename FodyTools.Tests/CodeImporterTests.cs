@@ -105,7 +105,7 @@ namespace FodyTools.Tests
         [InlineData(3, typeof(WeakEventSource<>))]
         [InlineData(13, typeof(WeakEventSource<>), typeof(WeakEventListener<,,>), typeof(Test<>))]
         [InlineData(4, typeof(AutoWeakIndexer<,>))]
-        [InlineData(2, typeof(CollectionExtensions))]
+        [InlineData(2, typeof(TomsToolbox.Core.CollectionExtensions))]
         public void ComplexTypesTest(int numberOfTypes, [NotNull, ItemNotNull] params Type[] types)
         {
             var assemblyPath = Path.Combine(Directories.Target, "EmptyAssembly.dll");

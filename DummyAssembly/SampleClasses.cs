@@ -1,4 +1,5 @@
-﻿using TomsToolbox.Core;
+﻿using System.Runtime.InteropServices.ComTypes;
+using TomsToolbox.Core;
 
 [assembly: PluginModule("1", "2", "3")]
 [module: PluginModule("4", "5", "6")]
@@ -51,6 +52,19 @@ namespace FodyTools
         {
             add => _eventSource.Subscribe(value);
             remove => _eventSource.Unsubscribe(value);
+        }
+    }
+
+    public class SimpleGenericClass<T>
+    {
+        public void Method(Func<T> argument)
+        {
+
+        }
+
+        public void Method2<T1>(Func<T> argument, T1 arg1)
+        {
+
         }
     }
 

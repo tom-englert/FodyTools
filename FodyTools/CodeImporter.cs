@@ -147,6 +147,25 @@
         }
 
         /// <summary>
+        /// Imports the methods declaring type into the target module and returns the method definition
+        /// of the corresponding method in the target module.
+        /// </summary>
+        /// <typeparam name="T">The methods return value.</typeparam>
+        /// <param name="expression">The method call expression describing the source method.</param>
+        /// <returns>The method definition of the imported method.</returns>
+        /// <exception cref="ArgumentException">Only method call expression is supported. - expression</exception>
+        /// <exception cref="InvalidOperationException">Importing method failed.</exception>
+        [NotNull]
+        public MethodDefinition ImportMethod([NotNull] Expression<Action> expression)
+        {
+            expression.GetMethodInfo(out var declaringType, out var methodName, out var argumentTypes);
+
+            var targetType = Import(declaringType);
+
+            return targetType.Methods.Single(m => m.Name == methodName && m.Parameters.ParametersMatch(argumentTypes)) ?? throw new InvalidOperationException("Importing method failed.");
+        }
+
+        /// <summary>
         /// Imports the property's declaring type into the target module and returns the property definition
         /// of the corresponding property in the target module.
         /// </summary>
