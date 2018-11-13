@@ -1,29 +1,23 @@
 ﻿// ReSharper disable AssignNullToNotNullAttribute
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using JetBrains.Annotations;
+using Mono.Cecil;
+using TomsToolbox.Core;
+using Xunit;
+using Xunit.Abstractions;
+
 #pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
 
 namespace FodyTools.Tests
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.IO;
-    using System.Linq;
-    using System.Runtime.InteropServices;
-    using System.Text.RegularExpressions;
-
-    using JetBrains.Annotations;
-
-    using Mono.Cecil;
-    using Mono.Cecil.Cil;
-
-    using TomsToolbox.Core;
-
-    using Xunit;
-    using Xunit.Abstractions;
-
-    using CollectionExtensions = TomsToolbox.Core.CollectionExtensions;
-
     public class CodeImporterTests
     {
 
@@ -220,7 +214,7 @@ namespace FodyTools.Tests
             }
         }
 
- 
+
         [Fact]
         public void ImportMethodsThrowsOnInvalidExpression()
         {
