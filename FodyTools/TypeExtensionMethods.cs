@@ -1,4 +1,6 @@
-﻿namespace FodyTools
+﻿using System.Diagnostics;
+
+namespace FodyTools
 {
     using System;
     using System.Collections.Generic;
@@ -20,7 +22,7 @@
         [CanBeNull]
         public static MethodDefinition GetDefaultConstructor([NotNull] this TypeDefinition type)
         {
-            return type.GetConstructors().FirstOrDefault(ctor => ctor.HasBody && ctor.Parameters.Count == 0);
+            return type.GetConstructors().FirstOrDefault(ctor => ctor.HasBody && ctor.Parameters.Count == 0 && !ctor.IsStatic);
         }
 
         /// <summary>
@@ -30,13 +32,16 @@
         /// <param name="instructionBuilder">The instruction builder that returns the instructions to insert.</param>
         public static void InsertIntoConstructors([NotNull] this TypeDefinition classDefinition, [NotNull] Func<IEnumerable<Instruction>> instructionBuilder)
         {
-            foreach (var constructor in classDefinition.GetConstructors())
+            foreach (var constructor in classDefinition.GetConstructors().Where(ctor => !ctor.IsStatic))
             {
                 var instructions = constructor.Body.Instructions;
 
                 // first call in ctor is the call to base or self constructors.
                 var callStatement = instructions.First(item => item.OpCode == OpCodes.Call);
-                if (((MethodReference)callStatement.Operand).DeclaringType == classDefinition)
+                var method = callStatement.Operand as MethodReference;
+                Debug.Assert(method?.Name == ".ctor");
+
+                if (method.DeclaringType == classDefinition)
                 {
                     // this constructor calls : this(...), no need to initialize here...
                     continue;
