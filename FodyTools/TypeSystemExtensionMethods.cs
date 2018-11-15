@@ -270,6 +270,22 @@
             return typeSystem.ImportMethod(declaringType, methodName, argumentTypes);
         }
 
+        [CanBeNull]
+        public static MethodReference TryImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Action> expression)
+        {
+            GetMethodInfo(expression, out var declaringType, out var methodName, out var argumentTypes);
+
+            return typeSystem.TryImportMethod(declaringType, methodName, argumentTypes);
+        }
+
+        [NotNull]
+        public static MethodReference ImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Action> expression)
+        {
+            GetMethodInfo(expression, out var declaringType, out var methodName, out var argumentTypes);
+
+            return typeSystem.ImportMethod(declaringType, methodName, argumentTypes);
+        }
+
         #endregion
 
         #region Type
@@ -310,7 +326,7 @@
             return type.Namespace + "." + type.Name;
         }
 
-        public static void GetMemberInfo<TResult>([NotNull] this Expression<Func<TResult>> expression, [NotNull] out Type declaringType, [NotNull] out string memberName)
+        public static void GetMemberInfo([NotNull] this LambdaExpression expression, [NotNull] out Type declaringType, [NotNull] out string memberName)
         {
             switch (expression.Body)
             {
@@ -324,28 +340,7 @@
             }
         }
 
-        public static void GetMethodInfo<TResult>([NotNull] this Expression<Func<TResult>> expression, out Type declaringType, [NotNull] out string methodName, [NotNull] out Type[] argumentTypes)
-        {
-            switch (expression.Body)
-            {
-                case NewExpression newExpression:
-                    methodName = ".ctor";
-                    declaringType = newExpression.Type;
-                    argumentTypes = newExpression.Arguments.Select(a => a.Type).ToArray();
-                    break;
-
-                case MethodCallExpression methodCall:
-                    methodName = methodCall.Method.Name;
-                    declaringType = methodCall.Method.DeclaringType;
-                    argumentTypes = methodCall.Arguments.Select(a => a.Type).ToArray();
-                    break;
-
-                default:
-                    throw new ArgumentException("Only method call or new expression is supported.", nameof(expression));
-            }
-        }
-
-        public static void GetMethodInfo([NotNull] this Expression<Action> expression, out Type declaringType, [NotNull] out string methodName, [NotNull] out Type[] argumentTypes)
+        public static void GetMethodInfo([NotNull] this LambdaExpression expression, out Type declaringType, [NotNull] out string methodName, [NotNull] out Type[] argumentTypes)
         {
             switch (expression.Body)
             {

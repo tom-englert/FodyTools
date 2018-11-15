@@ -40,6 +40,5 @@
             collection.Clear();
             collection.AddRange(values);
         }
-
     }
 }

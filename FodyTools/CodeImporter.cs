@@ -139,11 +139,7 @@
         [NotNull]
         public MethodDefinition ImportMethod<T>([NotNull] Expression<Func<T>> expression)
         {
-            expression.GetMethodInfo(out var declaringType, out var methodName, out var argumentTypes);
-
-            var targetType = Import(declaringType);
-
-            return targetType.Methods.Single(m => m.Name == methodName && m.Parameters.ParametersMatch(argumentTypes)) ?? throw new InvalidOperationException("Importing method failed.");
+            return ImportMethodInternal(expression);
         }
 
         /// <summary>
@@ -157,6 +153,11 @@
         /// <exception cref="InvalidOperationException">Importing method failed.</exception>
         [NotNull]
         public MethodDefinition ImportMethod([NotNull] Expression<Action> expression)
+        {
+            return ImportMethodInternal(expression);
+        }
+
+        private MethodDefinition ImportMethodInternal([NotNull] LambdaExpression expression)
         {
             expression.GetMethodInfo(out var declaringType, out var methodName, out var argumentTypes);
 

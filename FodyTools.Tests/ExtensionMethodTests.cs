@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Xunit;
@@ -39,7 +40,7 @@ namespace FodyTools.Tests
 
             var typeDefinition = sourceModule.GetType(lazy.FullName);
             var type = module.ImportReference(typeDefinition);
-            var method = module.ImportReference(typeDefinition.Methods[4]);
+            var method = module.ImportReference(typeDefinition.Methods.First(m => m.Parameters.Count == 2 && m.Parameters[1].ParameterType.Name == "Boolean"));
 
             var genericInstanceType = type.MakeGenericInstanceType(type);
 
