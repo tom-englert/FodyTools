@@ -93,19 +93,27 @@
             return Import(typeof(T));
         }
 
+        [NotNull]
+        public TypeDefinition Import([NotNull] TypeDefinition sourceType)
+        {
+            RegisterSourceModule(sourceType.Module);
+
+            return ProcessDeferredActions(ImportTypeDefinition(sourceType));
+        }
+
         [ContractAnnotation("typeReference:notnull=>notnull")]
-        public TypeReference Import([CanBeNull] TypeReference typeReference)
+        public TypeReference ImportTypeReference([CanBeNull] TypeReference typeReference)
         {
             if (typeReference == null)
                 return null;
 
-            if (typeReference is GenericInstanceType source)
+            if (typeReference is GenericInstanceType genericInstanceType)
             {
-                var target = new GenericInstanceType(Import(source.ElementType));
+                var target = new GenericInstanceType(ImportTypeReference(genericInstanceType.ElementType));
 
-                foreach (var genericArgument in source.GenericArguments)
+                foreach (var genericArgument in genericInstanceType.GenericArguments)
                 {
-                    target.GenericArguments.Add(Import(genericArgument));
+                    target.GenericArguments.Add(ImportTypeReference(genericArgument));
                 }
 
                 return target;
@@ -122,7 +130,8 @@
             return ProcessDeferredActions(ImportTypeDefinition(typeDefinition));
         }
 
-        public GenericInstanceMethod Import(GenericInstanceMethod method)
+        [NotNull]
+        public GenericInstanceMethod Import([NotNull] GenericInstanceMethod method)
         {
             return ProcessDeferredActions(ImportGenericInstanceMethod(method));
         }
@@ -157,6 +166,7 @@
             return ImportMethodInternal(expression);
         }
 
+        [NotNull]
         private MethodDefinition ImportMethodInternal([NotNull] LambdaExpression expression)
         {
             expression.GetMethodInfo(out var declaringType, out var methodName, out var argumentTypes);
@@ -297,7 +307,7 @@
             return sourceModule;
         }
 
-        private void RegisterSourceModule([NotNull] ModuleDefinition sourceModule)
+        public void RegisterSourceModule([NotNull] ModuleDefinition sourceModule)
         {
             var assemblyName = sourceModule.Assembly.FullName;
 
@@ -960,25 +970,25 @@
                 MergeAttributes(codeImporter, typeDefinition);
                 MergeGenericParameters(codeImporter, typeDefinition);
 
-                typeDefinition.BaseType = codeImporter.Import(typeDefinition.BaseType);
+                typeDefinition.BaseType = codeImporter.ImportTypeReference(typeDefinition.BaseType);
 
                 foreach (var fieldDefinition in typeDefinition.Fields)
                 {
                     MergeAttributes(codeImporter, fieldDefinition);
-                    fieldDefinition.FieldType = codeImporter.Import(fieldDefinition.FieldType);
+                    fieldDefinition.FieldType = codeImporter.ImportTypeReference(fieldDefinition.FieldType);
                 }
 
                 foreach (var eventDefinition in typeDefinition.Events)
                 {
                     MergeAttributes(codeImporter, eventDefinition);
-                    eventDefinition.EventType = codeImporter.Import(eventDefinition.EventType);
+                    eventDefinition.EventType = codeImporter.ImportTypeReference(eventDefinition.EventType);
                 }
 
                 foreach (var propertyDefinition in typeDefinition.Properties)
                 {
                     MergeAttributes(codeImporter, propertyDefinition);
 
-                    propertyDefinition.PropertyType = codeImporter.Import(propertyDefinition.PropertyType);
+                    propertyDefinition.PropertyType = codeImporter.ImportTypeReference(propertyDefinition.PropertyType);
 
                     if (!propertyDefinition.HasParameters)
                         continue;
@@ -986,7 +996,7 @@
                     foreach (var parameter in propertyDefinition.Parameters)
                     {
                         MergeAttributes(codeImporter, parameter);
-                        parameter.ParameterType = codeImporter.Import(parameter.ParameterType);
+                        parameter.ParameterType = codeImporter.ImportTypeReference(parameter.ParameterType);
                     }
                 }
 
@@ -995,12 +1005,12 @@
                     MergeAttributes(codeImporter, methodDefinition);
                     MergeGenericParameters(codeImporter, methodDefinition);
 
-                    methodDefinition.ReturnType = codeImporter.Import(methodDefinition.ReturnType);
+                    methodDefinition.ReturnType = codeImporter.ImportTypeReference(methodDefinition.ReturnType);
 
                     foreach (var parameter in methodDefinition.Parameters)
                     {
                         MergeAttributes(codeImporter, parameter);
-                        parameter.ParameterType = codeImporter.Import(parameter.ParameterType);
+                        parameter.ParameterType = codeImporter.ImportTypeReference(parameter.ParameterType);
                     }
 
                     var methodBody = methodDefinition.Body;
@@ -1009,7 +1019,7 @@
 
                     foreach (var variable in methodBody.Variables)
                     {
-                        variable.VariableType = codeImporter.Import(variable.VariableType);
+                        variable.VariableType = codeImporter.ImportTypeReference(variable.VariableType);
                     }
 
                     foreach (var instruction in methodBody.Instructions)
@@ -1025,11 +1035,11 @@
 
                             case MethodReference methodReference:
                                 // instruction.Operand = codeImporter.ImportMethodReference(methodReference);
-                                methodReference.DeclaringType = codeImporter.Import(methodReference.DeclaringType);
-                                methodReference.ReturnType = codeImporter.Import(methodReference.ReturnType);
+                                methodReference.DeclaringType = codeImporter.ImportTypeReference(methodReference.DeclaringType);
+                                methodReference.ReturnType = codeImporter.ImportTypeReference(methodReference.ReturnType);
                                 foreach (var parameter in methodReference.Parameters)
                                 {
-                                    parameter.ParameterType = codeImporter.Import(parameter.ParameterType);
+                                    parameter.ParameterType = codeImporter.ImportTypeReference(parameter.ParameterType);
                                 }
                                 break;
 
@@ -1037,11 +1047,11 @@
                                 break;
 
                             case TypeReference typeReference:
-                                instruction.Operand = codeImporter.Import(typeReference);
+                                instruction.Operand = codeImporter.ImportTypeReference(typeReference);
                                 break;
 
                             case FieldReference fieldReference:
-                                fieldReference.FieldType = codeImporter.Import(fieldReference.FieldType);
+                                fieldReference.FieldType = codeImporter.ImportTypeReference(fieldReference.FieldType);
                                 break;
                         }
                     }
@@ -1068,7 +1078,7 @@
         {
             for (int i = 0; i < types.Count; i++)
             {
-                types[i] = codeImporter.Import(types[i]);
+                types[i] = codeImporter.ImportTypeReference(types[i]);
             }
         }
 
@@ -1079,7 +1089,7 @@
 
             foreach (var attribute in attributeProvider.CustomAttributes)
             {
-                attribute.Constructor.DeclaringType = codeImporter.Import(attribute.Constructor.DeclaringType);
+                attribute.Constructor.DeclaringType = codeImporter.ImportTypeReference(attribute.Constructor.DeclaringType);
 
                 if (!attribute.HasConstructorArguments)
                     continue;
