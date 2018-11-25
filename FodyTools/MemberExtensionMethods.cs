@@ -1,6 +1,7 @@
 ﻿namespace FodyTools
 {
     using System;
+    using System.Linq;
 
     using JetBrains.Annotations;
 
@@ -26,7 +27,7 @@
             };
 
             newMethod.Parameters.AddRange(method.Parameters);
-            newMethod.GenericParameters.AddRange(method.GenericParameters);
+            newMethod.GenericParameters.AddRange(method.Resolve().GenericParameters.Select(p => new GenericParameter(p.Name, p.Owner)));
             return newMethod;
         }
 
@@ -37,7 +38,7 @@
             if (method.GenericParameters.Count != arguments.Length)
                 throw new InvalidOperationException("Generic argument mismatch");
 
-            newMethod.GenericParameters.AddRange(method.GenericParameters);
+            newMethod.GenericParameters.AddRange(method.Resolve().GenericParameters.Select(p => new GenericParameter(p.Name, p.Owner)));
             newMethod.GenericArguments.AddRange(arguments);
 
             return newMethod;
