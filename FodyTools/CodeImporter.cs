@@ -444,14 +444,22 @@
         {
             foreach (var sourceDefinition in source.Fields)
             {
-                var targetDefinition = new FieldDefinition(sourceDefinition.Name, sourceDefinition.Attributes, ImportType(sourceDefinition.FieldType, null))
+                var fieldName = sourceDefinition.Name;
+
+                var targetDefinition = new FieldDefinition(fieldName, sourceDefinition.Attributes, ImportType(sourceDefinition.FieldType, null))
                 {
-                    InitialValue = sourceDefinition.InitialValue
+                    InitialValue = sourceDefinition.InitialValue,
+                    Offset = sourceDefinition.Offset,
                 };
 
                 if (sourceDefinition.HasConstant)
                 {
                     targetDefinition.Constant = sourceDefinition.Constant;
+                }
+
+                if (sourceDefinition.HasMarshalInfo)
+                {
+                    targetDefinition.MarshalInfo = sourceDefinition.MarshalInfo;
                 }
 
                 CopyAttributes(sourceDefinition, targetDefinition);
@@ -561,6 +569,11 @@
                 var targetParameter = new ParameterDefinition(sourceParameter.Name, sourceParameter.Attributes, ImportType(sourceParameter.ParameterType, targetMethod));
 
                 CopyAttributes(sourceParameter, targetParameter);
+
+                if (sourceParameter.HasMarshalInfo)
+                {
+                    targetParameter.MarshalInfo = sourceParameter.MarshalInfo;
+                }
 
                 targetMethod.Parameters.Add(targetParameter);
             }
@@ -965,7 +978,7 @@
         }
     }
 
-    internal static class ILMergeExtensions
+    internal static class CodeImporterExtensions
     {
         public static void ILMerge([NotNull] this CodeImporter codeImporter)
         {
