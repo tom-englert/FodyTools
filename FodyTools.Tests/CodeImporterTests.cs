@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Mono.Cecil;
 using TomsToolbox.Core;
+using TomsToolbox.Desktop;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -54,7 +55,7 @@ namespace FodyTools.Tests
         }
 
         [Theory]
-        [InlineData(7, AssemblyResolver.AssemblyModuleResolver, typeof(Test<>))]
+        [InlineData(8, AssemblyResolver.AssemblyModuleResolver, typeof(Test<>))]
 #if !NETCOREAPP
         [InlineData(7, AssemblyResolver.LocalModuleResolver, typeof(Test<>))]
 #endif
@@ -69,7 +70,7 @@ namespace FodyTools.Tests
             Debug.Assert(governingType?.Namespace != null, nameof(governingType) + " != null");
 
             var moduleResolver = assemblyResolver == AssemblyResolver.AssemblyModuleResolver
-                ? (IModuleResolver)new AssemblyModuleResolver(typeof(AssemblyExtensions).Assembly)
+                ? (IModuleResolver)new AssemblyModuleResolver(typeof(AssemblyExtensions).Assembly, typeof(BinaryOperation).Assembly)
                 : new LocalReferenceModuleResolver();
 
             var targetAssemblyPath = Path.Combine(TempPath, "TargetAssembly1.dll");
@@ -315,7 +316,8 @@ namespace FodyTools.Tests
         private static void VerifyTypes([NotNull] IDictionary<string, TypeDefinition> importedTypes, [NotNull] string targetAssemblyPath, [NotNull] Type typeInSourceAssembly)
         {
             var sourceAssemblyPath = new Uri(typeInSourceAssembly.Assembly.CodeBase).LocalPath;
-            var toolboxAssemblyPath = new Uri(typeof(AssemblyExtensions).Assembly.CodeBase).LocalPath;
+            var toolboxCoreAssemblyPath = new Uri(typeof(AssemblyExtensions).Assembly.CodeBase).LocalPath;
+            var toolboxDesktopAssemblyPath = new Uri(typeof(BinaryOperation).Assembly.CodeBase).LocalPath;
             var tempPath = TempPath;
 
             foreach (var t in importedTypes)
@@ -323,7 +325,7 @@ namespace FodyTools.Tests
                 if (t.Key.StartsWith("<"))
                     continue;
 
-                var assemblyPath = t.Key.Contains("FodyTools") ? sourceAssemblyPath : toolboxAssemblyPath;
+                var assemblyPath = t.Key.Contains("FodyTools") ? sourceAssemblyPath : t.Key.Contains("Desktop") ? toolboxDesktopAssemblyPath : toolboxCoreAssemblyPath;
                 var decompiled = ILDasm.Decompile(assemblyPath, t.Key);
 
                 var decompiledSource = FixSourceNamespaces(FixIndenting(FixAttributeOrder(decompiled)));
@@ -356,7 +358,7 @@ namespace FodyTools.Tests
         [NotNull]
         static string FixSourceNamespaces([NotNull] string value)
         {
-            return FixSystemNamespaces(value.Replace("[TomsToolbox.Core]", ""));
+            return FixSystemNamespaces(value.Replace("[TomsToolbox.Core]", "").Replace("[TomsToolbox.Desktop]", ""));
         }
 
         [NotNull]
@@ -508,12 +510,14 @@ namespace FodyTools.Tests
         private readonly EventHandler<T> _handler;
         private int _field;
         private readonly EventHandler<T> _delegate;
+        private readonly TomsToolbox.Desktop.BinaryOperation _operation;
 
         public Test(EventHandler<T> handler)
         {
             _handler = handler;
             _field = 0;
             _delegate = OnEvent;
+            _operation = BinaryOperation.Division;
         }
 
         public event EventHandler<T> Tested;

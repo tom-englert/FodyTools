@@ -444,7 +444,15 @@
         {
             foreach (var sourceDefinition in source.Fields)
             {
-                var targetDefinition = new FieldDefinition(sourceDefinition.Name, sourceDefinition.Attributes, ImportType(sourceDefinition.FieldType, null));
+                var targetDefinition = new FieldDefinition(sourceDefinition.Name, sourceDefinition.Attributes, ImportType(sourceDefinition.FieldType, null))
+                {
+                    InitialValue = sourceDefinition.InitialValue
+                };
+
+                if (sourceDefinition.HasConstant)
+                {
+                    targetDefinition.Constant = sourceDefinition.Constant;
+                }
 
                 CopyAttributes(sourceDefinition, targetDefinition);
 
@@ -456,6 +464,9 @@
         {
             if (sourceDefinition == null)
                 return null;
+
+            if (IsLocalOrExternalReference(sourceDefinition.DeclaringType))
+                return sourceDefinition;
 
             if (_targetMethods.TryGetValue(sourceDefinition, out var target))
                 return target;
@@ -1041,6 +1052,10 @@
                                 {
                                     parameter.ParameterType = codeImporter.ImportTypeReference(parameter.ParameterType);
                                 }
+                                break;
+
+                            case ArrayType arrayType:
+                                instruction.Operand = new ArrayType(codeImporter.ImportTypeReference(arrayType.ElementType), arrayType.Rank);
                                 break;
 
                             case TypeDefinition _:
