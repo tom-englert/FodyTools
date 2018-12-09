@@ -46,8 +46,8 @@
         }
 
         public static void VerifyTypes(
-            [NotNull] IDictionary<string, TypeDefinition> importedTypes, 
-            [NotNull] ICollection<ModuleDefinition> importedModules, 
+            [NotNull] IDictionary<string, TypeDefinition> importedTypes,
+            [NotNull] ICollection<ModuleDefinition> importedModules,
             [NotNull] string targetAssemblyPath,
             [NotNull] Action<string, string, string> assert)
         {
@@ -124,7 +124,7 @@
         [NotNull]
         private static string FixIndenting([NotNull] string value)
         {
-            return String.Join(Environment.NewLine, value.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Select(TrimIndent));
+            return string.Join(Environment.NewLine, value.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Select(TrimIndent));
         }
 
         [NotNull]
@@ -155,12 +155,12 @@
                     "0x80131869", // can't resolve reference => PEVerify can't find the referenced dll...
 #if NETCOREAPP
                     "0x80070002"  // The system cannot find the file specified.
-                    #endif
+#endif
                 };
 
                 var processStartInfo = new ProcessStartInfo(_peVerifyPath)
                 {
-                    Arguments = $"\"{assemblyPath}\" /hresult /VERBOSE /nologo /ignore={String.Join(",", ignoreCodes)}",
+                    Arguments = $"\"{assemblyPath}\" /hresult /VERBOSE /nologo /ignore={string.Join(",", ignoreCodes)}",
                     WorkingDirectory = workingDirectory,
                     CreateNoWindow = true,
                     UseShellExecute = false,

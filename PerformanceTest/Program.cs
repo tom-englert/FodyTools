@@ -30,17 +30,15 @@ namespace PerformanceTest
             var codeImporter = new CodeImporter(module)
             {
                 HideImportedTypes = false,
-                ModuleResolver = new AssemblyModuleResolver(typeof(Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialog).Assembly, typeof(Microsoft.WindowsAPICodePack.Dialogs.TaskDialog).Assembly)
+                ModuleResolver = new AssemblyModuleResolver(
+                    typeof(Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialog).Assembly, 
+                    typeof(Microsoft.WindowsAPICodePack.Dialogs.TaskDialog).Assembly,
+                    typeof(Newtonsoft.Json.JsonConvert).Assembly)
             };
 
             codeImporter.ILMerge();
 
             var tempPath = TestHelper.TempPath;
-
-            foreach (var file in new DirectoryInfo(baseDirectory).EnumerateFiles())
-            {
-                file.CopyTo(Path.Combine(tempPath, file.Name), true);
-            }
 
             var importedModules = codeImporter.ListImportedModules();
 
@@ -69,6 +67,7 @@ namespace PerformanceTest
 
             File.WriteAllText(Path.ChangeExtension(targetAssemblyPath, ".il"), il);
 
+            Console.WriteLine("Done - press any key...");
             Console.ReadKey();
 
             Assert.True(peVerify);

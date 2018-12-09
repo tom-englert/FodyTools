@@ -372,15 +372,16 @@
 
             targetType.DeclaringType = ImportTypeDefinition(sourceType.DeclaringType);
 
-            foreach (var sourceTypeInterface in sourceType.Interfaces)
-            {
-                targetType.Interfaces.Add(new InterfaceImplementation(ImportType(sourceTypeInterface.InterfaceType, null)));
-            }
-
             CopyGenericParameters(sourceType, targetType);
-            CopyAttributes(sourceType, targetType);
 
             targetType.BaseType = ImportType(sourceType.BaseType, null);
+
+            foreach (var sourceTypeInterface in sourceType.Interfaces)
+            {
+                var targetInterface = new InterfaceImplementation(ImportType(sourceTypeInterface.InterfaceType, null));
+                CopyAttributes(sourceTypeInterface, targetInterface);
+                targetType.Interfaces.Add(targetInterface);
+            }
 
             if (targetType.IsNested)
             {
@@ -400,6 +401,7 @@
             CopyMethods(sourceType, targetType);
             CopyProperties(sourceType, targetType);
             CopyEvents(sourceType, targetType);
+            CopyAttributes(sourceType, targetType);
 
             return targetType;
         }
@@ -600,6 +602,11 @@
                     targetParameter.MarshalInfo = sourceParameter.MarshalInfo;
                 }
 
+                if (sourceParameter.HasConstant)
+                {
+                    targetParameter.Constant = sourceParameter.Constant;
+                }
+
                 targetMethod.Parameters.Add(targetParameter);
             }
         }
@@ -731,7 +738,7 @@
 
             CopyExceptionHandlers(sourceBody, targetBody);
 
-            if (true == targetDebugInformation?.HasSequencePoints)
+            if (sourceDebugInformation != null && true == targetDebugInformation?.HasSequencePoints)
             {
                 var scope = targetDebugInformation.Scope = new ScopeDebugInformation(targetInstructions.First(), targetInstructions.Last());
 
@@ -1078,7 +1085,6 @@
                                 break;
 
                             case MethodReference methodReference:
-                                // instruction.Operand = codeImporter.ImportMethodReference(methodReference);
                                 methodReference.DeclaringType = codeImporter.ImportTypeReference(methodReference.DeclaringType);
                                 methodReference.ReturnType = codeImporter.ImportTypeReference(methodReference.ReturnType);
                                 foreach (var parameter in methodReference.Parameters)
