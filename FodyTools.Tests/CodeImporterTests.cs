@@ -21,27 +21,8 @@ namespace FodyTools.Tests
 {
     public class CodeImporterTests
     {
-
-#if NETFRAMEWORK
-        private const string Framework = "NET";
-#else
-        private const string Framework = "CORE";
-#endif
-
         [NotNull]
         private readonly ITestOutputHelper _testOutputHelper;
-
-        [NotNull]
-        private static string TempPath
-        {
-            get
-            {
-
-                var tempPath = Path.Combine(Path.GetTempPath(), "CodeImporter", Framework);
-                Directory.CreateDirectory(tempPath);
-                return tempPath;
-            }
-        }
 
         public enum AssemblyResolver
         {
@@ -57,7 +38,7 @@ namespace FodyTools.Tests
         [Theory]
         [InlineData(8, AssemblyResolver.AssemblyModuleResolver, typeof(Test<>))]
 #if !NETCOREAPP
-        [InlineData(7, AssemblyResolver.LocalModuleResolver, typeof(Test<>))]
+        [InlineData(8, AssemblyResolver.LocalModuleResolver, typeof(Test<>))]
 #endif
         public void SimpleTypesTest(int numberOfTypes, AssemblyResolver assemblyResolver, [NotNull, ItemNotNull] params Type[] types)
         {
@@ -73,7 +54,7 @@ namespace FodyTools.Tests
                 ? (IModuleResolver)new AssemblyModuleResolver(typeof(AssemblyExtensions).Assembly, typeof(BinaryOperation).Assembly)
                 : new LocalReferenceModuleResolver();
 
-            var targetAssemblyPath = Path.Combine(TempPath, "TargetAssembly1.dll");
+            var targetAssemblyPath = Path.Combine(TestHelper.TempPath, "TargetAssembly1.dll");
 
             var target = new CodeImporter(module)
             {
@@ -95,16 +76,18 @@ namespace FodyTools.Tests
                 _testOutputHelper.WriteLine(type.Key);
             }
 
-            Assert.True(PEVerify.Verify(_testOutputHelper, targetAssemblyPath));
+            var importedModules = target.ListImportedModules();
+
+            Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper));
             Assert.Equal(numberOfTypes, importedTypes.Count);
 
-            VerifyTypes(importedTypes, targetAssemblyPath, typeof(Test<>));
+            TestHelper.VerifyTypes(importedTypes, importedModules, targetAssemblyPath);
         }
 
         [Theory]
         [InlineData(3, typeof(WeakEventListener<,,>))]
         [InlineData(3, typeof(WeakEventSource<>))]
-        [InlineData(13, typeof(WeakEventSource<>), typeof(WeakEventListener<,,>), typeof(Test<>))]
+        [InlineData(14, typeof(WeakEventSource<>), typeof(WeakEventListener<,,>), typeof(BinaryOperation), typeof(Test<>))]
         [InlineData(4, typeof(AutoWeakIndexer<,>))]
         [InlineData(2, typeof(TomsToolbox.Core.CollectionExtensions))]
         public void ComplexTypesTest(int numberOfTypes, [NotNull, ItemNotNull] params Type[] types)
@@ -128,7 +111,7 @@ namespace FodyTools.Tests
                 target.Import(type);
             }
 
-            var tempPath = TempPath;
+            var tempPath = TestHelper.TempPath;
 
             var targetAssemblyPath = Path.Combine(tempPath, "TargetAssembly2.dll");
 
@@ -153,11 +136,12 @@ namespace FodyTools.Tests
                 _testOutputHelper.WriteLine(type.Key);
             }
 
+           
             Assert.Equal(numberOfTypes, importedTypes.Count);
 
-            VerifyTypes(importedTypes, targetAssemblyPath, typeof(Test<>));
+            TestHelper.VerifyTypes(importedTypes, target.ListImportedModules(), targetAssemblyPath);
 
-            Assert.True(PEVerify.Verify(_testOutputHelper, targetAssemblyPath));
+            Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper));
         }
 
         [Fact]
@@ -209,7 +193,8 @@ namespace FodyTools.Tests
             public DateTime UtcNow { get; }
         }
 
-        private class T1 : DelegateComparer<T2> {
+        private class T1 : DelegateComparer<T2>
+        {
             public T1([NotNull] Func<T2, T2, int> comparer) : base(comparer)
             {
             }
@@ -287,7 +272,7 @@ namespace FodyTools.Tests
 
             codeImporter.ILMerge();
 
-            var tempPath = TempPath;
+            var tempPath = TestHelper.TempPath;
 
             foreach (var file in new DirectoryInfo(Directories.Target).EnumerateFiles())
             {
@@ -304,201 +289,15 @@ namespace FodyTools.Tests
 
             var allTypes = module.Types.ToDictionary(t => t.FullName);
 
-            VerifyTypes(allTypes, targetAssemblyPath, typeof(FodyTools.SimpleSampleClass));
+            var importedModules = codeImporter.ListImportedModules();
 
-            var il = ILDasm.Decompile(targetAssemblyPath);
+            TestHelper.VerifyTypes(allTypes, importedModules, targetAssemblyPath);
+
+            var il = TestHelper.ILDasm.Decompile(targetAssemblyPath);
 
             File.WriteAllText(Path.ChangeExtension(targetAssemblyPath, ".il"), il);
 
-            Assert.True(PEVerify.Verify(_testOutputHelper, targetAssemblyPath));
-        }
-
-        private static void VerifyTypes([NotNull] IDictionary<string, TypeDefinition> importedTypes, [NotNull] string targetAssemblyPath, [NotNull] Type typeInSourceAssembly)
-        {
-            var sourceAssemblyPath = new Uri(typeInSourceAssembly.Assembly.CodeBase).LocalPath;
-            var toolboxCoreAssemblyPath = new Uri(typeof(AssemblyExtensions).Assembly.CodeBase).LocalPath;
-            var toolboxDesktopAssemblyPath = new Uri(typeof(BinaryOperation).Assembly.CodeBase).LocalPath;
-            var tempPath = TempPath;
-
-            foreach (var t in importedTypes)
-            {
-                if (t.Key.StartsWith("<"))
-                    continue;
-
-                var assemblyPath = t.Key.Contains("FodyTools") ? sourceAssemblyPath : t.Key.Contains("Desktop") ? toolboxDesktopAssemblyPath : toolboxCoreAssemblyPath;
-                var decompiled = ILDasm.Decompile(assemblyPath, t.Key);
-
-                var decompiledSource = FixSourceNamespaces(FixIndenting(FixAttributeOrder(decompiled)));
-                var decompiledTarget = FixSystemNamespaces(FixIndenting(FixAttributeOrder(ILDasm.Decompile(targetAssemblyPath, t.Value.FullName))));
-
-                File.WriteAllText(Path.Combine(tempPath, "source.txt"), decompiledSource);
-                File.WriteAllText(Path.Combine(tempPath, "target.txt"), decompiledTarget);
-
-                var expected = decompiledSource.Replace("\r\n", "\n").Split('\n').OrderBy(line => line);
-                var target = decompiledTarget.Replace("\r\n", "\n").Split('\n').OrderBy(line => line);
-
-                var mismatches = Enumerate.AsTuples(expected, target)
-                    .Select((tuple, index) => new { tuple.Item1, tuple.Item2, index })
-                    .Where(tuple => tuple.Item1 != tuple.Item2)
-                    .ToArray();
-
-
-                Assert.Empty(mismatches);
-            }
-        }
-
-        [NotNull]
-        private static string FixAttributeOrder([NotNull] string value)
-        {
-            return value.Replace(
-"  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) \r\n  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) ",
-"  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) \r\n  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) ");
-        }
-
-        [NotNull]
-        static string FixSourceNamespaces([NotNull] string value)
-        {
-            return FixSystemNamespaces(value.Replace("[TomsToolbox.Core]", "").Replace("[TomsToolbox.Desktop]", ""));
-        }
-
-        [NotNull]
-        static string FixSystemNamespaces([NotNull] string value)
-        {
-            var regex = new Regex(@"\[System\.[\.\w]+\]");
-
-            var result = regex.Replace(value, "[System]");
-
-            result = result.Replace("[mscorlib]", "[System]");
-
-            return result;
-        }
-
-        [NotNull]
-        static string FixIndenting([NotNull] string value)
-        {
-            return string.Join(Environment.NewLine, value.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Select(TrimIndent));
-        }
-
-        [NotNull]
-        private static string TrimIndent([NotNull] string line)
-        {
-            var spaces = new string(' ', 16);
-            if (line.StartsWith(spaces))
-                return line.TrimStart(' ');
-
-            return line;
-        }
-
-        private static class PEVerify
-        {
-            private static readonly string _peVerifyPath = SdkTool.Find("PEVerify.exe");
-
-            public static bool Verify(ITestOutputHelper testOutputHelper, string assemblyPath)
-            {
-                var workingDirectory = Path.GetDirectoryName(assemblyPath);
-
-                var ignoreCodes = new[]
-                {
-                    "0x80131869", // can't resolve reference => PEVerify can't find the referenced dll...
-                    #if NETCOREAPP
-                    "0x80070002"  // The system cannot find the file specified.
-                    #endif
-                };
-
-                var processStartInfo = new ProcessStartInfo(_peVerifyPath)
-                {
-                    Arguments = $"\"{assemblyPath}\" /hresult /VERBOSE /nologo /ignore={string.Join(",", ignoreCodes)}",
-                    WorkingDirectory = workingDirectory,
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true
-                };
-
-                using (var process = Process.Start(processStartInfo))
-                {
-                    var output = process.StandardOutput.ReadToEnd();
-
-                    output = Regex.Replace(output, @"^All Classes and Methods.*", "");
-
-                    if (!process.WaitForExit(10000))
-                    {
-                        throw new Exception("PeVerify failed to exit");
-                    }
-
-                    if (process.ExitCode != 0)
-                    {
-                        testOutputHelper.WriteLine(_peVerifyPath);
-                        testOutputHelper.WriteLine(output);
-
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-        }
-
-        private static class ILDasm
-        {
-            private static readonly string _ilDasmPath = SdkTool.Find("ILDasm.exe");
-
-            [NotNull]
-            public static string Decompile(string assemblyPath)
-            {
-                var startInfo = new ProcessStartInfo(_ilDasmPath, $"\"{assemblyPath}\" /text")
-                {
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                using (var process = Process.Start(startInfo))
-                {
-                    return process?.StandardOutput.ReadToEnd() ?? "ILDasm did not start";
-                }
-            }
-
-            [NotNull]
-            public static string Decompile(string assemblyPath, string className)
-            {
-                // var startInfo = new ProcessStartInfo(_ilDasmPath, $"\"{assemblyPath}\" /text /classlist /item:{className}")
-                var startInfo = new ProcessStartInfo(_ilDasmPath, $"\"{assemblyPath}\" /text /item:{className}")
-                {
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                using (var process = Process.Start(startInfo))
-                {
-                    return process?.StandardOutput.ReadToEnd() ?? "ILDasm did not start";
-                }
-            }
-        }
-
-        private static class SdkTool
-        {
-            [NotNull]
-            public static string Find([NotNull] string fileName)
-            {
-                var windowsSdkDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft SDKs\\Windows");
-
-
-                var path = Directory.EnumerateFiles(windowsSdkDirectory, fileName, SearchOption.AllDirectories)
-                               .Where(item => item?.IndexOf("x64", StringComparison.OrdinalIgnoreCase) == -1)
-                               .OrderByDescending<string, Version>(GetFileVersion)
-                               .FirstOrDefault()
-                           ?? throw new FileNotFoundException(fileName);
-
-                return path;
-            }
-
-            [NotNull]
-            private static Version GetFileVersion([NotNull] string path)
-            {
-                var versionInfo = FileVersionInfo.GetVersionInfo(path);
-                return new Version(versionInfo.FileMajorPart, versionInfo.FileMinorPart, versionInfo.FileBuildPart);
-            }
+            Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper));
         }
     }
 

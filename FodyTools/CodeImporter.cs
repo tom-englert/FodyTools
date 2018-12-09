@@ -42,7 +42,7 @@
         private readonly Dictionary<MethodDefinition, MethodDefinition> _targetMethods = new Dictionary<MethodDefinition, MethodDefinition>();
 
         [NotNull]
-        private readonly IList<DeferredAction> _deferredActions = new List<DeferredAction>();
+        private readonly IList<Action> _deferredActions = new List<Action>();
 
         private enum Priority
         {
@@ -361,7 +361,11 @@
 
             RegisterSourceModule(sourceType.Module);
 
-            targetType = new TypeDefinition(sourceType.Namespace, sourceType.Name, sourceType.Attributes);
+            targetType = new TypeDefinition(sourceType.Namespace, sourceType.Name, sourceType.Attributes)
+            {
+                ClassSize = sourceType.ClassSize,
+                PackingSize = sourceType.PackingSize,
+            };
 
             _targetTypesBySourceName.Add(sourceType.FullName, targetType);
             _targetTypes.Add(targetType);
@@ -520,7 +524,24 @@
                 target.PInvokeInfo = new PInvokeInfo(sourceDefinition.PInvokeInfo.Attributes, sourceDefinition.PInvokeInfo.EntryPoint, moduleRef);
             }
 
-            target.ReturnType = ImportType(sourceDefinition.ReturnType, target);
+            var sourceReturnType = sourceDefinition.MethodReturnType;
+
+            var targetReturnType = new MethodReturnType(target)
+            {
+                ReturnType = ImportType(sourceDefinition.ReturnType, target),
+                MarshalInfo = sourceReturnType.MarshalInfo,
+                Attributes =  sourceReturnType.Attributes,
+                Name = sourceReturnType.Name
+            };
+
+            if (sourceReturnType.HasConstant)
+            {
+                targetReturnType.Constant = sourceReturnType.Constant;
+            }
+
+            CopyAttributes(sourceReturnType, targetReturnType);
+
+            target.MethodReturnType = targetReturnType;
 
             ImportMethodBody(sourceDefinition, target);
 
@@ -535,7 +556,11 @@
                 {
                     var attributeType = ImportType(customAttribute.AttributeType, null);
 
-                    var constructor = attributeType.Resolve().GetConstructors().Where(ctor => !ctor.IsStatic).FirstOrDefault();
+                    var constructor = attributeType.Resolve()
+                        .GetConstructors()
+                        .Where(ctor => !ctor.IsStatic)
+                        .Single(ctor => ctor.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(customAttribute.Constructor.Parameters.Select(p => p.ParameterType.FullName)));
+
                     if (constructor != null)
                     {
                         target.CustomAttributes.Add(new CustomAttribute(TargetModule.ImportReference(constructor), customAttribute.GetBlob()));
@@ -940,7 +965,16 @@
 
         private void ExecuteDeferred(Priority priority, [NotNull] Action action)
         {
-            _deferredActions.Add(new DeferredAction(priority, action));
+            switch (priority)
+            {
+                case Priority.Instructions:
+                    _deferredActions.Insert(0, action);
+                    break;
+
+                default:
+                    _deferredActions.Add(action);
+                    break;
+            }
         }
 
         [NotNull]
@@ -952,29 +986,15 @@
         {
             while (true)
             {
-                var action = _deferredActions.OrderBy(a => (int)a.Priority).FirstOrDefault();
+                var action = _deferredActions.FirstOrDefault();
                 if (action == null)
                     break;
 
-                _deferredActions.Remove(action);
-                action.Action();
+                _deferredActions.RemoveAt(0);
+                action();
             }
 
             return target;
-        }
-
-        private class DeferredAction
-        {
-            public DeferredAction(Priority priority, [NotNull] Action action)
-            {
-                Priority = priority;
-                Action = action;
-            }
-
-            public Priority Priority { get; }
-
-            [NotNull]
-            public Action Action { get; }
         }
     }
 
