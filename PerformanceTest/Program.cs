@@ -24,7 +24,7 @@ namespace PerformanceTest
         {
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-            var assemblyPath = Path.Combine(baseDirectory, "ShellAssembly.dll");
+            var assemblyPath = Path.Combine(baseDirectory, "ShellAssembly.exe");
             var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
 
             var codeImporter = new CodeImporter(module)
@@ -42,16 +42,25 @@ namespace PerformanceTest
                 file.CopyTo(Path.Combine(tempPath, file.Name), true);
             }
 
-            var targetAssemblyPath = Path.Combine(tempPath, "TargetAssembly2.dll");
+            var importedModules = codeImporter.ListImportedModules();
 
-            module.Assembly.Name.Name = "TargetAssembly2";
+            foreach (var m in importedModules)
+            {
+                foreach (var resource in m.Resources.OfType<EmbeddedResource>())
+                {
+                    module.Resources.Add(resource);
+                }
+            }
+
+            var targetAssemblyPath = Path.Combine(tempPath, "ShellAssembly2.exe");
+
+            module.Assembly.Name.Name = "ShellAssembly2";
             var now = DateTime.Now;
             module.Assembly.Name.Version = new Version(now.Year, now.Month, now.Day, (int)now.TimeOfDay.TotalMilliseconds);
             module.Write(targetAssemblyPath);
 
             var peVerify = TestHelper.PEVerify.Verify(targetAssemblyPath, line => Console.WriteLine(line));
 
-            var importedModules = codeImporter.ListImportedModules();
             var importedTypes = codeImporter.ListImportedTypes();
 
             TestHelper.VerifyTypes(importedTypes, importedModules, targetAssemblyPath, AssertIl);
