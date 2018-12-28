@@ -65,6 +65,9 @@
         [CanBeNull]
         public IModuleResolver ModuleResolver { get; set; }
 
+        [NotNull]
+        public Func<string, string> NamespaceDecorator { get; set; } = value => value;
+
         public bool HideImportedTypes { get; set; } = true;
 
         /// <summary>
@@ -361,7 +364,7 @@
 
             RegisterSourceModule(sourceType.Module);
 
-            targetType = new TypeDefinition(sourceType.Namespace, sourceType.Name, sourceType.Attributes)
+            targetType = new TypeDefinition(NamespaceDecorator(sourceType.Namespace), sourceType.Name, sourceType.Attributes)
             {
                 ClassSize = sourceType.ClassSize,
                 PackingSize = sourceType.PackingSize,

@@ -14,6 +14,7 @@ using TomsToolbox.Core;
 using TomsToolbox.Desktop;
 using Xunit;
 using Xunit.Abstractions;
+#pragma warning disable 649
 
 #pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
 
@@ -404,8 +405,9 @@ namespace FodyTools.Tests
 #endif
 
         private readonly Test<MyEventArgs> _owner;
+#if NETFRAMEWORK
         private readonly IntPtr _hlib;
-
+#endif
         public Referenced(Test<MyEventArgs> owner)
         {
             _owner = owner;

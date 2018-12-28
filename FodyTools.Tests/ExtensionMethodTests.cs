@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
+
+using System;
 using System.IO;
 using System.Linq;
 using Mono.Cecil;
