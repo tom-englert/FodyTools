@@ -291,13 +291,13 @@
         #region Type
 
         [NotNull]
-        public static TypeReference ImportType([NotNull] this ITypeSystem typeSystem, Type type)
+        public static TypeReference ImportType([NotNull] this ITypeSystem typeSystem, [NotNull] Type type)
         {
             return typeSystem.ModuleDefinition.ImportReference(typeSystem.FindType(GetFullName(type)));
         }
 
         [CanBeNull]
-        public static TypeReference TryImportType([NotNull] this ITypeSystem typeSystem, Type type)
+        public static TypeReference TryImportType([NotNull] this ITypeSystem typeSystem, [NotNull] Type type)
         {
             if (!typeSystem.TryFindType(GetFullName(type), out var typeDefinition))
                 return null;

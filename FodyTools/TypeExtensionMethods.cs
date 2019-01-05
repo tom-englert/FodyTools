@@ -104,14 +104,16 @@
             ExceptionHandler exceptionHandler;
             MethodBody body;
             Collection<Instruction> instructions;
-            
+
             if (finalizer == null)
             {
                 var module = classDefinition.Module;
 
                 var baseFinalizer = module.ImportReference(classDefinition.GetBaseTypes().Select(FindFinalizer).FirstOrDefault(item => item != null));
 
-                finalizer = new MethodDefinition(FinalizerMethodName, MethodAttributes.Family | MethodAttributes.Virtual | MethodAttributes.HideBySig, module.TypeSystem.Void);
+                const MethodAttributes attributes = MethodAttributes.Family | MethodAttributes.Virtual | MethodAttributes.HideBySig;
+
+                finalizer = new MethodDefinition(FinalizerMethodName, attributes, module.TypeSystem.Void);
                 finalizer.Overrides.Add(baseFinalizer);
 
                 exceptionHandler = new ExceptionHandler(ExceptionHandlerType.Finally);
@@ -166,6 +168,30 @@
         public static MethodDefinition FindFinalizer(this TypeDefinition classDefinition)
         {
             return classDefinition.GetMethods().FirstOrDefault(m => m.Name == FinalizerMethodName && !m.HasParameters && (m.Attributes & MethodAttributes.Family) != 0);
+        }
+
+        public static void InsertIntoStaticConstructor([NotNull] this TypeDefinition classDefinition, [NotNull] params Instruction[] additionalInstructions)
+        {
+            var constructor = classDefinition.GetConstructors()
+                .FirstOrDefault(ctor => ctor.IsStatic);
+
+            if (constructor == null)
+            {
+                var module = classDefinition.Module;
+
+                var attributes = MethodAttributes.Private
+                    | MethodAttributes.HideBySig
+                    | MethodAttributes.Static
+                    | MethodAttributes.SpecialName
+                    | MethodAttributes.RTSpecialName;
+
+                constructor = new MethodDefinition(".cctor", attributes, module.TypeSystem.Void);
+
+                classDefinition.Methods.Add(constructor);
+                constructor.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+            }
+
+            constructor.Body.Instructions.InsertRange(0, additionalInstructions);
         }
     }
 }
