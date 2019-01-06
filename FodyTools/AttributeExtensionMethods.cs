@@ -3,6 +3,8 @@
     using System.Collections.Generic;
     using System.Linq;
 
+    using JetBrains.Annotations;
+
     using Mono.Cecil;
 
     internal static class AttributeExtensionMethods
@@ -33,7 +35,7 @@
                 .FirstOrDefault(value => value != null);
         }
 
-        public static T GetPropertyValue<T>(this CustomAttribute attribute, string propertyName, T defaultValue)
+        public static T GetPropertyValue<T>([NotNull] this CustomAttribute attribute, string propertyName, T defaultValue)
         {
             return attribute.Properties.Where(p => p.Name == propertyName).Select(p => (T)p.Argument.Value).DefaultIfEmpty(defaultValue).Single();
         }
