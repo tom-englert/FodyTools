@@ -557,18 +557,24 @@
         {
             if (source.HasCustomAttributes)
             {
-                foreach (var customAttribute in source.CustomAttributes)
+                foreach (var sourceAttribute in source.CustomAttributes)
                 {
-                    var attributeType = ImportType(customAttribute.AttributeType, null);
+                    var attributeType = ImportType(sourceAttribute.AttributeType, null);
 
                     var constructor = attributeType.Resolve()
                         .GetConstructors()
                         .Where(ctor => !ctor.IsStatic)
-                        .Single(ctor => ctor.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(customAttribute.Constructor.Parameters.Select(p => p.ParameterType.FullName)));
+                        .Single(ctor => ctor.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(sourceAttribute.Constructor.Parameters.Select(p => p.ParameterType.FullName)));
 
                     if (constructor != null)
                     {
-                        target.CustomAttributes.Add(new CustomAttribute(TargetModule.ImportReference(constructor), customAttribute.GetBlob()));
+                        var targetAttribute = new CustomAttribute(TargetModule.ImportReference(constructor), sourceAttribute.GetBlob());
+                        if (sourceAttribute.HasConstructorArguments)
+                        {
+                            targetAttribute.ConstructorArguments.AddRange(sourceAttribute.ConstructorArguments.Select(a => new CustomAttributeArgument(ImportType(a.Type, null), a.Value)));
+                        }
+
+                        target.CustomAttributes.Add(targetAttribute);
                     }
                 }
             }
