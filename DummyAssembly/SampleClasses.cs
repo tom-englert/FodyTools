@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices.ComTypes;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.InteropServices.ComTypes;
 using TomsToolbox.Core;
 
 [assembly: PluginModule("1", "2", "3")]
@@ -6,6 +8,7 @@ using TomsToolbox.Core;
 
 namespace FodyTools
 {
+    using ReferencedAssembly;
     using System;
     using System.ComponentModel;
 
@@ -34,16 +37,16 @@ namespace FodyTools
 
             switch (param)
             {
-                    case 1:
-                        break;
+                case 1:
+                    break;
 
-                    case 2:
-                        param = param - 1;
-                        break;
+                case 2:
+                    param = param - 1;
+                    break;
 
-                    default:
-                        _field = param - 2;
-                        break;
+                default:
+                    _field = param - 2;
+                    break;
             }
         }
 
@@ -52,6 +55,51 @@ namespace FodyTools
         {
             add => _eventSource.Subscribe(value);
             remove => _eventSource.Unsubscribe(value);
+        }
+
+        IEnumerable<Structure> GetItems()
+        {
+            yield return new Structure { Value1 = "V1" };
+            yield return new Structure { Value2 = "V2" };
+        }
+
+        class GetItemsImpl : IEnumerable<Structure>, IEnumerator<Structure>
+        {
+            private Structure _current;
+
+            IEnumerator<Structure> IEnumerable<Structure>.GetEnumerator()
+            {
+                return this;
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this;
+            }
+
+            bool IEnumerator.MoveNext()
+            {
+                _current = new Structure {Value1 = "1"};
+                return true;
+            }
+
+            void IEnumerator.Reset()
+            {
+                _current = default(Structure);
+            }
+
+            Structure IEnumerator<Structure>.Current => _current;
+
+            object IEnumerator.Current => _current;
+
+            public void Dispose()
+            {
+            }
+        }
+
+        object GetItem()
+        {
+            return new Structure { Value2 = "V2" };
         }
     }
 
@@ -84,12 +132,12 @@ namespace FodyTools
         {
         }
 
-        public ComplexSampleClass(T1 target, TomsToolbox.Core.WeakReference<T2> source, Action<T1, object, EventArgs> onEventAction, Action<WeakEventListener<T1, T2, EventArgs>, T2> onAttachAction, Action<WeakEventListener<T1, T2, EventArgs>, T2> onDetachAction) 
+        public ComplexSampleClass(T1 target, TomsToolbox.Core.WeakReference<T2> source, Action<T1, object, EventArgs> onEventAction, Action<WeakEventListener<T1, T2, EventArgs>, T2> onAttachAction, Action<WeakEventListener<T1, T2, EventArgs>, T2> onDetachAction)
             : base(target, source, onEventAction, onAttachAction, onDetachAction)
         {
         }
 
-        public T SomeMethod<T>(TomsToolbox.Core.TryCastWorker<T1> p1, Func<T2> p2, Func<T> p3) 
+        public T SomeMethod<T>(TomsToolbox.Core.TryCastWorker<T1> p1, Func<T2> p2, Func<T> p3)
             where T : TomsToolbox.Core.DelegateComparer<AutoWeakIndexer<int, string>>
         {
             var x = new AutoWeakIndexer<int, string>(i => i.ToString());
@@ -105,7 +153,7 @@ namespace FodyTools
             return default(T);
         }
 
-        public T SomeMethod<T>(TomsToolbox.Core.TryCastWorker<T> p1) 
+        public T SomeMethod<T>(TomsToolbox.Core.TryCastWorker<T> p1)
             where T : TomsToolbox.Core.DelegateComparer<AutoWeakIndexer<int, string>>
         {
             var x = new AutoWeakIndexer<int, string>(i => i.ToString());

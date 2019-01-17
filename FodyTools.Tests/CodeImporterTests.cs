@@ -7,9 +7,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Mono.Cecil;
+using ReferencedAssembly;
 using TomsToolbox.Core;
 using TomsToolbox.Desktop;
 using Xunit;
@@ -268,7 +268,7 @@ namespace FodyTools.Tests
             var codeImporter = new CodeImporter(module)
             {
                 HideImportedTypes = false,
-                ModuleResolver = new AssemblyModuleResolver(typeof(TomsToolbox.Core.AssemblyExtensions).Assembly)
+                ModuleResolver = new AssemblyModuleResolver(typeof(TomsToolbox.Core.AssemblyExtensions).Assembly, typeof(Structure).Assembly)
             };
 
             codeImporter.ILMerge();

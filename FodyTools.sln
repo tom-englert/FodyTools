@@ -18,9 +18,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DummyAssembly", "DummyAssem
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmptyAssembly", "EmptyAssembly\EmptyAssembly.csproj", "{C80F7820-F7C5-47FB-9714-B430505CC397}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceTest", "PerformanceTest\PerformanceTest.csproj", "{AA105E63-0CBB-431F-9D97-E99E6CFC2EB1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PerformanceTest", "PerformanceTest\PerformanceTest.csproj", "{AA105E63-0CBB-431F-9D97-E99E6CFC2EB1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShellAssembly", "ShellAssembly\ShellAssembly.csproj", "{6056B99B-DBFB-461C-9840-A64EE5B1CD6A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReferencedAssembly", "ReferencedAssembly\ReferencedAssembly.csproj", "{F5A8DBB9-DEAB-4783-93C4-D9FFCAF30F97}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -52,6 +54,10 @@ Global
 		{6056B99B-DBFB-461C-9840-A64EE5B1CD6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6056B99B-DBFB-461C-9840-A64EE5B1CD6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6056B99B-DBFB-461C-9840-A64EE5B1CD6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5A8DBB9-DEAB-4783-93C4-D9FFCAF30F97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5A8DBB9-DEAB-4783-93C4-D9FFCAF30F97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5A8DBB9-DEAB-4783-93C4-D9FFCAF30F97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5A8DBB9-DEAB-4783-93C4-D9FFCAF30F97}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

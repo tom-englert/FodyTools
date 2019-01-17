@@ -104,35 +104,6 @@
             return ProcessDeferredActions(ImportTypeDefinition(sourceType));
         }
 
-        [ContractAnnotation("typeReference:notnull=>notnull")]
-        public TypeReference ImportTypeReference([CanBeNull] TypeReference typeReference)
-        {
-            if (typeReference == null)
-                return null;
-
-            if (typeReference is GenericInstanceType genericInstanceType)
-            {
-                var target = new GenericInstanceType(ImportTypeReference(genericInstanceType.ElementType));
-
-                foreach (var genericArgument in genericInstanceType.GenericArguments)
-                {
-                    target.GenericArguments.Add(ImportTypeReference(genericArgument));
-                }
-
-                return target;
-            }
-
-            if (IsLocalOrExternalReference(typeReference))
-                return typeReference;
-
-            var typeDefinition = typeReference.Resolve();
-
-            if (typeDefinition == null)
-                return typeReference;
-
-            return ProcessDeferredActions(ImportTypeDefinition(typeDefinition));
-        }
-
         [NotNull]
         public GenericInstanceMethod Import([NotNull] GenericInstanceMethod method)
         {
@@ -377,11 +348,11 @@
 
             CopyGenericParameters(sourceType, targetType);
 
-            targetType.BaseType = ImportType(sourceType.BaseType, null);
+            targetType.BaseType = InternalImportType(sourceType.BaseType, null);
 
             foreach (var sourceTypeInterface in sourceType.Interfaces)
             {
-                var targetInterface = new InterfaceImplementation(ImportType(sourceTypeInterface.InterfaceType, null));
+                var targetInterface = new InterfaceImplementation(InternalImportType(sourceTypeInterface.InterfaceType, null));
                 CopyAttributes(sourceTypeInterface, targetInterface);
                 targetType.Interfaces.Add(targetInterface);
             }
@@ -421,7 +392,7 @@
         {
             foreach (var sourceDefinition in source.Properties)
             {
-                var targetDefinition = new PropertyDefinition(sourceDefinition.Name, sourceDefinition.Attributes, ImportType(sourceDefinition.PropertyType, null))
+                var targetDefinition = new PropertyDefinition(sourceDefinition.Name, sourceDefinition.Attributes, InternalImportType(sourceDefinition.PropertyType, null))
                 {
                     GetMethod = ImportMethodDefinition(sourceDefinition.GetMethod, target),
                     SetMethod = ImportMethodDefinition(sourceDefinition.SetMethod, target)
@@ -437,7 +408,7 @@
         {
             foreach (var sourceDefinition in source.Events)
             {
-                var targetDefinition = new EventDefinition(sourceDefinition.Name, sourceDefinition.Attributes, ImportType(sourceDefinition.EventType, null))
+                var targetDefinition = new EventDefinition(sourceDefinition.Name, sourceDefinition.Attributes, InternalImportType(sourceDefinition.EventType, null))
                 {
                     AddMethod = ImportMethodDefinition(sourceDefinition.AddMethod, target),
                     RemoveMethod = ImportMethodDefinition(sourceDefinition.RemoveMethod, target)
@@ -455,7 +426,7 @@
             {
                 var fieldName = sourceDefinition.Name;
 
-                var targetDefinition = new FieldDefinition(fieldName, sourceDefinition.Attributes, ImportType(sourceDefinition.FieldType, null))
+                var targetDefinition = new FieldDefinition(fieldName, sourceDefinition.Attributes, InternalImportType(sourceDefinition.FieldType, null))
                 {
                     InitialValue = sourceDefinition.InitialValue,
                     Offset = sourceDefinition.Offset,
@@ -529,13 +500,22 @@
                 target.PInvokeInfo = new PInvokeInfo(sourceDefinition.PInvokeInfo.Attributes, sourceDefinition.PInvokeInfo.EntryPoint, moduleRef);
             }
 
-            var sourceReturnType = sourceDefinition.MethodReturnType;
+            CopyReturnType(sourceDefinition, target);
+
+            ImportMethodBody(sourceDefinition, target);
+
+            return target;
+        }
+
+        private void CopyReturnType([NotNull] MethodReference source, [NotNull] MethodReference target)
+        {
+            var sourceReturnType = source.MethodReturnType;
 
             var targetReturnType = new MethodReturnType(target)
             {
-                ReturnType = ImportType(sourceDefinition.ReturnType, target),
+                ReturnType = InternalImportType(source.ReturnType, target),
                 MarshalInfo = sourceReturnType.MarshalInfo,
-                Attributes =  sourceReturnType.Attributes,
+                Attributes = sourceReturnType.Attributes,
                 Name = sourceReturnType.Name
             };
 
@@ -547,10 +527,6 @@
             CopyAttributes(sourceReturnType, targetReturnType);
 
             target.MethodReturnType = targetReturnType;
-
-            ImportMethodBody(sourceDefinition, target);
-
-            return target;
         }
 
         private void CopyAttributes([NotNull] ICustomAttributeProvider source, ICustomAttributeProvider target)
@@ -559,7 +535,7 @@
             {
                 foreach (var sourceAttribute in source.CustomAttributes)
                 {
-                    var attributeType = ImportType(sourceAttribute.AttributeType, null);
+                    var attributeType = InternalImportType(sourceAttribute.AttributeType, null);
 
                     var constructor = attributeType.Resolve()
                         .GetConstructors()
@@ -571,7 +547,7 @@
                         var targetAttribute = new CustomAttribute(TargetModule.ImportReference(constructor), sourceAttribute.GetBlob());
                         if (sourceAttribute.HasConstructorArguments)
                         {
-                            targetAttribute.ConstructorArguments.AddRange(sourceAttribute.ConstructorArguments.Select(a => new CustomAttributeArgument(ImportType(a.Type, null), a.Value)));
+                            targetAttribute.ConstructorArguments.AddRange(sourceAttribute.ConstructorArguments.Select(a => new CustomAttributeArgument(InternalImportType(a.Type, null), a.Value)));
                         }
 
                         target.CustomAttributes.Add(targetAttribute);
@@ -592,7 +568,7 @@
 
             foreach (var sourceVariable in sourceMethodBody.Variables)
             {
-                targeMethodBody.Variables.Add(new VariableDefinition(ImportType(sourceVariable.VariableType, target)));
+                targeMethodBody.Variables.Add(new VariableDefinition(InternalImportType(sourceVariable.VariableType, target)));
             }
 
             ExecuteDeferred(Priority.Instructions, () => CopyInstructions(source, target));
@@ -602,7 +578,7 @@
         {
             foreach (var sourceParameter in sourceMethod.Parameters)
             {
-                var targetParameter = new ParameterDefinition(sourceParameter.Name, sourceParameter.Attributes, ImportType(sourceParameter.ParameterType, targetMethod));
+                var targetParameter = new ParameterDefinition(sourceParameter.Name, sourceParameter.Attributes, InternalImportType(sourceParameter.ParameterType, targetMethod));
 
                 CopyAttributes(sourceParameter, targetParameter);
 
@@ -627,7 +603,7 @@
 
             foreach (var genericParameter in source.GenericParameters)
             {
-                var parameter = new GenericParameter(genericParameter.Name, ImportType(genericParameter.DeclaringType, null))
+                var parameter = new GenericParameter(genericParameter.Name, InternalImportType(genericParameter.DeclaringType, null))
                 {
                     Attributes = genericParameter.Attributes
                 };
@@ -636,7 +612,7 @@
                 {
                     foreach (var constraint in genericParameter.Constraints)
                     {
-                        parameter.Constraints.Add(ImportType(constraint.GetElementType(), null));
+                        parameter.Constraints.Add(InternalImportType(constraint.GetElementType(), null));
                     }
                 }
 
@@ -652,7 +628,7 @@
                 {
                     var provider = genericParameter.Type == GenericParameterType.Method
                         ? (IGenericParameterProvider)target
-                        : ImportType(genericParameter.DeclaringType, null);
+                        : InternalImportType(genericParameter.DeclaringType, null);
 
                     var parameter = new GenericParameter(genericParameter.Name, provider)
                     {
@@ -663,7 +639,7 @@
                     {
                         foreach (var constraint in genericParameter.Constraints)
                         {
-                            parameter.Constraints.Add(ImportType(constraint.GetElementType(), target));
+                            parameter.Constraints.Add(InternalImportType(constraint.GetElementType(), target));
                         }
                     }
 
@@ -712,7 +688,7 @@
 
                 if (sourceHandler.CatchType != null)
                 {
-                    targetHandler.CatchType = ImportType(sourceHandler.CatchType, null);
+                    targetHandler.CatchType = InternalImportType(sourceHandler.CatchType, null);
                 }
 
                 target.ExceptionHandlers.Add(targetHandler);
@@ -781,11 +757,11 @@
                     break;
 
                 case TypeReference typeReference:
-                    targetInstruction.Operand = ImportType(typeReference, targetMethod);
+                    targetInstruction.Operand = InternalImportType(typeReference, targetMethod);
                     break;
 
                 case FieldReference fieldReference:
-                    ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = new FieldReference(fieldReference.Name, ImportType(fieldReference.FieldType, targetMethod), ImportType(fieldReference.DeclaringType, targetMethod)));
+                    ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = new FieldReference(fieldReference.Name, InternalImportType(fieldReference.FieldType, targetMethod), InternalImportType(fieldReference.DeclaringType, targetMethod)));
                     break;
 
                 case Instruction instruction:
@@ -812,7 +788,14 @@
             };
         }
 
-        private TypeReference ImportType([CanBeNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
+        [ContractAnnotation("source:notnull=>notnull")]
+        public TypeReference ImportType([CanBeNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
+        {
+            return ProcessDeferredActions(InternalImportType(source, targetMethod));
+        }
+
+        [ContractAnnotation("source:notnull=>notnull")]
+        private TypeReference InternalImportType([CanBeNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
         {
             switch (source)
             {
@@ -829,13 +812,13 @@
                     return ImportGenericInstanceType(genericInstanceType, targetMethod);
 
                 case ByReferenceType byReferenceType:
-                    return new ByReferenceType(ImportType(byReferenceType.ElementType, targetMethod));
+                    return new ByReferenceType(InternalImportType(byReferenceType.ElementType, targetMethod));
 
                 case ArrayType arrayType:
-                    return new ArrayType(ImportType(arrayType.ElementType, targetMethod), arrayType.Rank);
+                    return new ArrayType(InternalImportType(arrayType.ElementType, targetMethod), arrayType.Rank);
 
                 case RequiredModifierType requiredModifierType:
-                    return new RequiredModifierType(ImportType(requiredModifierType.ModifierType, targetMethod), ImportType(requiredModifierType.ElementType, targetMethod));
+                    return new RequiredModifierType(InternalImportType(requiredModifierType.ModifierType, targetMethod), InternalImportType(requiredModifierType.ElementType, targetMethod));
 
                 default:
                     return ImportTypeReference(source, targetMethod);
@@ -845,7 +828,7 @@
         [NotNull]
         private TypeReference ImportTypeReference([NotNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
         {
-            Debug.Assert((source.GetType() == typeof(TypeReference)) || (source is TypeSpecification));
+            Debug.Assert(source.GetType() == typeof(TypeReference));
 
             if (IsLocalOrExternalReference(source))
             {
@@ -857,17 +840,17 @@
             if (typeDefinition == null)
                 throw new InvalidOperationException($"Unable to resolve type {source}");
 
-            return ImportType(typeDefinition, targetMethod);
+            return InternalImportType(typeDefinition, targetMethod);
         }
 
         [NotNull]
         private TypeReference ImportGenericInstanceType([NotNull] GenericInstanceType source, MethodReference targetMethod)
         {
-            var target = new GenericInstanceType(ImportType(source.ElementType, targetMethod));
+            var target = new GenericInstanceType(InternalImportType(source.ElementType, targetMethod));
 
             foreach (var genericArgument in source.GenericArguments)
             {
-                target.GenericArguments.Add(ImportType(genericArgument, targetMethod));
+                target.GenericArguments.Add(InternalImportType(genericArgument, targetMethod));
             }
 
             return target;
@@ -878,7 +861,7 @@
         {
             var genericParameterProvider = (source.Type == GenericParameterType.Method)
                 ? (targetMethod ?? throw new InvalidOperationException("Need a method reference for generic method parameter."))
-                : (IGenericParameterProvider)ImportType(source.DeclaringType, targetMethod);
+                : (IGenericParameterProvider)InternalImportType(source.DeclaringType, targetMethod);
 
             var index = source.Position;
 
@@ -903,8 +886,9 @@
             CopyGenericParameters(source, target);
             CopyParameters(source, target);
 
-            target.DeclaringType = ImportType(source.DeclaringType, target);
-            target.ReturnType = ImportType(source.ReturnType, target);
+            target.DeclaringType = InternalImportType(source.DeclaringType, target);
+
+            CopyReturnType(source, target);
 
             return target;
         }
@@ -933,7 +917,7 @@
 
             foreach (var genericArgument in source.GenericArguments)
             {
-                target.GenericArguments.Add(ImportType(genericArgument, target));
+                target.GenericArguments.Add(InternalImportType(genericArgument, target));
             }
 
             return target;
@@ -1030,25 +1014,31 @@
                 MergeAttributes(codeImporter, typeDefinition);
                 MergeGenericParameters(codeImporter, typeDefinition);
 
-                typeDefinition.BaseType = codeImporter.ImportTypeReference(typeDefinition.BaseType);
+                typeDefinition.BaseType = codeImporter.ImportType(typeDefinition.BaseType, null);
+
+                foreach (var interfaceImplementation in typeDefinition.Interfaces)
+                {
+                    MergeAttributes(codeImporter, interfaceImplementation);
+                    interfaceImplementation.InterfaceType = codeImporter.ImportType(interfaceImplementation.InterfaceType, null);
+                }
 
                 foreach (var fieldDefinition in typeDefinition.Fields)
                 {
                     MergeAttributes(codeImporter, fieldDefinition);
-                    fieldDefinition.FieldType = codeImporter.ImportTypeReference(fieldDefinition.FieldType);
+                    fieldDefinition.FieldType = codeImporter.ImportType(fieldDefinition.FieldType, null);
                 }
 
                 foreach (var eventDefinition in typeDefinition.Events)
                 {
                     MergeAttributes(codeImporter, eventDefinition);
-                    eventDefinition.EventType = codeImporter.ImportTypeReference(eventDefinition.EventType);
+                    eventDefinition.EventType = codeImporter.ImportType(eventDefinition.EventType, null);
                 }
 
                 foreach (var propertyDefinition in typeDefinition.Properties)
                 {
                     MergeAttributes(codeImporter, propertyDefinition);
 
-                    propertyDefinition.PropertyType = codeImporter.ImportTypeReference(propertyDefinition.PropertyType);
+                    propertyDefinition.PropertyType = codeImporter.ImportType(propertyDefinition.PropertyType, null);
 
                     if (!propertyDefinition.HasParameters)
                         continue;
@@ -1056,7 +1046,7 @@
                     foreach (var parameter in propertyDefinition.Parameters)
                     {
                         MergeAttributes(codeImporter, parameter);
-                        parameter.ParameterType = codeImporter.ImportTypeReference(parameter.ParameterType);
+                        parameter.ParameterType = codeImporter.ImportType(parameter.ParameterType, null);
                     }
                 }
 
@@ -1065,12 +1055,35 @@
                     MergeAttributes(codeImporter, methodDefinition);
                     MergeGenericParameters(codeImporter, methodDefinition);
 
-                    methodDefinition.ReturnType = codeImporter.ImportTypeReference(methodDefinition.ReturnType);
+                    methodDefinition.ReturnType = codeImporter.ImportType(methodDefinition.ReturnType, methodDefinition);
+
+                    var methodOverrides = methodDefinition.Overrides;
+
+                    for (var i = 0; i < methodOverrides.Count; i++)
+                    {
+                        var methodOverride = methodOverrides[i];
+
+                        if (methodOverride is MethodDefinition)
+                            throw new NotImplementedException("Method overrides using MethodDefinition is not yet supported");
+
+                        var returnType = codeImporter.ImportType(methodOverride.ReturnType, methodDefinition);
+                        var declaringType = codeImporter.ImportType(methodOverride.DeclaringType, methodDefinition);
+
+                        var newOverride = new MethodReference(methodOverride.Name, returnType, declaringType)
+                        {
+                            CallingConvention = methodOverride.CallingConvention,
+                            ExplicitThis = methodOverride.ExplicitThis,
+                            HasThis = methodOverride.HasThis
+                        };
+
+                        MergeGenericParameters(codeImporter, newOverride);
+                        methodOverrides[i] = newOverride;
+                    }
 
                     foreach (var parameter in methodDefinition.Parameters)
                     {
                         MergeAttributes(codeImporter, parameter);
-                        parameter.ParameterType = codeImporter.ImportTypeReference(parameter.ParameterType);
+                        parameter.ParameterType = codeImporter.ImportType(parameter.ParameterType, methodDefinition);
                     }
 
                     var methodBody = methodDefinition.Body;
@@ -1079,7 +1092,7 @@
 
                     foreach (var variable in methodBody.Variables)
                     {
-                        variable.VariableType = codeImporter.ImportTypeReference(variable.VariableType);
+                        variable.VariableType = codeImporter.ImportType(variable.VariableType, methodDefinition);
                     }
 
                     foreach (var instruction in methodBody.Instructions)
@@ -1094,27 +1107,24 @@
                                 break;
 
                             case MethodReference methodReference:
-                                methodReference.DeclaringType = codeImporter.ImportTypeReference(methodReference.DeclaringType);
-                                methodReference.ReturnType = codeImporter.ImportTypeReference(methodReference.ReturnType);
+                                methodReference.DeclaringType = codeImporter.ImportType(methodReference.DeclaringType, methodDefinition);
+                                methodReference.ReturnType = codeImporter.ImportType(methodReference.ReturnType, methodDefinition);
                                 foreach (var parameter in methodReference.Parameters)
                                 {
-                                    parameter.ParameterType = codeImporter.ImportTypeReference(parameter.ParameterType);
+                                    parameter.ParameterType = codeImporter.ImportType(parameter.ParameterType, methodDefinition);
                                 }
-                                break;
-
-                            case ArrayType arrayType:
-                                instruction.Operand = new ArrayType(codeImporter.ImportTypeReference(arrayType.ElementType), arrayType.Rank);
                                 break;
 
                             case TypeDefinition _:
                                 break;
 
                             case TypeReference typeReference:
-                                instruction.Operand = codeImporter.ImportTypeReference(typeReference);
+                                instruction.Operand = codeImporter.ImportType(typeReference, methodDefinition);
                                 break;
 
                             case FieldReference fieldReference:
-                                fieldReference.FieldType = codeImporter.ImportTypeReference(fieldReference.FieldType);
+                                fieldReference.FieldType = codeImporter.ImportType(fieldReference.FieldType, methodDefinition);
+                                fieldReference.DeclaringType = codeImporter.ImportType(fieldReference.DeclaringType, methodDefinition);
                                 break;
                         }
                     }
@@ -1141,7 +1151,7 @@
         {
             for (int i = 0; i < types.Count; i++)
             {
-                types[i] = codeImporter.ImportTypeReference(types[i]);
+                types[i] = codeImporter.ImportType(types[i], null);
             }
         }
 
@@ -1152,7 +1162,7 @@
 
             foreach (var attribute in attributeProvider.CustomAttributes)
             {
-                attribute.Constructor.DeclaringType = codeImporter.ImportTypeReference(attribute.Constructor.DeclaringType);
+                attribute.Constructor.DeclaringType = codeImporter.ImportType(attribute.Constructor.DeclaringType, null);
 
                 if (!attribute.HasConstructorArguments)
                     continue;
