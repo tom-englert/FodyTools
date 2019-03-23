@@ -40,6 +40,18 @@
         /// <param name="message">The message.</param>
         /// <param name="sequencePoint">The optional sequence point where the error occurred.</param>
         void LogError([NotNull] string message, SequencePoint sequencePoint = null);
+        /// <summary>
+        /// Logs a warning.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="method">The method where the problem occurred.</param>
+        void LogWarning([NotNull] string message, MethodReference method);
+        /// <summary>
+        /// Logs an error.
+        /// </summary>
+        /// <param name="message">The message.</param>
+        /// <param name="method">The method where the error occurred.</param>
+        void LogError([NotNull] string message,  MethodReference method);
     }
 
     /// <summary>
@@ -187,6 +199,16 @@
             {
                 LogErrorPoint(message, sequencePoint);
             }
+        }
+
+        void ILogger.LogWarning(string message, MethodReference method)
+        {
+            ((ILogger)this).LogWarning(message, method.GetEntryPoint(ModuleDefinition.SymbolReader));
+        }
+
+        void ILogger.LogError(string message, MethodReference method)
+        {
+            ((ILogger)this).LogError(message, method.GetEntryPoint(ModuleDefinition.SymbolReader));
         }
 
         TypeDefinition ITypeSystem.FindType(string typeName)

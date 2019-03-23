@@ -1,11 +1,13 @@
 ﻿namespace FodyTools
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     using JetBrains.Annotations;
 
     using Mono.Cecil;
+    using Mono.Cecil.Cil;
 
     internal static class MemberExtensionMethods
     {
@@ -42,6 +44,20 @@
             newMethod.GenericArguments.AddRange(arguments);
 
             return newMethod;
+        }
+
+        [CanBeNull]
+        public static SequencePoint GetEntryPoint([CanBeNull] this MethodReference method, [CanBeNull] ISymbolReader symbolReader)
+        {
+            return method?.Resolve()?.ReadSequencePoints(symbolReader)?.FirstOrDefault();
+        }
+
+        [CanBeNull]
+        public static IList<SequencePoint> ReadSequencePoints([CanBeNull] this MethodDefinition method, [CanBeNull] ISymbolReader symbolReader)
+        {
+            return (method?.DebugInformation?.HasSequencePoints == true)
+                ? symbolReader?.Read(method)?.SequencePoints
+                : null;
         }
     }
 }
