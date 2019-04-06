@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Linq.Expressions;
@@ -27,6 +28,7 @@
     internal sealed class CodeImporter
     {
         [NotNull]
+        // ReSharper disable once AssignNullToNotNullAttribute
         private static readonly ConstructorInfo _instructionConstructor = typeof(Instruction).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
 
         [NotNull]
@@ -47,7 +49,7 @@
         private enum Priority
         {
             Instructions,
-            Operands,
+            Operands
         }
 
         /// <summary>
@@ -129,7 +131,6 @@
         /// Imports the methods declaring type into the target module and returns the method definition
         /// of the corresponding method in the target module.
         /// </summary>
-        /// <typeparam name="T">The methods return value.</typeparam>
         /// <param name="expression">The method call expression describing the source method.</param>
         /// <returns>The method definition of the imported method.</returns>
         /// <exception cref="ArgumentException">Only method call expression is supported. - expression</exception>
@@ -172,7 +173,7 @@
             if (!(member is PropertyInfo))
                 throw new ArgumentException("Only a property expression is supported here.", nameof(expression));
 
-            var targetType = Import(member.DeclaringType);
+            var targetType = Import(member.GetDeclaringType());
             var propertyName = member.Name;
 
             return targetType.Properties.Single(m => m.Name == propertyName);
@@ -200,7 +201,7 @@
             if (!(member is FieldInfo))
                 throw new ArgumentException("Only a field expression is supported here.", nameof(expression));
 
-            var targetType = Import(member.DeclaringType);
+            var targetType = Import(member.GetDeclaringType());
             var fieldName = member.Name;
 
             return targetType.Fields.Single(m => m.Name == fieldName);
@@ -228,7 +229,7 @@
             if (!(member is EventInfo))
                 throw new ArgumentException("Only a event expression is supported here.", nameof(expression));
 
-            var targetType = Import(member.DeclaringType);
+            var targetType = Import(member.GetDeclaringType());
             var eventName = member.Name;
 
             return targetType.Events.Single(m => m.Name == eventName);
@@ -319,7 +320,7 @@
         }
 
         [ContractAnnotation("sourceType:notnull=>notnull")]
-        private TypeDefinition ImportTypeDefinition(TypeDefinition sourceType)
+        private TypeDefinition ImportTypeDefinition([CanBeNull] TypeDefinition sourceType)
         {
             if (sourceType == null)
                 return null;
@@ -338,7 +339,7 @@
             targetType = new TypeDefinition(NamespaceDecorator(sourceType.Namespace), sourceType.Name, sourceType.Attributes)
             {
                 ClassSize = sourceType.ClassSize,
-                PackingSize = sourceType.PackingSize,
+                PackingSize = sourceType.PackingSize
             };
 
             _targetTypesBySourceName.Add(sourceType.FullName, targetType);
@@ -429,7 +430,7 @@
                 var targetDefinition = new FieldDefinition(fieldName, sourceDefinition.Attributes, InternalImportType(sourceDefinition.FieldType, null))
                 {
                     InitialValue = sourceDefinition.InitialValue,
-                    Offset = sourceDefinition.Offset,
+                    Offset = sourceDefinition.Offset
                 };
 
                 if (sourceDefinition.HasConstant)
@@ -448,6 +449,7 @@
             }
         }
 
+        [CanBeNull]
         private MethodDefinition ImportMethodDefinition([CanBeNull] MethodDefinition sourceDefinition, [NotNull] TypeDefinition targetType)
         {
             if (sourceDefinition == null)
@@ -461,7 +463,7 @@
 
             target = new MethodDefinition(sourceDefinition.Name, sourceDefinition.Attributes, TemporaryPlaceholderType)
             {
-                ImplAttributes = sourceDefinition.ImplAttributes,
+                ImplAttributes = sourceDefinition.ImplAttributes
             };
 
             _targetMethods.Add(sourceDefinition, target);
@@ -507,7 +509,7 @@
             return target;
         }
 
-        private void CopyReturnType([NotNull] MethodReference source, [NotNull] MethodReference target)
+        private void CopyReturnType([NotNull] IMethodSignature source, [NotNull] MethodReference target)
         {
             var sourceReturnType = source.MethodReturnType;
 
@@ -529,30 +531,30 @@
             target.MethodReturnType = targetReturnType;
         }
 
-        private void CopyAttributes([NotNull] ICustomAttributeProvider source, ICustomAttributeProvider target)
+        private void CopyAttributes([NotNull] ICustomAttributeProvider source, [NotNull] ICustomAttributeProvider target)
         {
-            if (source.HasCustomAttributes)
+            if (!source.HasCustomAttributes)
+                return;
+
+            foreach (var sourceAttribute in source.CustomAttributes)
             {
-                foreach (var sourceAttribute in source.CustomAttributes)
+                var attributeType = InternalImportType(sourceAttribute.AttributeType, null);
+
+                var constructor = attributeType.Resolve()
+                    .GetConstructors()
+                    .Where(ctor => !ctor.IsStatic)
+                    .Single(ctor => ctor.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(sourceAttribute.Constructor.Parameters.Select(p => p.ParameterType.FullName)));
+
+                if (constructor == null)
+                    continue;
+
+                var targetAttribute = new CustomAttribute(TargetModule.ImportReference(constructor), sourceAttribute.GetBlob());
+                if (sourceAttribute.HasConstructorArguments)
                 {
-                    var attributeType = InternalImportType(sourceAttribute.AttributeType, null);
-
-                    var constructor = attributeType.Resolve()
-                        .GetConstructors()
-                        .Where(ctor => !ctor.IsStatic)
-                        .Single(ctor => ctor.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(sourceAttribute.Constructor.Parameters.Select(p => p.ParameterType.FullName)));
-
-                    if (constructor != null)
-                    {
-                        var targetAttribute = new CustomAttribute(TargetModule.ImportReference(constructor), sourceAttribute.GetBlob());
-                        if (sourceAttribute.HasConstructorArguments)
-                        {
-                            targetAttribute.ConstructorArguments.AddRange(sourceAttribute.ConstructorArguments.Select(a => new CustomAttributeArgument(InternalImportType(a.Type, null), a.Value)));
-                        }
-
-                        target.CustomAttributes.Add(targetAttribute);
-                    }
+                    targetAttribute.ConstructorArguments.AddRange(sourceAttribute.ConstructorArguments.Select(a => new CustomAttributeArgument(InternalImportType(a.Type, null), a.Value)));
                 }
+
+                target.CustomAttributes.Add(targetAttribute);
             }
         }
 
@@ -562,19 +564,19 @@
                 return;
 
             var sourceMethodBody = source.Body;
-            var targeMethodBody = target.Body;
+            var targetMethodBody = target.Body;
 
-            targeMethodBody.InitLocals = sourceMethodBody.InitLocals;
+            targetMethodBody.InitLocals = sourceMethodBody.InitLocals;
 
             foreach (var sourceVariable in sourceMethodBody.Variables)
             {
-                targeMethodBody.Variables.Add(new VariableDefinition(InternalImportType(sourceVariable.VariableType, target)));
+                targetMethodBody.Variables.Add(new VariableDefinition(InternalImportType(sourceVariable.VariableType, target)));
             }
 
             ExecuteDeferred(Priority.Instructions, () => CopyInstructions(source, target));
         }
 
-        private void CopyParameters([NotNull] MethodReference sourceMethod, [NotNull] MethodReference targetMethod)
+        private void CopyParameters([NotNull] IMethodSignature sourceMethod, [NotNull] MethodReference targetMethod)
         {
             foreach (var sourceParameter in sourceMethod.Parameters)
             {
@@ -622,29 +624,29 @@
 
         private void CopyGenericParameters([NotNull] MethodReference source, [NotNull] MethodReference target)
         {
-            if (source.HasGenericParameters)
+            if (!source.HasGenericParameters)
+                return;
+
+            foreach (var genericParameter in source.GenericParameters)
             {
-                foreach (var genericParameter in source.GenericParameters)
+                var provider = genericParameter.Type == GenericParameterType.Method
+                    ? (IGenericParameterProvider)target
+                    : InternalImportType(genericParameter.DeclaringType, null);
+
+                var parameter = new GenericParameter(genericParameter.Name, provider)
                 {
-                    var provider = genericParameter.Type == GenericParameterType.Method
-                        ? (IGenericParameterProvider)target
-                        : InternalImportType(genericParameter.DeclaringType, null);
+                    Attributes = genericParameter.Attributes
+                };
 
-                    var parameter = new GenericParameter(genericParameter.Name, provider)
+                if (genericParameter.HasConstraints)
+                {
+                    foreach (var constraint in genericParameter.Constraints)
                     {
-                        Attributes = genericParameter.Attributes
-                    };
-
-                    if (genericParameter.HasConstraints)
-                    {
-                        foreach (var constraint in genericParameter.Constraints)
-                        {
-                            parameter.Constraints.Add(InternalImportType(constraint.GetElementType(), target));
-                        }
+                        parameter.Constraints.Add(InternalImportType(constraint.GetElementType(), target));
                     }
-
-                    target.GenericParameters.Add(parameter);
                 }
+
+                target.GenericParameters.Add(parameter);
             }
         }
 
@@ -723,21 +725,22 @@
 
             CopyExceptionHandlers(sourceBody, targetBody);
 
-            if (sourceDebugInformation != null && true == targetDebugInformation?.HasSequencePoints)
+            if (sourceDebugInformation == null || true != targetDebugInformation?.HasSequencePoints)
+                return;
+
+            var scope = targetDebugInformation.Scope = new ScopeDebugInformation(targetInstructions.First(), targetInstructions.Last());
+
+            foreach (var variable in sourceDebugInformation.Scope.Variables)
             {
-                var scope = targetDebugInformation.Scope = new ScopeDebugInformation(targetInstructions.First(), targetInstructions.Last());
+                var targetVariable = targetBody.Variables[variable.Index];
 
-                foreach (var variable in sourceDebugInformation.Scope.Variables)
-                {
-                    var targetVariable = targetBody.Variables[variable.Index];
-
-                    scope.Variables.Add(new VariableDebugInformation(targetVariable, variable.Name));
-                }
+                scope.Variables.Add(new VariableDebugInformation(targetVariable, variable.Name));
             }
         }
 
         [NotNull]
-        private Instruction CloneInstruction([NotNull] Instruction source, [NotNull] MethodDefinition targetMethod, [NotNull] Dictionary<Instruction, Instruction> instructionMap)
+        [SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
+        private Instruction CloneInstruction([NotNull] Instruction source, [NotNull] MethodDefinition targetMethod, [NotNull] IReadOnlyDictionary<Instruction, Instruction> instructionMap)
         {
             var targetInstruction = (Instruction)_instructionConstructor.Invoke(new[] { source.OpCode, source.Operand });
 
@@ -784,13 +787,14 @@
                 StartLine = sequencePoint.StartLine,
                 StartColumn = sequencePoint.StartColumn,
                 EndLine = sequencePoint.EndLine,
-                EndColumn = sequencePoint.EndColumn,
+                EndColumn = sequencePoint.EndColumn
             };
         }
 
         [ContractAnnotation("source:notnull=>notnull")]
         public TypeReference ImportType([CanBeNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
         {
+            // ReSharper disable once AssignNullToNotNullAttribute
             return ProcessDeferredActions(InternalImportType(source, targetMethod));
         }
 
@@ -844,7 +848,7 @@
         }
 
         [NotNull]
-        private TypeReference ImportGenericInstanceType([NotNull] GenericInstanceType source, MethodReference targetMethod)
+        private TypeReference ImportGenericInstanceType([NotNull] GenericInstanceType source, [CanBeNull] MethodReference targetMethod)
         {
             var target = new GenericInstanceType(InternalImportType(source.ElementType, targetMethod));
 
@@ -954,13 +958,12 @@
         {
             var module = ModuleResolver?.Resolve(typeReference, assemblyName);
 
-            if (module != null)
-            {
-                RegisterSourceModule(module);
-                return true;
-            }
+            if (module == null)
+                return false;
 
-            return false;
+            RegisterSourceModule(module);
+            return true;
+
         }
 
         private void ExecuteDeferred(Priority priority, [NotNull] Action action)
@@ -1136,7 +1139,7 @@
             module.AssemblyReferences.RemoveAll(ar => importedAssemblyNames.Contains(ar.FullName));
         }
 
-        private static void MergeGenericParameters(CodeImporter codeImporter, IGenericParameterProvider provider)
+        private static void MergeGenericParameters([NotNull] CodeImporter codeImporter, [CanBeNull] IGenericParameterProvider provider)
         {
             if (provider?.HasGenericParameters != true)
                 return;
@@ -1147,15 +1150,15 @@
             }
         }
 
-        private static void MergeTypes(CodeImporter codeImporter, [NotNull] IList<TypeReference> types)
+        private static void MergeTypes([NotNull] CodeImporter codeImporter, [NotNull] IList<TypeReference> types)
         {
-            for (int i = 0; i < types.Count; i++)
+            for (var i = 0; i < types.Count; i++)
             {
                 types[i] = codeImporter.ImportType(types[i], null);
             }
         }
 
-        private static void MergeAttributes(CodeImporter codeImporter, ICustomAttributeProvider attributeProvider)
+        private static void MergeAttributes([NotNull] CodeImporter codeImporter, [CanBeNull] ICustomAttributeProvider attributeProvider)
         {
             if (attributeProvider?.HasCustomAttributes != true)
                 return;
@@ -1204,6 +1207,7 @@
             _assemblyNames = new HashSet<string>(assemblies.Select(a => a.FullName));
         }
 
+        [CanBeNull]
         public ModuleDefinition Resolve(TypeReference typeReference, string assemblyName)
         {
             return _assemblyNames.Contains(assemblyName) ? typeReference.Resolve()?.Module : null;
@@ -1215,6 +1219,7 @@
         [NotNull]
         private readonly HashSet<string> _ignoredAssemblyNames = new HashSet<string>();
 
+        [CanBeNull]
         public ModuleDefinition Resolve(TypeReference typeReference, string assemblyName)
         {
             if (_ignoredAssemblyNames.Contains(assemblyName))

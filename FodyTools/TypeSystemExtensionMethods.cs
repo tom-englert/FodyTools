@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Linq.Expressions;
+    using System.Reflection;
 
     using Fody;
 
@@ -326,13 +327,20 @@
             return type.Namespace + "." + type.Name;
         }
 
+        [NotNull]
+        public static Type GetDeclaringType([NotNull] this MemberInfo memberInfo)
+        {
+            return memberInfo.DeclaringType ?? throw new InvalidOperationException("Invalid expression, MemberInfo does not have a declaring type.");
+
+        }
+
         public static void GetMemberInfo([NotNull] this LambdaExpression expression, [NotNull] out Type declaringType, [NotNull] out string memberName)
         {
             switch (expression.Body)
             {
                 case MemberExpression memberExpression:
                     memberName = memberExpression.Member.Name;
-                    declaringType = memberExpression.Member.DeclaringType ?? throw new InvalidOperationException("Invalid expression, no declaring type.");
+                    declaringType = memberExpression.Member.GetDeclaringType();
                     break;
 
                 default:
@@ -340,7 +348,7 @@
             }
         }
 
-        public static void GetMethodInfo([NotNull] this LambdaExpression expression, out Type declaringType, [NotNull] out string methodName, [NotNull] out Type[] argumentTypes)
+        public static void GetMethodInfo([NotNull] this LambdaExpression expression, [NotNull] out Type declaringType, [NotNull] out string methodName, [NotNull] out Type[] argumentTypes)
         {
             switch (expression.Body)
             {
@@ -352,7 +360,7 @@
 
                 case MethodCallExpression methodCall:
                     methodName = methodCall.Method.Name;
-                    declaringType = methodCall.Method.DeclaringType ?? throw new InvalidOperationException("Invalid expression, no declaring type.");
+                    declaringType = methodCall.Method.GetDeclaringType();
                     argumentTypes = methodCall.Arguments.Select(a => a.Type).ToArray();
                     break;
 

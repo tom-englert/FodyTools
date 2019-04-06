@@ -39,7 +39,7 @@ namespace FodyTools
 
         private int NextStartIndex => StartIndex + Count;
 
-        public int IndexOf(Instruction item)
+        public int IndexOf([CanBeNull] Instruction item)
         {
             var index = _instructions.IndexOf(item);
             var startIndex = StartIndex;
@@ -50,7 +50,7 @@ namespace FodyTools
             return -1;
         }
 
-        public void Insert(int index, Instruction item)
+        public void Insert(int index, [CanBeNull] Instruction item)
         {
             if ((index < 0) || (index > Count))
                 throw new IndexOutOfRangeException();
@@ -114,7 +114,7 @@ namespace FodyTools
             return ((IEnumerable<Instruction>)this).GetEnumerator();
         }
 
-        public void Add(Instruction item)
+        public void Add([CanBeNull] Instruction item)
         {
             var startIndex = StartIndex;
 
@@ -128,7 +128,7 @@ namespace FodyTools
             throw new NotImplementedException();
         }
 
-        public bool Contains(Instruction item)
+        public bool Contains([CanBeNull] Instruction item)
         {
             var startIndex = StartIndex;
 
@@ -156,7 +156,7 @@ namespace FodyTools
             }
         }
 
-        public bool Remove(Instruction item)
+        public bool Remove([CanBeNull] Instruction item)
         {
             var startIndex = StartIndex;
 

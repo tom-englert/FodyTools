@@ -3,6 +3,7 @@
     using System;
     using System.CodeDom.Compiler;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     using JetBrains.Annotations;
@@ -33,9 +34,10 @@
         /// Computes the stack delta of an instruction. This is an excerpt of Mono.Cecil (https://github.com/jbevain/cecil/blob/eea822cad4b6f320c9e1da642fcbc0c129b00a6e/Mono.Cecil.Cil/CodeWriter.cs#L437)
         /// </summary>
         /// <param name="instruction">The instruction.</param>
-        /// <param name="stack_size">Size of the stack, adjusted by the instructions impact.</param>
+        /// <param name="stackSize">Size of the stack, adjusted by the instructions impact.</param>
         /// <exception cref="InvalidOperationException">Can't compute stack delta along nonlinear instruction path.</exception>
-        public static void ComputeStackDelta([NotNull] this Instruction instruction, ref int stack_size)
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
+        public static void ComputeStackDelta([NotNull] this Instruction instruction, ref int stackSize)
         {
             switch (instruction.OpCode.FlowControl)
             {
@@ -44,16 +46,16 @@
                     var method = (IMethodSignature)instruction.Operand;
                     // pop 'this' argument
                     if (method.HasImplicitThis() && instruction.OpCode.Code != Code.Newobj)
-                        stack_size--;
+                        stackSize--;
                     // pop normal arguments
                     if (method.HasParameters)
-                        stack_size -= method.Parameters.Count;
+                        stackSize -= method.Parameters.Count;
                     // pop function pointer
                     if (instruction.OpCode.Code == Code.Calli)
-                        stack_size--;
+                        stackSize--;
                     // push return value
                     if (method.ReturnType.MetadataType != MetadataType.Void || instruction.OpCode.Code == Code.Newobj)
-                        stack_size++;
+                        stackSize++;
                     break;
                 }
 
@@ -64,8 +66,8 @@
                     throw new InvalidOperationException("Can't compute stack delta along nonlinear instruction path.");
 
                 default:
-                    instruction.OpCode.StackBehaviourPop.ComputePopDelta(ref stack_size);
-                    instruction.OpCode.StackBehaviourPush.ComputePushDelta(ref stack_size);
+                    instruction.OpCode.StackBehaviourPop.ComputePopDelta(ref stackSize);
+                    instruction.OpCode.StackBehaviourPush.ComputePushDelta(ref stackSize);
                     break;
             }
         }
@@ -75,6 +77,7 @@
             return self.HasThis && !self.ExplicitThis;
         }
 
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         private static void ComputePopDelta(this StackBehaviour pop_behavior, ref int stack_size)
         {
             switch (pop_behavior)
@@ -108,6 +111,7 @@
             }
         }
 
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
         private static void ComputePushDelta(this StackBehaviour push_behaviour, ref int stack_size)
         {
             switch (push_behaviour)

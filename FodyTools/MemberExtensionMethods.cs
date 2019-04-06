@@ -33,7 +33,8 @@
             return newMethod;
         }
 
-        public static GenericInstanceMethod MakeGenericInstanceMethod([NotNull] this MethodReference method, params TypeReference[] arguments)
+        [NotNull]
+        public static GenericInstanceMethod MakeGenericInstanceMethod([NotNull] this MethodReference method, [NotNull] params TypeReference[] arguments)
         {
             var newMethod = new GenericInstanceMethod(method);
 

@@ -133,6 +133,7 @@
         /// The full directory path of the current weaver.
         /// </summary>
         [NotNull]
+        // ReSharper disable once IdentifierTypo
         protected new string AddinDirectoryPath => base.AddinDirectoryPath;
 
         /// <summary>
