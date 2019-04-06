@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
 
     using JetBrains.Annotations;
@@ -147,17 +146,16 @@
                 exceptionHandler = body.ExceptionHandlers.FirstOrDefault();
             }
 
-            var start = exceptionHandler?.TryStart;
-            var index = instructions.IndexOf(start);
+            if (exceptionHandler == null)
+                throw new InvalidOperationException(classDefinition.FullName + ": non-standard Finalizer without valid try/catch block found");
 
+            var index = instructions.IndexOf(exceptionHandler.TryStart);
             if (index < 0)
                 throw new InvalidOperationException(classDefinition.FullName + ": non-standard Finalizer without valid try/catch block found");
 
             body.Instructions.InsertRange(index, additionalInstructions);
 
-#pragma warning disable S2259 // Null pointers should not be dereferenced
             exceptionHandler.TryStart = instructions[index];
-#pragma warning restore S2259 // Null pointers should not be dereferenced
         }
 
         /// <summary>
@@ -165,6 +163,7 @@
         /// </summary>
         /// <param name="classDefinition">The class definition.</param>
         /// <returns>The finalizer method, or <c>null</c> if no finalizer exists.</returns>
+        [CanBeNull]
         public static MethodDefinition FindFinalizer(this TypeDefinition classDefinition)
         {
             return classDefinition.GetMethods().FirstOrDefault(m => m.Name == FinalizerMethodName && !m.HasParameters && (m.Attributes & MethodAttributes.Family) != 0);
@@ -179,7 +178,8 @@
             {
                 var module = classDefinition.Module;
 
-                var attributes = MethodAttributes.Private
+                const MethodAttributes attributes 
+                    = MethodAttributes.Private
                     | MethodAttributes.HideBySig
                     | MethodAttributes.Static
                     | MethodAttributes.SpecialName

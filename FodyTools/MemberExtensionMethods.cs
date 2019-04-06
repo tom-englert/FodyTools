@@ -25,7 +25,7 @@
             {
                 CallingConvention = method.CallingConvention,
                 ExplicitThis = method.ExplicitThis,
-                HasThis = method.HasThis,
+                HasThis = method.HasThis
             };
 
             newMethod.Parameters.AddRange(method.Parameters);

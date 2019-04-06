@@ -33,13 +33,13 @@
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="sequencePoint">The optional sequence point where the problem occurred.</param>
-        void LogWarning([NotNull] string message, SequencePoint sequencePoint = null);
+        void LogWarning([NotNull] string message, [CanBeNull] SequencePoint sequencePoint = null);
         /// <summary>
         /// Logs an error.
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="sequencePoint">The optional sequence point where the error occurred.</param>
-        void LogError([NotNull] string message, SequencePoint sequencePoint = null);
+        void LogError([NotNull] string message, [CanBeNull] SequencePoint sequencePoint = null);
         /// <summary>
         /// Logs a warning.
         /// </summary>
@@ -114,7 +114,7 @@
         /// Commonly used <see cref="T:Mono.Cecil.TypeReference" />s.
         /// </summary>
         [NotNull]
-        protected new Fody.TypeSystem TypeSystem => base.TypeSystem;
+        protected new TypeSystem TypeSystem => base.TypeSystem;
 
         /// <summary>
         /// The full path of the target assembly.
@@ -177,7 +177,7 @@
             LogMessage(message, MessageImportance.Normal);
         }
 
-        void ILogger.LogWarning(string message, SequencePoint sequencePoint)
+        void ILogger.LogWarning(string message, [CanBeNull] SequencePoint sequencePoint)
         {
             if (sequencePoint == null)
             {
@@ -189,7 +189,7 @@
             }
         }
 
-        void ILogger.LogError(string message, SequencePoint sequencePoint)
+        void ILogger.LogError(string message, [CanBeNull] SequencePoint sequencePoint)
         {
             if (sequencePoint == null)
             {

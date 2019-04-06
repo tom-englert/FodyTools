@@ -9,17 +9,20 @@
 
     internal static class AttributeExtensionMethods
     {
-        public static CustomAttribute GetAttribute(this ICustomAttributeProvider attributeProvider, string attributeName)
+        [CanBeNull]
+        public static CustomAttribute GetAttribute([CanBeNull] this ICustomAttributeProvider attributeProvider, [CanBeNull] string attributeName)
         {
             return attributeProvider?.CustomAttributes.GetAttribute(attributeName);
         }
 
-        public static CustomAttribute GetAttribute(this IEnumerable<CustomAttribute> attributes, string attributeName)
+        [CanBeNull]
+        public static CustomAttribute GetAttribute([CanBeNull] this IEnumerable<CustomAttribute> attributes, [CanBeNull] string attributeName)
         {
             return attributes?.FirstOrDefault(attribute => attribute.Constructor.DeclaringType.FullName == attributeName);
         }
 
-        public static T GetReferenceTypeConstructorArgument<T>(this CustomAttribute attribute)
+        [CanBeNull]
+        public static T GetReferenceTypeConstructorArgument<T>([CanBeNull] this CustomAttribute attribute)
             where T : class
         {
             return attribute?.ConstructorArguments?
@@ -27,7 +30,7 @@
                 .FirstOrDefault(value => value != null);
         }
 
-        public static T? GetValueTypeConstructorArgument<T>(this CustomAttribute attribute)
+        public static T? GetValueTypeConstructorArgument<T>([CanBeNull] this CustomAttribute attribute)
             where T : struct
         {
             return attribute?.ConstructorArguments?
@@ -35,7 +38,7 @@
                 .FirstOrDefault(value => value != null);
         }
 
-        public static T GetPropertyValue<T>([NotNull] this CustomAttribute attribute, string propertyName, T defaultValue)
+        public static T GetPropertyValue<T>([NotNull] this CustomAttribute attribute, [CanBeNull] string propertyName, T defaultValue)
         {
             return attribute.Properties.Where(p => p.Name == propertyName).Select(p => (T)p.Argument.Value).DefaultIfEmpty(defaultValue).Single();
         }

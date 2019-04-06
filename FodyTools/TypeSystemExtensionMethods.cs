@@ -194,16 +194,16 @@
         #region Method
 
         [CanBeNull]
-        private static MethodReference TryImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull, ItemNotNull] Type[] argumentTypes)
+        private static MethodReference TryImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull, ItemNotNull] IList<Type> argumentTypes)
         {
             return TryImport(typeSystem, declaringType, name, t => t.Methods, m => ParametersMatch(m.Parameters, argumentTypes), m => m);
         }
 
         [NotNull]
-        private static MethodReference ImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull, ItemNotNull] Type[] argumentTypes)
+        private static MethodReference ImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull, ItemNotNull] IList<Type> argumentTypes)
         {
             return TryImport(typeSystem, declaringType, name, t => t.Methods, m => ParametersMatch(m.Parameters, argumentTypes), m => m)
-                   ?? throw new WeavingException($"Can't find method {name}({string.Join(", ", (IEnumerable<Type>)argumentTypes)}) on type {declaringType}");
+                   ?? throw new WeavingException($"Can't find method {name}({string.Join(", ", argumentTypes)}) on type {declaringType}");
         }
 
         [CanBeNull]
@@ -332,7 +332,7 @@
             {
                 case MemberExpression memberExpression:
                     memberName = memberExpression.Member.Name;
-                    declaringType = memberExpression.Member.DeclaringType;
+                    declaringType = memberExpression.Member.DeclaringType ?? throw new InvalidOperationException("Invalid expression, no declaring type.");
                     break;
 
                 default:
@@ -352,7 +352,7 @@
 
                 case MethodCallExpression methodCall:
                     methodName = methodCall.Method.Name;
-                    declaringType = methodCall.Method.DeclaringType;
+                    declaringType = methodCall.Method.DeclaringType ?? throw new InvalidOperationException("Invalid expression, no declaring type.");
                     argumentTypes = methodCall.Arguments.Select(a => a.Type).ToArray();
                     break;
 
@@ -397,12 +397,14 @@
             return true;
         }
 
+        [CanBeNull]
         private static MethodReference TryImport<T>([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull] Func<TypeDefinition, IEnumerable<T>> elementLookup, [NotNull] Func<T, MethodDefinition> selector)
             where T : class, IMemberDefinition
         {
             return TryImport(typeSystem, declaringType, name, elementLookup, _ => true, selector);
         }
 
+        [CanBeNull]
         private static MethodReference TryImport<T>([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull] Func<TypeDefinition, IEnumerable<T>> elementLookup, [NotNull] Func<T, bool> constraints, [NotNull] Func<T, MethodDefinition> selector)
             where T : class, IMemberDefinition
         {
