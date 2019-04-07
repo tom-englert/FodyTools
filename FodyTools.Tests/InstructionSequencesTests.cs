@@ -61,7 +61,7 @@
         }
 
         [Fact]
-        public void Sequence5ContainsInstrution8AtIndex1()
+        public void Sequence5ContainsInstruction8AtIndex1()
         {
             var sequences = LoadInstructionSequences();
 
@@ -99,7 +99,6 @@
             var instructions = sequences.Instructions;
             var instructionsBefore = instructions.ToList();
             var sequence5 = sequences[5];
-
 
             instructionsBefore.Insert(13, _newInstruction);
             

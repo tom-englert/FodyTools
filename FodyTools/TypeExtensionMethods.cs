@@ -23,7 +23,8 @@
         [CanBeNull]
         public static MethodDefinition GetDefaultConstructor([NotNull] this TypeDefinition type)
         {
-            return type.GetConstructors().FirstOrDefault(ctor => ctor.HasBody && ctor.Parameters.Count == 0 && !ctor.IsStatic);
+            return type.GetConstructors()
+                .FirstOrDefault(ctor => ctor.HasBody && ctor.Parameters.Count == 0 && !ctor.IsStatic);
         }
 
         /// <summary>
@@ -166,7 +167,8 @@
         [CanBeNull]
         public static MethodDefinition FindFinalizer(this TypeDefinition classDefinition)
         {
-            return classDefinition.GetMethods().FirstOrDefault(m => m.Name == FinalizerMethodName && !m.HasParameters && (m.Attributes & MethodAttributes.Family) != 0);
+            return classDefinition.GetMethods()
+                .FirstOrDefault(m => m.Name == FinalizerMethodName && !m.HasParameters && (m.Attributes & MethodAttributes.Family) != 0);
         }
 
         public static void InsertIntoStaticConstructor([NotNull] this TypeDefinition classDefinition, [NotNull] params Instruction[] additionalInstructions)

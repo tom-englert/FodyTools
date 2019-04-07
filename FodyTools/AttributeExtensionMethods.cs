@@ -40,7 +40,10 @@
 
         public static T GetPropertyValue<T>([NotNull] this CustomAttribute attribute, [CanBeNull] string propertyName, T defaultValue)
         {
-            return attribute.Properties.Where(p => p.Name == propertyName).Select(p => (T)p.Argument.Value).DefaultIfEmpty(defaultValue).Single();
+            return attribute.Properties.Where(p => p.Name == propertyName)
+                .Select(p => (T)p.Argument.Value)
+                .DefaultIfEmpty(defaultValue)
+                .Single();
         }
     }
 }
