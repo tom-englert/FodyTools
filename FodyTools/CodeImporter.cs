@@ -1207,6 +1207,11 @@
             _assemblyNames = new HashSet<string>(assemblies.Select(a => a.FullName));
         }
 
+        public AssemblyModuleResolver([NotNull, ItemNotNull] params string[] assemblyNames)
+        {
+            _assemblyNames = new HashSet<string>(assemblyNames);
+        }
+
         [CanBeNull]
         public ModuleDefinition Resolve(TypeReference typeReference, string assemblyName)
         {
@@ -1225,13 +1230,18 @@
             if (_ignoredAssemblyNames.Contains(assemblyName))
                 return null;
 
-            var module = typeReference.Resolve().Module;
-
-            var moduleFileName = module.FileName;
-
-            if (Path.GetDirectoryName(moduleFileName) == @".")
+            try
             {
-                return module;
+                var module = typeReference.Resolve().Module;
+                var moduleFileName = module.FileName;
+
+                if (Path.GetDirectoryName(moduleFileName) == @".")
+                {
+                    return module;
+                }
+            }
+            catch (AssemblyResolutionException)
+            {
             }
 
             _ignoredAssemblyNames.Add(assemblyName);

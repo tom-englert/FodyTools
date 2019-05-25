@@ -137,7 +137,7 @@ namespace FodyTools.Tests
                 _testOutputHelper.WriteLine(type.Key);
             }
 
-           
+
             Assert.Equal(numberOfTypes, importedTypes.Count);
 
             TestHelper.VerifyTypes(importedTypes, target.ListImportedModules(), targetAssemblyPath);
@@ -300,6 +300,43 @@ namespace FodyTools.Tests
 
             Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper));
         }
+
+        [Fact]
+        public void ILMerge2()
+        {
+            var targetDir = Path.Combine(Directories.Target, "Binaries");
+
+            using (new CurrendDirectory(targetDir))
+            {
+                var assemblyPath = Path.Combine(targetDir, "ResxManager.exe");
+                var module = ModuleDefinition.ReadModule(assemblyPath);
+
+                var codeImporter = new CodeImporter(module)
+                {
+                    HideImportedTypes = false,
+                    ModuleResolver = new LocalReferenceModuleResolver()
+                };
+
+                codeImporter.ILMerge();
+
+                var tempPath = TestHelper.TempPath;
+
+                foreach (var file in new DirectoryInfo(targetDir).EnumerateFiles())
+                {
+                    file.CopyTo(Path.Combine(tempPath, file.Name), true);
+                }
+
+                var targetAssemblyPath = Path.Combine(tempPath, "TargetAssembly2.dll");
+
+                module.Assembly.Name.Name = "TargetAssembly2";
+                var now = DateTime.Now;
+                module.Assembly.Name.Version = new Version(now.Year, now.Month, now.Day, (int)now.TimeOfDay.TotalMilliseconds);
+
+                module.Write(targetAssemblyPath);
+
+                Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper));
+            }
+        }
     }
 
     // ReSharper disable all (just test code below)
@@ -434,5 +471,20 @@ namespace FodyTools.Tests
     internal class SomeAttribute : Attribute
     {
 
+    }
+
+    internal sealed class CurrendDirectory : IDisposable
+    {
+        private readonly string _currendDir = Directory.GetCurrentDirectory();
+
+        public CurrendDirectory(string directoryName)
+        {
+            Directory.SetCurrentDirectory(directoryName);
+        }
+
+        public void Dispose()
+        {
+            Directory.SetCurrentDirectory(_currendDir);
+        }
     }
 }
