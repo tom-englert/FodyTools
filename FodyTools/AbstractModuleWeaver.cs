@@ -45,13 +45,13 @@
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="method">The method where the problem occurred.</param>
-        void LogWarning([NotNull] string message, MethodReference method);
+        void LogWarning([NotNull] string message, [CanBeNull] MethodReference method);
         /// <summary>
         /// Logs an error.
         /// </summary>
         /// <param name="message">The message.</param>
         /// <param name="method">The method where the error occurred.</param>
-        void LogError([NotNull] string message,  MethodReference method);
+        void LogError([NotNull] string message,  [CanBeNull] MethodReference method);
     }
 
     /// <summary>
@@ -74,16 +74,18 @@
         /// <param name="value">The return value.</param>
         /// <returns><c>true</c> if the type was found and value contains a valid item.</returns>
         [ContractAnnotation("value:null => false")]
-        bool TryFindType([NotNull] string typeName, out TypeDefinition value);
+        bool TryFindType([NotNull] string typeName, [CanBeNull] out TypeDefinition value);
 
         /// <summary>
         /// Gets the fody basic type system.
         /// </summary>
+        [NotNull]
         TypeSystem TypeSystem { get; }
 
         /// <summary>
         /// Gets the module definition of the target module.
         /// </summary>
+        [NotNull]
         ModuleDefinition ModuleDefinition { get; }
     }
 
@@ -202,12 +204,12 @@
             }
         }
 
-        void ILogger.LogWarning(string message, MethodReference method)
+        void ILogger.LogWarning(string message, [CanBeNull] MethodReference method)
         {
             ((ILogger)this).LogWarning(message, method.GetEntryPoint(ModuleDefinition.SymbolReader));
         }
 
-        void ILogger.LogError(string message, MethodReference method)
+        void ILogger.LogError(string message, [CanBeNull] MethodReference method)
         {
             ((ILogger)this).LogError(message, method.GetEntryPoint(ModuleDefinition.SymbolReader));
         }
@@ -217,7 +219,7 @@
             return FindType(typeName);
         }
 
-        bool ITypeSystem.TryFindType(string typeName, out TypeDefinition value)
+        bool ITypeSystem.TryFindType(string typeName, [CanBeNull] out TypeDefinition value)
         {
             return TryFindType(typeName, out value);
         }
