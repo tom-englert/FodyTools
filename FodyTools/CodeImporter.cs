@@ -1076,10 +1076,26 @@
                         {
                             CallingConvention = methodOverride.CallingConvention,
                             ExplicitThis = methodOverride.ExplicitThis,
-                            HasThis = methodOverride.HasThis
+                            HasThis = methodOverride.HasThis,
+                            MetadataToken = methodOverride.MetadataToken,
                         };
 
-                        MergeGenericParameters(codeImporter, newOverride);
+                        if (methodOverride.HasParameters)
+                        {
+                            newOverride.Parameters.AddRange(methodOverride.Parameters);
+                            foreach (var parameter in newOverride.Parameters)
+                            {
+                                MergeAttributes(codeImporter, parameter);
+                                parameter.ParameterType = codeImporter.ImportType(parameter.ParameterType, methodDefinition);
+                            }
+                        }
+
+                        if (methodOverride.HasGenericParameters)
+                        {
+                            newOverride.GenericParameters.AddRange(methodOverride.GenericParameters);
+                            MergeGenericParameters(codeImporter, newOverride);
+                        }
+
                         methodOverrides[i] = newOverride;
                     }
 
