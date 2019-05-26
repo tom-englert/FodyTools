@@ -15,7 +15,7 @@
     internal class InstructionSequences : ReadOnlyCollection<InstructionSequence>
     {
         public InstructionSequences([NotNull, ItemNotNull] IList<Instruction> instructions, [CanBeNull, ItemNotNull] IList<SequencePoint> sequencePoints)
-            : base(CreateSequences(instructions, sequencePoints).ToArray())
+            : base(CreateSequences(instructions, sequencePoints).ToList())
         {
             Instructions = instructions;
         }

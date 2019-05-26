@@ -195,13 +195,13 @@
         #region Method
 
         [CanBeNull]
-        private static MethodReference TryImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull, ItemNotNull] IList<Type> argumentTypes)
+        private static MethodReference TryImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull, ItemNotNull] IReadOnlyList<Type> argumentTypes)
         {
             return TryImport(typeSystem, declaringType, name, t => t.Methods, m => ParametersMatch(m.Parameters, argumentTypes), m => m);
         }
 
         [NotNull]
-        private static MethodReference ImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull, ItemNotNull] IList<Type> argumentTypes)
+        private static MethodReference ImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull, ItemNotNull] IReadOnlyList<Type> argumentTypes)
         {
             return TryImport(typeSystem, declaringType, name, t => t.Methods, m => ParametersMatch(m.Parameters, argumentTypes), m => m)
                    ?? throw new WeavingException($"Can't find method {name}({string.Join(", ", argumentTypes)}) on type {declaringType}");
@@ -348,20 +348,20 @@
             }
         }
 
-        public static void GetMethodInfo([NotNull] this LambdaExpression expression, [NotNull] out Type declaringType, [NotNull] out string methodName, [NotNull] out Type[] argumentTypes)
+        public static void GetMethodInfo([NotNull] this LambdaExpression expression, [NotNull] out Type declaringType, [NotNull] out string methodName, [NotNull] out IReadOnlyList<Type> argumentTypes)
         {
             switch (expression.Body)
             {
                 case NewExpression newExpression:
                     methodName = ".ctor";
                     declaringType = newExpression.Type;
-                    argumentTypes = newExpression.Arguments.Select(a => a.Type).ToArray();
+                    argumentTypes = newExpression.Arguments.Select(a => a.Type).ToReadOnlyList();
                     break;
 
                 case MethodCallExpression methodCall:
                     methodName = methodCall.Method.Name;
                     declaringType = methodCall.Method.GetDeclaringType();
-                    argumentTypes = methodCall.Arguments.Select(a => a.Type).ToArray();
+                    argumentTypes = methodCall.Arguments.Select(a => a.Type).ToReadOnlyList();
                     break;
 
                 default:
@@ -369,7 +369,7 @@
             }
         }
 
-        public static bool ParametersMatch([NotNull] this IList<ParameterDefinition> parameters, [NotNull] IList<Type> argumentTypes)
+        public static bool ParametersMatch([NotNull] this IList<ParameterDefinition> parameters, [NotNull] IReadOnlyList<Type> argumentTypes)
         {
             if (parameters.Count != argumentTypes.Count)
                 return false;

@@ -772,7 +772,7 @@
                     break;
 
                 case Instruction[] instructions:
-                    ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = instructions.Select(instruction => instructionMap[instruction]).ToArray());
+                    ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = instructions.Select(instruction => instructionMap[instruction]).ToList());
                     break;
             }
 
@@ -1007,7 +1007,7 @@
         {
             var module = codeImporter.TargetModule;
 
-            var existingTypes = module.GetTypes().ToArray();
+            var existingTypes = module.GetTypes().ToList();
 
             MergeAttributes(codeImporter, module);
             MergeAttributes(codeImporter, module.Assembly);
@@ -1060,43 +1060,12 @@
 
                     methodDefinition.ReturnType = codeImporter.ImportType(methodDefinition.ReturnType, methodDefinition);
 
-                    var methodOverrides = methodDefinition.Overrides;
-
-                    for (var i = 0; i < methodOverrides.Count; i++)
+                    foreach (var methodOverride in methodDefinition.Overrides)
                     {
-                        var methodOverride = methodOverrides[i];
-
                         if (methodOverride is MethodDefinition)
-                            throw new NotImplementedException("Method overrides using MethodDefinition is not yet supported");
+                            throw new NotImplementedException("Method overrides using MethodDefinition is not supported");
 
-                        var returnType = codeImporter.ImportType(methodOverride.ReturnType, methodDefinition);
-                        var declaringType = codeImporter.ImportType(methodOverride.DeclaringType, methodDefinition);
-
-                        var newOverride = new MethodReference(methodOverride.Name, returnType, declaringType)
-                        {
-                            CallingConvention = methodOverride.CallingConvention,
-                            ExplicitThis = methodOverride.ExplicitThis,
-                            HasThis = methodOverride.HasThis,
-                            MetadataToken = methodOverride.MetadataToken,
-                        };
-
-                        if (methodOverride.HasParameters)
-                        {
-                            newOverride.Parameters.AddRange(methodOverride.Parameters);
-                            foreach (var parameter in newOverride.Parameters)
-                            {
-                                MergeAttributes(codeImporter, parameter);
-                                parameter.ParameterType = codeImporter.ImportType(parameter.ParameterType, methodDefinition);
-                            }
-                        }
-
-                        if (methodOverride.HasGenericParameters)
-                        {
-                            newOverride.GenericParameters.AddRange(methodOverride.GenericParameters);
-                            MergeGenericParameters(codeImporter, newOverride);
-                        }
-
-                        methodOverrides[i] = newOverride;
+                        MergeMethodReference(codeImporter, methodOverride, methodDefinition);
                     }
 
                     foreach (var parameter in methodDefinition.Parameters)
@@ -1126,12 +1095,7 @@
                                 break;
 
                             case MethodReference methodReference:
-                                methodReference.DeclaringType = codeImporter.ImportType(methodReference.DeclaringType, methodDefinition);
-                                methodReference.ReturnType = codeImporter.ImportType(methodReference.ReturnType, methodDefinition);
-                                foreach (var parameter in methodReference.Parameters)
-                                {
-                                    parameter.ParameterType = codeImporter.ImportType(parameter.ParameterType, methodDefinition);
-                                }
+                                MergeMethodReference(codeImporter, methodReference, methodDefinition);
                                 break;
 
                             case TypeDefinition _:
@@ -1153,6 +1117,24 @@
             var importedAssemblyNames = new HashSet<string>(codeImporter.ListImportedModules().Select(m => m.Assembly.FullName));
 
             module.AssemblyReferences.RemoveAll(ar => importedAssemblyNames.Contains(ar.FullName));
+        }
+
+        private static void MergeMethodReference([NotNull] CodeImporter codeImporter, [NotNull] MethodReference methodReference, [NotNull] MethodDefinition methodDefinition)
+        {
+            methodReference.DeclaringType = codeImporter.ImportType(methodReference.DeclaringType, methodDefinition);
+            methodReference.ReturnType = codeImporter.ImportType(methodReference.ReturnType, methodDefinition);
+            if (methodReference.HasParameters)
+            {
+                foreach (var parameter in methodReference.Parameters)
+                {
+                    parameter.ParameterType = codeImporter.ImportType(parameter.ParameterType, methodDefinition);
+                }
+            }
+
+            if (methodReference.HasGenericParameters)
+            {
+                MergeGenericParameters(codeImporter, methodReference);
+            }
         }
 
         private static void MergeGenericParameters([NotNull] CodeImporter codeImporter, [CanBeNull] IGenericParameterProvider provider)
@@ -1190,19 +1172,6 @@
                 {
                     attribute.ConstructorArguments[index] = new CustomAttributeArgument(attribute.ConstructorArguments[index].Type, attribute.ConstructorArguments[index].Value);
                 }
-            }
-        }
-
-        public static void RemoveAll<T>([NotNull, ItemCanBeNull] this ICollection<T> target, [NotNull] Func<T, bool> condition)
-        {
-            target.RemoveAll(target.Where(condition).ToArray());
-        }
-
-        public static void RemoveAll<T>([NotNull, ItemCanBeNull] this ICollection<T> target, [NotNull, ItemCanBeNull] IEnumerable<T> items)
-        {
-            foreach (var i in items)
-            {
-                target.Remove(i);
             }
         }
     }
@@ -1258,6 +1227,7 @@
             }
             catch (AssemblyResolutionException)
             {
+                // fall through...
             }
 
             _ignoredAssemblyNames.Add(assemblyName);

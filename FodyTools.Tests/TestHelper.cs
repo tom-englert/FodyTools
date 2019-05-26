@@ -57,7 +57,9 @@
                 .Where(g => g.Count() == 1)
                 .ToDictionary(t => t.Key, t => t.Single());
 
-            var assemblyPrefixes = importedModules.Select(m => $"[{m.Assembly.Name.Name}]").ToArray();
+            var assemblyPrefixes = importedModules
+                .Select(m => $"[{m.Assembly.Name.Name}]")
+                .ToReadOnlyList();
 
             var tempPath = TempPath;
 
@@ -88,7 +90,7 @@
             var mismatches = Enumerate.AsTuples(expected, target)
                 .Select((tuple, index) => new {tuple.Item1, tuple.Item2, index})
                 .Where(tuple => tuple.Item1 != tuple.Item2)
-                .ToArray();
+                .ToList();
 
             Assert.Empty(mismatches);
         }

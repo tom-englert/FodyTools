@@ -1,6 +1,8 @@
 ﻿namespace FodyTools
 {
+    using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     using JetBrains.Annotations;
 
@@ -39,6 +41,25 @@
 
             collection.Clear();
             collection.AddRange(values);
+        }
+
+        public static void RemoveAll<T>([NotNull, ItemCanBeNull] this ICollection<T> target, [NotNull] Func<T, bool> condition)
+        {
+            target.RemoveAll(target.Where(condition).ToList());
+        }
+
+        public static void RemoveAll<T>([NotNull, ItemCanBeNull] this ICollection<T> target, [NotNull, ItemCanBeNull] IEnumerable<T> items)
+        {
+            foreach (var i in items)
+            {
+                target.Remove(i);
+            }
+        }
+
+        [NotNull]
+        public static IReadOnlyList<T> ToReadOnlyList<T>([NotNull, ItemCanBeNull] this IEnumerable<T> items)
+        {
+            return items.ToList().AsReadOnly();
         }
     }
 }
