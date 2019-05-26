@@ -772,7 +772,7 @@
                     break;
 
                 case Instruction[] instructions:
-                    ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = instructions.Select(instruction => instructionMap[instruction]).ToList());
+                    ExecuteDeferred(Priority.Operands, () => targetInstruction.Operand = instructions.Select(instruction => instructionMap[instruction]).ToArray());
                     break;
             }
 
