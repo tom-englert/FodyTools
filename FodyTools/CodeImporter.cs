@@ -1060,12 +1060,15 @@
 
                     methodDefinition.ReturnType = codeImporter.ImportType(methodDefinition.ReturnType, methodDefinition);
 
-                    foreach (var methodOverride in methodDefinition.Overrides)
+                    if (methodDefinition.HasOverrides)
                     {
-                        if (methodOverride is MethodDefinition)
-                            throw new NotImplementedException("Method overrides using MethodDefinition is not supported");
+                        foreach (var methodOverride in methodDefinition.Overrides)
+                        {
+                            if (methodOverride is MethodDefinition)
+                                throw new NotImplementedException("Method overrides using MethodDefinition is not supported");
 
-                        MergeMethodReference(codeImporter, methodOverride, methodDefinition);
+                            MergeMethodReference(codeImporter, methodOverride, methodDefinition);
+                        }
                     }
 
                     foreach (var parameter in methodDefinition.Parameters)
@@ -1123,6 +1126,7 @@
         {
             methodReference.DeclaringType = codeImporter.ImportType(methodReference.DeclaringType, methodDefinition);
             methodReference.ReturnType = codeImporter.ImportType(methodReference.ReturnType, methodDefinition);
+
             if (methodReference.HasParameters)
             {
                 foreach (var parameter in methodReference.Parameters)

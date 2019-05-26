@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.InteropServices.ComTypes;
 using TomsToolbox.Core;
 
 [assembly: PluginModule("1", "2", "3")]
@@ -10,7 +9,9 @@ namespace FodyTools
 {
     using ReferencedAssembly;
     using System;
+    using System.Collections.Specialized;
     using System.ComponentModel;
+    using System.Xml.Serialization;
 
     [Sequence(1)]
     public class SimpleSampleClass
@@ -103,7 +104,7 @@ namespace FodyTools
         }
     }
 
-    public class SimpleGenericClass<T>
+    public class SimpleGenericClass<T> : IComparer<T>
     {
         public void Method(Func<T> argument)
         {
@@ -114,14 +115,17 @@ namespace FodyTools
         {
 
         }
+
+        int IComparer<T>.Compare(T x, T y)
+        {
+            return Comparer.Default.Compare(x, y);
+        }
     }
 
     public class ComplexSampleClass<T1, T2> : TomsToolbox.Core.WeakEventListener<T1, T2, EventArgs>
         where T1 : TomsToolbox.Core.DelegateComparer<T2>
         where T2 : class, TomsToolbox.Core.ITimeService
     {
-
-
         public ComplexSampleClass(T1 target, T2 source, Action<T1, object, EventArgs> onEventAction)
             : base(target, source, onEventAction, null, null)
         {
