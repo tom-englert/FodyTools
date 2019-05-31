@@ -73,10 +73,11 @@
             {
                 var instructions = constructor.Body.Instructions;
 
-                // first call in ctor is the call to base or self constructors.
-                var callStatement = instructions.First(item => item.OpCode == OpCodes.Call);
-                var method = callStatement.Operand as MethodReference;
-                if (method?.Name != ".ctor")
+                // find the call to the base or self constructors.
+                var callStatement = instructions
+                    .FirstOrDefault(item => (item.OpCode == OpCodes.Call) && ((item.Operand as MethodReference)?.Name == ".ctor"));
+
+                if (!(callStatement?.Operand is MethodReference method))
                     throw new InvalidOperationException("Invalid constructor: " + constructor);
 
                 if (method.DeclaringType == classDefinition)
