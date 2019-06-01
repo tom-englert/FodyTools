@@ -1,4 +1,6 @@
-﻿namespace FodyTools
+﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
+namespace FodyTools
 {
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;

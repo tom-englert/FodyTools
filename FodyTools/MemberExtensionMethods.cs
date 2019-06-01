@@ -1,4 +1,6 @@
-﻿namespace FodyTools
+﻿// ReSharper disable UnusedMember.Global
+// ReSharper disable MemberCanBePrivate.Global
+namespace FodyTools
 {
     using System;
     using System.Collections.Generic;
@@ -54,6 +56,7 @@
         }
 
         [CanBeNull]
+        // ReSharper disable once ReturnTypeCanBeEnumerable.Global
         public static IList<SequencePoint> ReadSequencePoints([CanBeNull] this MethodDefinition method, [CanBeNull] ISymbolReader symbolReader)
         {
             return (method?.DebugInformation?.HasSequencePoints == true)
