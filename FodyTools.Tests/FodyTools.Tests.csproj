@@ -1,12 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net46;netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>net462;netcoreapp2.1</TargetFrameworks>
     <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC};{3AC096D0-A1C2-E12C-1390-A8335801FDAB}</ProjectTypeGuids>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Binaries\*.*" />
+    <None Remove="*.received.txt" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Binaries\*.*">
@@ -14,15 +15,13 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="ApprovalTests" Version="4.0.0" />
     <PackageReference Include="FodyHelpers" Version="3.3.3" />
-    <PackageReference Include="JetBrains.Annotations" Version="2018.2.1" />
+    <PackageReference Include="JetBrains.Annotations" Version="2018.2.1" PrivateAssets="All" />
     <PackageReference Include="TomsToolbox.Core" Version="1.0.75" />
     <PackageReference Include="TomsToolbox.Desktop" Version="1.0.75" />
     <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DummyAssembly\DummyAssembly.csproj" />
