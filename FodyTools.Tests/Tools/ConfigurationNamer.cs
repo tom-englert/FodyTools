@@ -5,6 +5,7 @@
 namespace FodyTools.Tests.Tools
 {
     using System;
+    using System.Linq;
 
     using ApprovalTests;
     using ApprovalTests.Namers;
@@ -35,6 +36,8 @@ namespace FodyTools.Tests.Tools
         {
             get
             {
+                Console.WriteLine("Stack: " + Approvals.CurrentCaller.StackTrace);
+                Console.WriteLine("Files: \n  " + string.Join("\n  ", Approvals.CurrentCaller.StackTrace.GetFrames().Select(s => s.GetFileName())));
                 Console.WriteLine("Parser: " + stackTraceParser.parser.ForTestingFramework);
                 Console.WriteLine("Source Path: " + base.SourcePath);
                 return base.SourcePath;
