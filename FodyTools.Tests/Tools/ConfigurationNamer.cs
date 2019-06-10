@@ -6,12 +6,11 @@ namespace FodyTools.Tests.Tools
 {
     using System;
 
+    using ApprovalTests;
     using ApprovalTests.Namers;
 
-    public static class ConfigurationNamer
+    public class ConfigurationNamer : UnitTestFrameworkNamer
     {
-        private static IDisposable _disposable = NamerFactory.AsEnvironmentSpecificTest(Configuration);
-
         private static string Configuration()
         {
 #if DEBUG
@@ -21,8 +20,15 @@ namespace FodyTools.Tests.Tools
 #endif
         }
 
+        static ConfigurationNamer()
+        {
+            Approvals.RegisterDefaultNamerCreation(() => new ConfigurationNamer());
+        }
+
         public static void Register()
         {
         }
+
+        public override string Name => base.Name + "." + Configuration();
     }
 }
