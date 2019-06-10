@@ -1,0 +1,17 @@
+﻿FodyTools.Tests.TypeExtensionMethodsTests/SampleWithStaticConstructor
+
+  System.Void FodyTools.Tests.TypeExtensionMethodsTests/SampleWithStaticConstructor::.cctor()
+    IL_0000: ldc.i4 1
+    IL_0000: ldc.i4 2
+    IL_0000: add
+    IL_0000: pop
+    IL_0000: ldc.i4.3
+    IL_0001: stsfld System.Int32 FodyTools.Tests.TypeExtensionMethodsTests/SampleWithStaticConstructor::_i
+    IL_0006: ret
+
+  System.Void FodyTools.Tests.TypeExtensionMethodsTests/SampleWithStaticConstructor::.ctor()
+    IL_0000: ldarg.0
+    IL_0001: call System.Void System.Object::.ctor()
+    IL_0006: nop
+    IL_0007: ret
+

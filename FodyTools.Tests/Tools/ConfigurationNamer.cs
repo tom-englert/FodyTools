@@ -4,9 +4,6 @@
 
 namespace FodyTools.Tests.Tools
 {
-    using System;
-    using System.Linq;
-
     using ApprovalTests;
     using ApprovalTests.Namers;
 
