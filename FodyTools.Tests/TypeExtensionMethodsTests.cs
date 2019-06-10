@@ -1,8 +1,5 @@
 ﻿namespace FodyTools.Tests
 {
-    using System;
-    using System.Text;
-
     using ApprovalTests;
 
     using FodyTools.Tests.Tools;
@@ -24,7 +21,6 @@
         {
             ConfigurationNamer.Register();
         }
-
 
         public class SampleWithConstructorBase
         {

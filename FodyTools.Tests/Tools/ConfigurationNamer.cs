@@ -4,27 +4,25 @@
 
 namespace FodyTools.Tests.Tools
 {
-    using ApprovalTests;
+    using System;
+
     using ApprovalTests.Namers;
 
-    public class ConfigurationNamer : UnitTestFrameworkNamer
+    public static class ConfigurationNamer
     {
-        private static readonly string _suffix =
-#if DEBUG
-            ".Debug";
-#else
-            ".Release";
-#endif
+        private static IDisposable _disposable = NamerFactory.AsEnvironmentSpecificTest(Configuration);
 
-        static ConfigurationNamer()
+        private static string Configuration()
         {
-            Approvals.RegisterDefaultNamerCreation(() => new ConfigurationNamer());
+#if DEBUG
+            return "Debug";
+#else
+            return "Release";
+#endif
         }
 
         public static void Register()
         {
         }
-
-        public override string Name => base.Name + _suffix;
     }
 }
