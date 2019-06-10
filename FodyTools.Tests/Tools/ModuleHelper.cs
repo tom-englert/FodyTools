@@ -50,7 +50,7 @@
         public static TypeDefinition LoadType(this Type declaringType)
         {
             var module = LoadModule(declaringType);
-            var type = module.GetTypes().Single(t => t.FullName == declaringType.FullName)
+            var type = module.GetTypes().Single(t => t.FullName == declaringType.FullName?.Replace("+", "/"))
                        ?? throw new InvalidOperationException($"Type {declaringType} not found in module {module.FileName}");
 
             return type;

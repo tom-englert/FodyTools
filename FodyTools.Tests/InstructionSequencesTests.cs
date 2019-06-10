@@ -3,14 +3,13 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
 
     using FodyTools.Tests.Tools;
-    using FodyTools.Tests.UUTs;
 
     using JetBrains.Annotations;
 
-    using Mono.Cecil;
     using Mono.Cecil.Cil;
 
     using Xunit;
@@ -32,7 +31,7 @@
         }
 
         [Fact]
-        public void Sequence5StartsAtInstruction7OnLine13()
+        public void Sequence5StartsAtInstruction7OnLine213()
         {
             var sequences = LoadInstructionSequences();
 
@@ -42,7 +41,7 @@
             Assert.Equal(6, sequence5.Count);
             Assert.Equal(instructions[7], sequence5[0]);
             Assert.Equal(OpCodes.Ldloc_0, sequence5[0].OpCode);
-            Assert.Equal(13, sequence5.Point.StartLine);
+            Assert.Equal(213, sequence5.Point?.StartLine);
         }
 
         [Fact]
@@ -55,7 +54,7 @@
             var sequence5 = sequences[5];
 
             instructionsBefore.Insert(8, _newInstruction);
-            
+
             Assert.False(instructionsBefore.SequenceEqual(instructions));
 
             sequence5.Insert(1, _newInstruction);
@@ -86,9 +85,9 @@
             var sequence5 = sequences[5];
 
             instructionsBefore.RemoveAt(8);
-            
+
             Assert.False(instructionsBefore.SequenceEqual(instructions));
-            
+
             sequence5.RemoveAt(1);
 
             Assert.True(instructionsBefore.SequenceEqual(instructions));
@@ -104,7 +103,7 @@
             var sequence5 = sequences[5];
 
             instructionsBefore.Insert(13, _newInstruction);
-            
+
             Assert.False(instructionsBefore.SequenceEqual(instructions));
 
             sequence5.Add(_newInstruction);
@@ -122,7 +121,7 @@
             var sequence5 = sequences[5];
 
             instructionsBefore[8] = _newInstruction;
-            
+
             Assert.False(instructionsBefore.SequenceEqual(instructions));
 
             sequence5[1] = _newInstruction;
@@ -142,7 +141,7 @@
             var instruction = instructionsBefore[8];
 
             instructionsBefore.Remove(instruction);
-            
+
             Assert.False(instructionsBefore.SequenceEqual(instructions));
 
             sequence5.Remove(instruction);
@@ -201,6 +200,21 @@
             Assert.Equal(12, sequences.Count);
 
             return sequences;
+        }
+
+        private class SimpleTestClass
+        {
+            public void SimpleMethod(int i)
+            {
+                var m = 0;
+
+                for (var k = 0; k < i; k++)
+                {
+                    m += k + i;
+                }
+
+                Trace.WriteLine(m);
+            }
         }
     }
 }
