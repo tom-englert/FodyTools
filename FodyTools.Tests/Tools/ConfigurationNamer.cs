@@ -31,17 +31,5 @@ namespace FodyTools.Tests.Tools
         }
 
         public override string Name => base.Name + "." + Configuration();
-
-        public override string SourcePath
-        {
-            get
-            {
-                Console.WriteLine("Stack: " + Approvals.CurrentCaller.StackTrace);
-                Console.WriteLine("Files: \n  " + string.Join("\n  ", Approvals.CurrentCaller.StackTrace.GetFrames().Select(s => s.GetFileName())));
-                Console.WriteLine("Parser: " + stackTraceParser.parser.ForTestingFramework);
-                Console.WriteLine("Source Path: " + base.SourcePath);
-                return base.SourcePath;
-            }
-        }
     }
 }
