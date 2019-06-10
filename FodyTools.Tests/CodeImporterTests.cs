@@ -20,6 +20,10 @@ using Xunit.Abstractions;
 
 namespace FodyTools.Tests
 {
+    using EmptyAssembly;
+
+    using FodyTools.Tests.Tools;
+
     public class CodeImporterTests
     {
         [NotNull]
@@ -43,8 +47,7 @@ namespace FodyTools.Tests
 #endif
         public void SimpleTypesTest(int numberOfTypes, AssemblyResolver assemblyResolver, [NotNull, ItemNotNull] params Type[] types)
         {
-            var assemblyPath = Path.Combine(Directories.Target, "EmptyAssembly.dll");
-            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
+            var module = ModuleHelper.LoadModule<EmptyClass>();
 
             var governingType = types.First();
 
@@ -93,8 +96,7 @@ namespace FodyTools.Tests
         [InlineData(2, typeof(TomsToolbox.Core.CollectionExtensions))]
         public void ComplexTypesTest(int numberOfTypes, [NotNull, ItemNotNull] params Type[] types)
         {
-            var assemblyPath = Path.Combine(Directories.Target, "EmptyAssembly.dll");
-            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
+            var module = ModuleHelper.LoadModule<EmptyClass>();
 
             var governingType = types.First();
 
@@ -148,8 +150,8 @@ namespace FodyTools.Tests
         [Fact]
         public void ImportMethodTest()
         {
-            var assemblyPath = Path.Combine(Directories.Target, "EmptyAssembly.dll");
-            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
+            var module = ModuleHelper.LoadModule<EmptyClass>();
+
             var target = new CodeImporter(module);
 
             var importedMethod1 = target.ImportMethod(() => default(MyEventArgs).GetValue());
@@ -165,8 +167,8 @@ namespace FodyTools.Tests
         [Fact]
         public void ImportGenericConstructorTest()
         {
-            var assemblyPath = Path.Combine(Directories.Target, "EmptyAssembly.dll");
-            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
+            var module = ModuleHelper.LoadModule<EmptyClass>();
+
             var target = new CodeImporter(module);
 
             var importedMethod1 = target.ImportMethod(() => new ComplexSampleClass<T1, T2>(default, default, default));
@@ -262,8 +264,7 @@ namespace FodyTools.Tests
         [Fact]
         public void ILMerge()
         {
-            var assemblyPath = Path.Combine(Directories.Target, "DummyAssembly.dll");
-            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
+            var module = ModuleHelper.LoadModule<SimpleSampleClass>();
 
             var codeImporter = new CodeImporter(module)
             {
@@ -275,7 +276,7 @@ namespace FodyTools.Tests
 
             var tempPath = TestHelper.TempPath;
 
-            foreach (var file in new DirectoryInfo(Directories.Target).EnumerateFiles())
+            foreach (var file in new DirectoryInfo(Path.GetDirectoryName(module.FileName)).EnumerateFiles())
             {
                 file.CopyTo(Path.Combine(tempPath, file.Name), true);
             }
@@ -304,7 +305,7 @@ namespace FodyTools.Tests
         [Fact]
         public void ILMerge2()
         {
-            var targetDir = Path.Combine(Directories.Target, "Binaries");
+            var targetDir = Path.Combine(GetType().GetModuleFolder(), "Binaries");
 
             using (new CurrendDirectory(targetDir))
             {

@@ -1,4 +1,4 @@
-﻿namespace FodyTools.Tests
+﻿namespace FodyTools.Tests.Tools
 {
     using System;
     using System.Collections.Generic;
@@ -12,7 +12,6 @@
     using Mono.Cecil;
 
     using TomsToolbox.Core;
-    using TomsToolbox.Desktop;
 
     using Xunit;
     using Xunit.Abstractions;

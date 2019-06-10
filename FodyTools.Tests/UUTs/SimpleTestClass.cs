@@ -1,4 +1,4 @@
-﻿namespace FodyTools.Tests
+﻿namespace FodyTools.Tests.UUTs
 {
     using System.Diagnostics;
 

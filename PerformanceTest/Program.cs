@@ -11,6 +11,7 @@ namespace PerformanceTest
 
     using FodyTools;
     using FodyTools.Tests;
+    using FodyTools.Tests.Tools;
 
     using JetBrains.Annotations;
 

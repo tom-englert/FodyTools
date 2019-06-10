@@ -10,6 +10,8 @@ namespace FodyTools.Tests
 
     using Fody;
 
+    using FodyTools.Tests.Tools;
+
     using Mono.Cecil;
 
     using Xunit;
@@ -19,7 +21,7 @@ namespace FodyTools.Tests
         [Fact]
         public void ImportSystemReferences_Test()
         {
-            var assemblyPath = Path.Combine(Directories.Target, "DummyAssembly.dll");
+            var assemblyPath = typeof(SimpleSampleClass).GetModuleFileName();
             var weaver = new TestWeaver();
             weaver.ExecuteTestRun(assemblyPath, false, null, null, "ImportExtensionsTests");
 

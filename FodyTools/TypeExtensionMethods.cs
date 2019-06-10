@@ -149,11 +149,11 @@
             }
 
             if (exceptionHandler == null)
-                throw new InvalidOperationException(classDefinition.FullName + ": non-standard Finalizer without valid try/catch block found");
+                throw new InvalidOperationException(classDefinition.FullName + ": non-standard finalizer without valid try/catch block found");
 
             var index = instructions.IndexOf(exceptionHandler.TryStart);
             if (index < 0)
-                throw new InvalidOperationException(classDefinition.FullName + ": non-standard Finalizer without valid try/catch block found");
+                throw new InvalidOperationException(classDefinition.FullName + ": non-standard finalizer without valid try/catch block found");
 
             body.Instructions.InsertRange(index, additionalInstructions);
 

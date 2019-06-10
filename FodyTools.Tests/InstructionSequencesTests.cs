@@ -5,6 +5,9 @@
     using System.Collections.Generic;
     using System.Linq;
 
+    using FodyTools.Tests.Tools;
+    using FodyTools.Tests.UUTs;
+
     using JetBrains.Annotations;
 
     using Mono.Cecil;
@@ -191,13 +194,7 @@
         [NotNull]
         private InstructionSequences LoadInstructionSequences()
         {
-            var assembly = GetType().Assembly;
-            var fileName = new Uri(assembly.CodeBase, UriKind.Absolute).LocalPath;
-            var module = ModuleDefinition.ReadModule(fileName, new ReaderParameters { ReadSymbols = true });
-
-            var type = module.GetType("FodyTools.Tests.SimpleTestClass");
-
-            var method = type.Methods.Single(m => m.Name == nameof(SimpleTestClass.SimpleMethod));
+            var method = ModuleHelper.LoadMethod(() => new SimpleTestClass().SimpleMethod(default));
 
             var sequences = new InstructionSequences(method.Body.Instructions, method.DebugInformation.SequencePoints);
 

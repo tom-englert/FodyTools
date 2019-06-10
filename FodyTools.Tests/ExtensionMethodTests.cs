@@ -9,13 +9,16 @@ using Xunit;
 
 namespace FodyTools.Tests
 {
+    using EmptyAssembly;
+
+    using FodyTools.Tests.Tools;
+
     public class ExtensionMethodTests
     {
         [Fact]
         public void OnGenericTypeTest1()
         {
-            var assemblyPath = Path.Combine(Directories.Target, "EmptyAssembly.dll");
-            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
+            var module = ModuleHelper.LoadModule<EmptyClass>();
             var importer = new CodeImporter(module);
 
             var type = importer.Import<SimpleSampleClass>();
@@ -33,8 +36,7 @@ namespace FodyTools.Tests
         [Fact]
         public void OnGenericTypeTest2()
         {
-            var assemblyPath = Path.Combine(Directories.Target, "EmptyAssembly.dll");
-            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
+            var module = ModuleHelper.LoadModule<EmptyClass>();
 
             var lazy = typeof(Lazy<>);
             var sourceAssemblyPath = lazy.Assembly.Location;
@@ -56,8 +58,7 @@ namespace FodyTools.Tests
         [Fact]
         public void OnGenericTypeTest3()
         {
-            var assemblyPath = Path.Combine(Directories.Target, "EmptyAssembly.dll");
-            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
+            var module = ModuleHelper.LoadModule<EmptyClass>();
             var importer = new CodeImporter(module);
 
             var type = importer.Import<SimpleSampleClass>();

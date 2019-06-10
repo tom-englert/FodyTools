@@ -1,6 +1,6 @@
 ﻿namespace EmptyAssembly
 {
-    class EmptyClass
+    public class EmptyClass
     {
     }
 }
