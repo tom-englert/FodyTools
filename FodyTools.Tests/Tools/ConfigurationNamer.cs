@@ -30,5 +30,15 @@ namespace FodyTools.Tests.Tools
         }
 
         public override string Name => base.Name + "." + Configuration();
+
+        public override string SourcePath
+        {
+            get
+            {
+                Console.WriteLine("Parser: " + stackTraceParser.parser.ForTestingFramework);
+                Console.WriteLine("Source Path: " + base.SourcePath);
+                return base.SourcePath;
+            }
+        }
     }
 }
