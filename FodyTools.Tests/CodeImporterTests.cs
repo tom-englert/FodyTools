@@ -307,7 +307,7 @@ namespace FodyTools.Tests
         {
             var targetDir = Path.Combine(GetType().GetModuleFolder(), "Binaries");
 
-            using (new CurrendDirectory(targetDir))
+            using (new CurrentDirectory(targetDir))
             {
                 var assemblyPath = Path.Combine(targetDir, "ResxManager.exe");
                 var module = ModuleDefinition.ReadModule(assemblyPath);
@@ -474,11 +474,11 @@ namespace FodyTools.Tests
 
     }
 
-    internal sealed class CurrendDirectory : IDisposable
+    internal sealed class CurrentDirectory : IDisposable
     {
         private readonly string _currendDir = Directory.GetCurrentDirectory();
 
-        public CurrendDirectory(string directoryName)
+        public CurrentDirectory(string directoryName)
         {
             Directory.SetCurrentDirectory(directoryName);
         }
