@@ -13,10 +13,18 @@
 
     public class TypeExtensionMethodsTests
     {
+        private static readonly Instruction[] _dummyInstructions = {
+            Instruction.Create(OpCodes.Ldc_I4, 1),
+            Instruction.Create(OpCodes.Ldc_I4, 2),
+            Instruction.Create(OpCodes.Add), 
+            Instruction.Create(OpCodes.Pop), 
+        };
+
         static TypeExtensionMethodsTests()
         {
             ConfigurationNamer.Register();
         }
+
 
         public class SampleWithConstructorBase
         {
@@ -56,13 +64,17 @@
         {
             var type = ModuleHelper.LoadType<SampleWithConstructors>();
 
-            type.InsertIntoConstructors(() => new []
-            {
-                Instruction.Create(OpCodes.Ldc_I4, 1),
-                Instruction.Create(OpCodes.Ldc_I4, 2),
-                Instruction.Create(OpCodes.Add), 
-                Instruction.Create(OpCodes.Pop), 
-            });
+            type.InsertIntoConstructors(() => _dummyInstructions);
+
+            Approvals.Verify(type.Decompile());
+        }
+
+        [Fact]
+        public void InsertIntoFinalizerTest()
+        {
+            var type = ModuleHelper.LoadType<SampleWithConstructors>();
+
+            type.InsertIntoFinalizer(_dummyInstructions);
 
             Approvals.Verify(type.Decompile());
         }
