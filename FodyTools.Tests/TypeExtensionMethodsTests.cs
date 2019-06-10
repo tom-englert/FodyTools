@@ -11,9 +11,9 @@
 
     using Xunit;
 
-    public class InsertIntoConstructorsTests
+    public class TypeExtensionMethodsTests
     {
-        static InsertIntoConstructorsTests()
+        static TypeExtensionMethodsTests()
         {
             ConfigurationNamer.Register();
         }
