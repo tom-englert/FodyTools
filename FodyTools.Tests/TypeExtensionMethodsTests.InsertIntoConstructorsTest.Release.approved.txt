@@ -1,0 +1,29 @@
+﻿FodyTools.Tests.TypeExtensionMethodsTests/SampleWithConstructors
+
+  System.Void FodyTools.Tests.TypeExtensionMethodsTests/SampleWithConstructors::.ctor()
+    IL_0000: ldarg.0
+    IL_0001: ldc.i4.1
+    IL_0002: call System.Int32 FodyTools.Tests.TypeExtensionMethodsTests/SampleWithConstructorBase::SomeMethod(System.Int32)
+    IL_0007: call System.Void FodyTools.Tests.TypeExtensionMethodsTests/SampleWithConstructorBase::.ctor(System.Int32)
+    IL_0000: ldc.i4 1
+    IL_0000: ldc.i4 2
+    IL_0000: add
+    IL_0000: pop
+    IL_000c: ret
+
+  System.Void FodyTools.Tests.TypeExtensionMethodsTests/SampleWithConstructors::.ctor(System.Int32)
+    IL_0000: ldarg.0
+    IL_0001: ldarg.1
+    IL_0002: call System.Void FodyTools.Tests.TypeExtensionMethodsTests/SampleWithConstructorBase::.ctor(System.Int32)
+    IL_0000: ldc.i4 1
+    IL_0000: ldc.i4 2
+    IL_0000: add
+    IL_0000: pop
+    IL_0007: ret
+
+  System.Void FodyTools.Tests.TypeExtensionMethodsTests/SampleWithConstructors::.ctor(System.Int32,System.Int32)
+    IL_0000: ldarg.0
+    IL_0001: ldarg.1
+    IL_0002: call System.Void FodyTools.Tests.TypeExtensionMethodsTests/SampleWithConstructors::.ctor(System.Int32)
+    IL_0007: ret
+
