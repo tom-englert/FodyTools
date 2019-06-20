@@ -72,6 +72,38 @@
             }
         }
 
+        /// <summary>Clones the specified instruction.</summary>
+        /// <param name="instruction">The instruction.</param>
+        /// <returns>A new instruction with the same OpCode and Operand.</returns>
+        [NotNull]
+        public static Instruction Clone([NotNull] this Instruction instruction)
+        {
+            var clone = Instruction.Create(OpCodes.Nop);
+
+            clone.OpCode = instruction.OpCode;
+            clone.Operand = instruction.Operand;
+
+            return clone;
+        }
+
+        /// <summary>
+        /// Replaces the instructions OpCode and Operand and returns a copy of the original instruction.
+        /// </summary>
+        /// <param name="instruction">The instruction.</param>
+        /// <param name="opCode">The op code.</param>
+        /// <param name="operand">The operand.</param>
+        /// <returns>A copy of the original instruction.</returns>
+        [NotNull]
+        public static Instruction ReplaceWith([NotNull] this Instruction instruction, OpCode opCode, object operand = null)
+        {
+            var clone = instruction.Clone();
+
+            instruction.OpCode = opCode;
+            instruction.Operand = operand;
+
+            return clone;
+        }
+
         private static bool HasImplicitThis([NotNull] this IMethodSignature self)
         {
             return self.HasThis && !self.ExplicitThis;
