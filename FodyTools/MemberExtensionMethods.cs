@@ -13,6 +13,19 @@ namespace FodyTools
 
     internal static class MemberExtensionMethods
     {
+        /// <summary>
+        /// Returns a method reference bound to the generic parameters of the owning class.
+        /// </summary>
+        /// <param name="method">The method to bind.</param>
+        /// <param name="genericType">The generic type.</param>
+        /// <returns>The bound method.</returns>
+        /// <exception cref="InvalidOperationException">
+        /// Need a generic type as the target.
+        /// or
+        /// Generic type must resolve to the same type as the methods current type.
+        /// or
+        /// method is already a generic instance
+        /// </exception>
         [NotNull]
         public static MethodReference OnGenericType([NotNull] this MethodReference method, [NotNull] TypeReference genericType)
         {
@@ -33,6 +46,22 @@ namespace FodyTools
             newMethod.Parameters.AddRange(method.Parameters);
             newMethod.GenericParameters.AddRange(method.Resolve().GenericParameters.Select(p => new GenericParameter(p.Name, p.Owner)));
             return newMethod;
+        }
+
+        /// <summary>
+        /// Returns a method reference bound to the generic parameters of the owning class.
+        /// If the owning class is not a generic class, the method is returned unchanged.
+        /// </summary>
+        /// <param name="method">The method.</param>
+        /// <param name="genericType">Type of the generic.</param>
+        /// <returns>The bound or the original method.</returns>
+        [NotNull]
+        public static MethodReference OnGenericTypeOrSelf([NotNull] this MethodReference method, [NotNull] TypeReference genericType)
+        {
+            if (!genericType.IsGenericInstance || method.IsGenericInstance)
+                return method;
+
+            return method.OnGenericType(genericType);
         }
 
         [NotNull]
