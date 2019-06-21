@@ -94,7 +94,7 @@
         /// <param name="operand">The operand.</param>
         /// <returns>A copy of the original instruction.</returns>
         [NotNull]
-        public static Instruction ReplaceWith([NotNull] this Instruction instruction, OpCode opCode, object operand = null)
+        public static Instruction ReplaceWith([NotNull] this Instruction instruction, OpCode opCode, [CanBeNull] object operand = null)
         {
             var clone = instruction.Clone();
 
