@@ -240,13 +240,17 @@
         /// </summary>
         /// <returns>The collection of imported types.</returns>
         [NotNull]
-        public IDictionary<string, TypeDefinition> ListImportedTypes()
+        public IDictionary<string, TypeDefinition> ListImportedTypes(bool includeNested = false)
         {
             return _targetTypesBySourceName
-                .Where(t => t.Value?.DeclaringType == null)
+                .Where(t => includeNested || t.Value?.DeclaringType == null)
                 .ToDictionary(item => item.Key, item => item.Value);
         }
 
+        /// <summary>
+        /// Returns a collection of the imported modules.
+        /// </summary>
+        /// <returns>The collection of imported modules.</returns>
         [NotNull]
         public ICollection<ModuleDefinition> ListImportedModules()
         {
@@ -1007,7 +1011,9 @@
         {
             var module = codeImporter.TargetModule;
 
-            var existingTypes = module.GetTypes().ToList();
+            var existingTypes = module.GetTypes()
+                .Except(codeImporter.ListImportedTypes(true).Values)
+                .ToList();
 
             MergeAttributes(codeImporter, module);
             MergeAttributes(codeImporter, module.Assembly);
