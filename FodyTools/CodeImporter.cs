@@ -931,7 +931,7 @@
             return target;
         }
 
-        private bool IsLocalOrExternalReference([NotNull] TypeReference typeReference)
+        public bool IsLocalOrExternalReference([NotNull] TypeReference typeReference)
         {
             var scope = typeReference.Scope;
 
@@ -1071,9 +1071,16 @@
                         foreach (var methodOverride in methodDefinition.Overrides)
                         {
                             if (methodOverride is MethodDefinition)
-                                throw new NotImplementedException("Method overrides using MethodDefinition is not supported");
-
-                            MergeMethodReference(codeImporter, methodOverride, methodDefinition);
+                            {
+                                if (!codeImporter.IsLocalOrExternalReference(methodOverride.DeclaringType))
+                                {
+                                    throw new NotImplementedException("Method overrides using MethodDefinition is not supported");
+                                }
+                            }
+                            else
+                            {
+                                MergeMethodReference(codeImporter, methodOverride, methodDefinition);
+                            }
                         }
                     }
 
