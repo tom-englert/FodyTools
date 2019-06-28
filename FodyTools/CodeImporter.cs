@@ -454,6 +454,7 @@
         }
 
         [CanBeNull]
+        [ContractAnnotation("sourceDefinition:notnull=>notnull")]
         private MethodDefinition ImportMethodDefinition([CanBeNull] MethodDefinition sourceDefinition, [NotNull] TypeDefinition targetType)
         {
             if (sourceDefinition == null)
@@ -868,7 +869,7 @@
         private TypeReference ImportGenericParameter([NotNull] GenericParameter source, [CanBeNull] MethodReference targetMethod)
         {
             var genericParameterProvider = (source.Type == GenericParameterType.Method)
-                ? (targetMethod ?? throw new InvalidOperationException("Need a method reference for generic method parameter."))
+                ? targetMethod ?? throw new InvalidOperationException("Need a method reference for generic method parameter.")
                 : (IGenericParameterProvider)InternalImportType(source.DeclaringType, targetMethod);
 
             var index = source.Position;
@@ -1161,15 +1162,15 @@
 
             foreach (var parameter in provider.GenericParameters)
             {
-                MergeTypes(codeImporter, parameter.Constraints);
+                MergeTypes(codeImporter, parameter.Constraints, provider as MethodReference);
             }
         }
 
-        private static void MergeTypes([NotNull] CodeImporter codeImporter, [NotNull] IList<TypeReference> types)
+        private static void MergeTypes([NotNull] CodeImporter codeImporter, [NotNull] IList<TypeReference> types, [CanBeNull] MethodReference targetMethod)
         {
             for (var i = 0; i < types.Count; i++)
             {
-                types[i] = codeImporter.ImportType(types[i], null);
+                types[i] = codeImporter.ImportType(types[i], targetMethod);
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using TomsToolbox.Core;
+// ReSharper disable AssignNullToNotNullAttribute
 
 [assembly: PluginModule("1", "2", "3")]
 [module: PluginModule("4", "5", "6")]
@@ -101,6 +102,12 @@ namespace FodyTools
         object GetItem()
         {
             return new Structure { Value2 = "V2" };
+        }
+
+        public static SimpleGenericClass<T> FromSingleItemAndList<T, TItem>(T singleItem, IList<TItem> list)
+            where TItem : T
+        {
+            return typeof(T) == typeof(TItem) ? new SimpleGenericClass<T>() : null;
         }
     }
 
