@@ -1,18 +1,19 @@
-﻿namespace FodyTools.Tests
+﻿using System.Linq;
+using System.Runtime.CompilerServices;
+using ApprovalTests;
+using FodyTools.Tests.Tools;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+using Xunit;
+
+namespace FodyTools.Tests
 {
-    using System.Linq;
-    using System.Runtime.CompilerServices;
 
-    using ApprovalTests;
-
-    using FodyTools.Tests.Tools;
-
-    using Mono.Cecil.Cil;
-
-    using Xunit;
 
     public class TypeExtensionMethodsTests
     {
+        private readonly IAssemblyResolver _assemblyResolver = NetFrameworkAssemblyResolver.Current;
+
         private static readonly Instruction[] _dummyInstructions = {
             Instruction.Create(OpCodes.Ldc_I4, 1),
             Instruction.Create(OpCodes.Ldc_I4, 2),
@@ -89,7 +90,7 @@
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void InsertIntoFinalizerTest()
         {
-            var type = ModuleHelper.LoadType<SampleWithConstructors>();
+            var type = ModuleHelper.LoadType<SampleWithConstructors>(_assemblyResolver);
 
             type.InsertIntoFinalizer(_dummyInstructions);
 
@@ -142,7 +143,7 @@
         [Fact]
         public void GetDefaultConstructorReturnsValidConstructorTest()
         {
-            var type = ModuleHelper.LoadType<SampleWithConstructors>();
+            var type = ModuleHelper.LoadType<SampleWithConstructors>(_assemblyResolver);
 
             var method = type.GetDefaultConstructor();
 
@@ -153,7 +154,7 @@
         [Fact]
         public void GetSelfAndBaseTypesTest()
         {
-            var type = ModuleHelper.LoadType<SampleWithConstructors>();
+            var type = ModuleHelper.LoadType<SampleWithConstructors>(_assemblyResolver);
 
             var expected = new []
             {
@@ -169,7 +170,7 @@
         [Fact]
         public void GetBaseTypesTest()
         {
-            var type = ModuleHelper.LoadType<SampleWithConstructors>();
+            var type = ModuleHelper.LoadType<SampleWithConstructors>(_assemblyResolver);
 
             var expected = new []
             {

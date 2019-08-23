@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FodyHelpers" Version="3.3.3" />
+    <PackageReference Include="FodyHelpers" Version="6.0.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2018.2.1" />
     <PackageReference Include="SonarAnalyzer.CSharp" Version="7.9.1.7622">
       <PrivateAssets>all</PrivateAssets>

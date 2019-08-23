@@ -1,24 +1,23 @@
 ﻿#pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
 
 using System;
-using System.IO;
 using System.Linq;
+using EmptyAssembly;
+using FodyTools.Tests.Tools;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 using Xunit;
 
 namespace FodyTools.Tests
 {
-    using EmptyAssembly;
-
-    using FodyTools.Tests.Tools;
-
     public class ExtensionMethodTests
     {
+        private readonly IAssemblyResolver _assemblyResolver = NetFrameworkAssemblyResolver.Current;
+
         [Fact]
         public void OnGenericTypeTest1()
         {
-            var module = ModuleHelper.LoadModule<EmptyClass>();
+            var module = ModuleHelper.LoadModule<EmptyClass>(_assemblyResolver);
             var importer = new CodeImporter(module);
 
             var type = importer.Import<SimpleSampleClass>();
@@ -36,7 +35,7 @@ namespace FodyTools.Tests
         [Fact]
         public void OnGenericTypeTest2()
         {
-            var module = ModuleHelper.LoadModule<EmptyClass>();
+            var module = ModuleHelper.LoadModule<EmptyClass>(_assemblyResolver);
 
             var lazy = typeof(Lazy<>);
             var sourceAssemblyPath = lazy.Assembly.Location;
@@ -58,7 +57,7 @@ namespace FodyTools.Tests
         [Fact]
         public void OnGenericTypeTest3()
         {
-            var module = ModuleHelper.LoadModule<EmptyClass>();
+            var module = ModuleHelper.LoadModule<EmptyClass>(_assemblyResolver);
             var importer = new CodeImporter(module);
 
             var type = importer.Import<SimpleSampleClass>();

@@ -41,7 +41,7 @@
         private readonly HashSet<TypeDefinition> _targetTypes = new HashSet<TypeDefinition>();
 
         [NotNull]
-        private readonly Dictionary<MethodDefinition, MethodDefinition> _targetMethods = new Dictionary<MethodDefinition, MethodDefinition>();
+        private readonly Dictionary<string, MethodDefinition> _targetMethods = new Dictionary<string, MethodDefinition>();
 
         [NotNull]
         private readonly IList<Action> _deferredActions = new List<Action>();
@@ -59,6 +59,7 @@
         public CodeImporter([NotNull] ModuleDefinition targetModule)
         {
             TargetModule = targetModule;
+            AssemblyResolver = targetModule.AssemblyResolver;
         }
 
         [NotNull]
@@ -66,6 +67,9 @@
 
         [CanBeNull]
         public IModuleResolver ModuleResolver { get; set; }
+
+        [CanBeNull]
+        public IAssemblyResolver AssemblyResolver { get; set; }
 
         [NotNull]
         public Func<string, string> NamespaceDecorator { get; set; } = value => value;
@@ -269,7 +273,7 @@
             if (string.IsNullOrEmpty(fileName))
                 throw new InvalidOperationException("Unable get location of assembly " + assembly);
 
-            sourceModule = ModuleDefinition.ReadModule(fileName);
+            sourceModule = ModuleDefinition.ReadModule(fileName, new ReaderParameters { AssemblyResolver = AssemblyResolver });
 
             try
             {
@@ -463,7 +467,9 @@
             if (IsLocalOrExternalReference(sourceDefinition.DeclaringType))
                 return sourceDefinition;
 
-            if (_targetMethods.TryGetValue(sourceDefinition, out var target))
+            var key = sourceDefinition.FullName;
+
+            if (_targetMethods.TryGetValue(key, out var target))
                 return target;
 
             target = new MethodDefinition(sourceDefinition.Name, sourceDefinition.Attributes, TemporaryPlaceholderType)
@@ -471,7 +477,7 @@
                 ImplAttributes = sourceDefinition.ImplAttributes
             };
 
-            _targetMethods.Add(sourceDefinition, target);
+            _targetMethods.Add(key, target);
 
             foreach (var sourceOverride in sourceDefinition.Overrides)
             {
@@ -608,22 +614,16 @@
             if (!source.HasGenericParameters)
                 return;
 
-            foreach (var genericParameter in source.GenericParameters)
+            foreach (var sourceParameter in source.GenericParameters)
             {
-                var parameter = new GenericParameter(genericParameter.Name, InternalImportType(genericParameter.DeclaringType, null))
+                var targetParameter = new GenericParameter(sourceParameter.Name, InternalImportType(sourceParameter.DeclaringType, null))
                 {
-                    Attributes = genericParameter.Attributes
+                    Attributes = sourceParameter.Attributes
                 };
 
-                if (genericParameter.HasConstraints)
-                {
-                    foreach (var constraint in genericParameter.Constraints)
-                    {
-                        parameter.Constraints.Add(InternalImportType(constraint.GetElementType(), null));
-                    }
-                }
+                CopyConstraints(sourceParameter, targetParameter, null);
 
-                target.GenericParameters.Add(parameter);
+                target.GenericParameters.Add(targetParameter);
             }
         }
 
@@ -632,26 +632,33 @@
             if (!source.HasGenericParameters)
                 return;
 
-            foreach (var genericParameter in source.GenericParameters)
+            foreach (var sourceParameter in source.GenericParameters)
             {
-                var provider = genericParameter.Type == GenericParameterType.Method
+                var provider = sourceParameter.Type == GenericParameterType.Method
                     ? (IGenericParameterProvider)target
-                    : InternalImportType(genericParameter.DeclaringType, null);
+                    : InternalImportType(sourceParameter.DeclaringType, null);
 
-                var parameter = new GenericParameter(genericParameter.Name, provider)
+                var targetParameter = new GenericParameter(sourceParameter.Name, provider)
                 {
-                    Attributes = genericParameter.Attributes
+                    Attributes = sourceParameter.Attributes
                 };
 
-                if (genericParameter.HasConstraints)
-                {
-                    foreach (var constraint in genericParameter.Constraints)
-                    {
-                        parameter.Constraints.Add(InternalImportType(constraint.GetElementType(), target));
-                    }
-                }
+                CopyConstraints(sourceParameter, targetParameter, target);
 
-                target.GenericParameters.Add(parameter);
+                target.GenericParameters.Add(targetParameter);
+            }
+        }
+
+        private void CopyConstraints(GenericParameter sourceParameter, GenericParameter targetParameter, MethodReference targetMethod)
+        {
+            if (!sourceParameter.HasConstraints)
+                return;
+
+            foreach (var source in sourceParameter.Constraints)
+            {
+                var target = new GenericParameterConstraint(InternalImportType(source.ConstraintType, targetMethod));
+                CopyAttributes(source, target);
+                targetParameter.Constraints.Add(target);
             }
         }
 
@@ -1162,7 +1169,7 @@
 
             foreach (var parameter in provider.GenericParameters)
             {
-                MergeTypes(codeImporter, parameter.Constraints, provider as MethodReference);
+                MergeTypes(codeImporter, parameter.Constraints.Select(c => c.ConstraintType).ToList(), provider as MethodReference);
             }
         }
 
@@ -1235,12 +1242,16 @@
 
             try
             {
-                var module = typeReference.Resolve().Module;
-                var moduleFileName = module.FileName;
-
-                if (Path.GetDirectoryName(moduleFileName) == @".")
+                var typeDefinition = typeReference.Resolve();
+                if (typeDefinition != null)
                 {
-                    return module;
+                    var module = typeDefinition.Module;
+                    var moduleFileName = module.FileName;
+
+                    if (Path.GetDirectoryName(moduleFileName) == @".")
+                    {
+                        return module;
+                    }
                 }
             }
             catch (AssemblyResolutionException)

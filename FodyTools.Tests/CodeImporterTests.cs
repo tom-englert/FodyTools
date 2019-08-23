@@ -11,22 +11,23 @@ using Mono.Cecil;
 using ReferencedAssembly;
 using Xunit;
 using Xunit.Abstractions;
+using EmptyAssembly;
+using FodyTools.Tests.Tools;
+
 #pragma warning disable 649
 
 #pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
 
 namespace FodyTools.Tests
 {
-    using EmptyAssembly;
-
-    using FodyTools.Tests.Tools;
-
     public class CodeImporterTests
     {
         [NotNull]
         private readonly ITestOutputHelper _testOutputHelper;
 
-        public enum AssemblyResolver
+        private readonly IAssemblyResolver _assemblyResolver = NetFrameworkAssemblyResolver.Current;
+
+        public enum ModuleResolver
         {
             AssemblyModuleResolver,
             LocalModuleResolver
@@ -39,20 +40,20 @@ namespace FodyTools.Tests
 
         [Theory]
 #if NETCOREAPP
-        [InlineData(7, AssemblyResolver.AssemblyModuleResolver, typeof(Test<>))]
+        [InlineData(7, ModuleResolver.AssemblyModuleResolver, typeof(Test<>))]
 #else
-        [InlineData(7, AssemblyResolver.LocalModuleResolver, typeof(Test<>))]
+        [InlineData(7, ModuleResolver.LocalModuleResolver, typeof(Test<>))]
 #endif
-        public void SimpleTypesTest(int numberOfTypes, AssemblyResolver assemblyResolver, [NotNull, ItemNotNull] params Type[] types)
+        public void SimpleTypesTest(int numberOfTypes, ModuleResolver moduleResolver, [NotNull, ItemNotNull] params Type[] types)
         {
-            var module = ModuleHelper.LoadModule<EmptyClass>();
+            var module = ModuleHelper.LoadModule<EmptyClass>(_assemblyResolver);
 
             var governingType = types.First();
 
             Debug.Assert(module != null, nameof(module) + " != null");
             Debug.Assert(governingType?.Namespace != null, nameof(governingType) + " != null");
 
-            var moduleResolver = assemblyResolver == AssemblyResolver.AssemblyModuleResolver
+            var moduleResolverInstance = moduleResolver == ModuleResolver.AssemblyModuleResolver
                 ? (IModuleResolver)new AssemblyModuleResolver(typeof(TomsToolbox.Core.AssemblyExtensions).Assembly, typeof(TomsToolbox.Core.DefaultValue).Assembly)
                 : new LocalReferenceModuleResolver();
 
@@ -60,7 +61,7 @@ namespace FodyTools.Tests
 
             var target = new CodeImporter(module)
             {
-                ModuleResolver = moduleResolver,
+                ModuleResolver = moduleResolverInstance,
                 HideImportedTypes = false
             };
 
@@ -94,7 +95,7 @@ namespace FodyTools.Tests
         [InlineData(2, typeof(TomsToolbox.Core.CollectionExtensions))]
         public void ComplexTypesTest(int numberOfTypes, [NotNull, ItemNotNull] params Type[] types)
         {
-            var module = ModuleHelper.LoadModule<EmptyClass>();
+            var module = ModuleHelper.LoadModule<EmptyClass>(_assemblyResolver);
 
             var governingType = types.First();
 
@@ -104,7 +105,8 @@ namespace FodyTools.Tests
             var target = new CodeImporter(module)
             {
                 // else IL comparison will fail:
-                HideImportedTypes = false
+                HideImportedTypes = false,
+                AssemblyResolver = _assemblyResolver
             };
 
             foreach (var type in types)
@@ -120,7 +122,7 @@ namespace FodyTools.Tests
 
             var sourceAssemblyPath = Path.Combine(tempPath, "SourceAssembly2.dll");
 
-            var sourceModule = ModuleDefinition.ReadModule(new Uri(governingType.Assembly.CodeBase).LocalPath);
+            var sourceModule = ModuleDefinition.ReadModule(new Uri(governingType.Assembly.CodeBase).LocalPath, new ReaderParameters { AssemblyResolver = _assemblyResolver });
 
             sourceModule.Assembly.Name.Name = "SourceAssembly";
             sourceModule.Write(sourceAssemblyPath);
@@ -148,7 +150,7 @@ namespace FodyTools.Tests
         [Fact]
         public void ImportMethodTest()
         {
-            var module = ModuleHelper.LoadModule<EmptyClass>();
+            var module = ModuleHelper.LoadModule<EmptyClass>(_assemblyResolver);
 
             var target = new CodeImporter(module);
 
@@ -165,7 +167,7 @@ namespace FodyTools.Tests
         [Fact]
         public void ImportGenericConstructorTest()
         {
-            var module = ModuleHelper.LoadModule<EmptyClass>();
+            var module = ModuleHelper.LoadModule<EmptyClass>(_assemblyResolver);
 
             var target = new CodeImporter(module);
 
@@ -205,7 +207,7 @@ namespace FodyTools.Tests
         [Fact]
         public void ImportMethodsThrowsOnInvalidExpression()
         {
-            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
+            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", new ModuleParameters { Kind = ModuleKind.Dll, AssemblyResolver = _assemblyResolver });
             var target = new CodeImporter(module);
 
             Assert.Throws<ArgumentException>(() => { target.ImportMethod(() => default(MyEventArgs).AnotherValue); });
@@ -214,7 +216,7 @@ namespace FodyTools.Tests
         [Fact]
         public void ImportPropertyTest()
         {
-            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
+            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", new ModuleParameters { Kind = ModuleKind.Dll, AssemblyResolver = _assemblyResolver });
             var target = new CodeImporter(module);
 
             var importedProperty = target.ImportProperty(() => default(MyEventArgs).AnotherValue);
@@ -225,7 +227,7 @@ namespace FodyTools.Tests
         [Fact]
         public void ImportPropertyThrowsOnInvalidExpression()
         {
-            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
+            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", new ModuleParameters { Kind = ModuleKind.Dll, AssemblyResolver = _assemblyResolver });
             var target = new CodeImporter(module);
 
             Assert.Throws<ArgumentException>(() => { target.ImportProperty(() => default(MyEventArgs).GetValue()); });
@@ -235,7 +237,7 @@ namespace FodyTools.Tests
         [Fact]
         public void ImportFieldTest()
         {
-            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", ModuleKind.Dll);
+            var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", new ModuleParameters { Kind = ModuleKind.Dll, AssemblyResolver = _assemblyResolver });
             var target = new CodeImporter(module);
 
             var importedField = target.ImportField(() => default(MyEventArgs).field);
@@ -259,10 +261,11 @@ namespace FodyTools.Tests
             });
         }
 
+
         [Fact]
         public void ILMerge()
         {
-            var module = ModuleHelper.LoadModule<SimpleSampleClass>();
+            var module = ModuleHelper.LoadModule<SimpleSampleClass>(_assemblyResolver);
 
             var codeImporter = new CodeImporter(module)
             {
@@ -303,7 +306,6 @@ namespace FodyTools.Tests
             Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper, "0x80131252"));
         }
 
-        #if !NETCOREAPP
         [Fact]
         public void ILMerge2()
         {
@@ -312,7 +314,7 @@ namespace FodyTools.Tests
             using (new CurrentDirectory(targetDir))
             {
                 var assemblyPath = Path.Combine(targetDir, "ResxManager.exe");
-                var module = ModuleDefinition.ReadModule(assemblyPath);
+                var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { AssemblyResolver = NetFrameworkAssemblyResolver.Default });
 
                 var codeImporter = new CodeImporter(module)
                 {
@@ -340,7 +342,6 @@ namespace FodyTools.Tests
                 Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper));
             }
         }
-        #endif
     }
 
     // ReSharper disable all (just test code below)

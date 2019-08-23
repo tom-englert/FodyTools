@@ -1,32 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using FodyTools;
+using FodyTools.Tests.Tools;
+using JetBrains.Annotations;
+using Mono.Cecil;
+using Xunit;
 
 namespace PerformanceTest
 {
-    using System.Diagnostics;
-    using System.IO;
-
-    using FodyTools;
-    using FodyTools.Tests;
-    using FodyTools.Tests.Tools;
-
-    using JetBrains.Annotations;
-
-    using Mono.Cecil;
-
-    using Xunit;
-
-    class Program
+    internal static class Program
     {
         static void Main(string[] args)
         {
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             var assemblyPath = Path.Combine(baseDirectory, "ShellAssembly.exe");
-            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true });
+            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true, AssemblyResolver = NetFrameworkAssemblyResolver.Default });
 
             var codeImporter = new CodeImporter(module)
             {
