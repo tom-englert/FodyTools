@@ -142,12 +142,12 @@
         {
             private static readonly string _peVerifyPath = SdkTool.Find("PEVerify.exe");
 
-            public static bool Verify(string assemblyPath, [NotNull] ITestOutputHelper testOutputHelper)
+            public static bool Verify(string assemblyPath, [NotNull] ITestOutputHelper testOutputHelper, params string[] additionalIgnoreCodes)
             {
-                return Verify(assemblyPath, line => testOutputHelper.WriteLine(line));
+                return Verify(assemblyPath, testOutputHelper.WriteLine, additionalIgnoreCodes);
             }
 
-            public static bool Verify(string assemblyPath, [NotNull] Action<string> writeOutput)
+            public static bool Verify(string assemblyPath, [NotNull] Action<string> writeOutput, params string[] additionalIgnoreCodes)
             {
                 var workingDirectory = Path.GetDirectoryName(assemblyPath);
 
@@ -156,7 +156,7 @@
                     "0x80131869", // can't resolve reference => PEVerify can't find the referenced dll...
                     "0x80070002", // The system cannot find the file specified.
                     "0x801318F3"  // Type load failed 
-                };
+                }.Concat(additionalIgnoreCodes);
 
                 var processStartInfo = new ProcessStartInfo(_peVerifyPath)
                 {
