@@ -18,7 +18,7 @@ namespace PerformanceTest
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             var assemblyPath = Path.Combine(baseDirectory, "ShellAssembly.exe");
-            var module = ModuleDefinition.ReadModule(assemblyPath, new ReaderParameters { ReadSymbols = true, AssemblyResolver = NetFrameworkAssemblyResolver.Default });
+            var module = ModuleHelper.LoadModule(assemblyPath);
 
             var codeImporter = new CodeImporter(module)
             {

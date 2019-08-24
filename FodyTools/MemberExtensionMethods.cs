@@ -31,7 +31,7 @@ namespace FodyTools
         {
             if (!genericType.IsGenericInstance)
                 throw new InvalidOperationException("Need a generic type as the target.");
-            if (method.DeclaringType.Resolve() != genericType.Resolve())
+            if (method.DeclaringType.GetElementType().FullName != genericType.GetElementType().FullName)
                 throw new InvalidOperationException("Generic type must resolve to the same type as the methods current type.");
             if (method.IsGenericInstance)
                 throw new InvalidOperationException("method is already a generic instance");

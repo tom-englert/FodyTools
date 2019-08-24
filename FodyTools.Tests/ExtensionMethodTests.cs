@@ -1,23 +1,24 @@
 ﻿#pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
 
-using System;
-using System.Linq;
-using EmptyAssembly;
-using FodyTools.Tests.Tools;
-using Mono.Cecil;
-using Mono.Cecil.Rocks;
-using Xunit;
-
 namespace FodyTools.Tests
 {
+    using System;
+    using System.Linq;
+
+    using EmptyAssembly;
+
+    using FodyTools.Tests.Tools;
+
+    using Mono.Cecil.Rocks;
+
+    using Xunit;
+
     public class ExtensionMethodTests
     {
-        private readonly IAssemblyResolver _assemblyResolver = NetFrameworkAssemblyResolver.Current;
-
         [Fact]
         public void OnGenericTypeTest1()
         {
-            var module = ModuleHelper.LoadModule<EmptyClass>(_assemblyResolver);
+            var module = ModuleHelper.LoadModule<EmptyClass>();
             var importer = new CodeImporter(module);
 
             var type = importer.Import<SimpleSampleClass>();
@@ -35,11 +36,11 @@ namespace FodyTools.Tests
         [Fact]
         public void OnGenericTypeTest2()
         {
-            var module = ModuleHelper.LoadModule<EmptyClass>(_assemblyResolver);
+            var module = ModuleHelper.LoadModule<EmptyClass>();
 
             var lazy = typeof(Lazy<>);
             var sourceAssemblyPath = lazy.Assembly.Location;
-            var sourceModule = ModuleDefinition.ReadModule(sourceAssemblyPath, new ReaderParameters { ReadSymbols = false });
+            var sourceModule = ModuleHelper.LoadModule(sourceAssemblyPath);
 
             var typeDefinition = sourceModule.GetType(lazy.FullName);
             var type = module.ImportReference(typeDefinition);
@@ -57,7 +58,7 @@ namespace FodyTools.Tests
         [Fact]
         public void OnGenericTypeTest3()
         {
-            var module = ModuleHelper.LoadModule<EmptyClass>(_assemblyResolver);
+            var module = ModuleHelper.LoadModule<EmptyClass>();
             var importer = new CodeImporter(module);
 
             var type = importer.Import<SimpleSampleClass>();

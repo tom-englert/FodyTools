@@ -1,19 +1,18 @@
-﻿using System.Linq;
-using System.Runtime.CompilerServices;
-using ApprovalTests;
-using FodyTools.Tests.Tools;
-using Mono.Cecil;
-using Mono.Cecil.Cil;
-using Xunit;
-
-namespace FodyTools.Tests
+﻿namespace FodyTools.Tests
 {
+    using System.Linq;
+    using System.Runtime.CompilerServices;
 
+    using ApprovalTests;
+
+    using FodyTools.Tests.Tools;
+
+    using Mono.Cecil.Cil;
+
+    using Xunit;
 
     public class TypeExtensionMethodsTests
     {
-        private readonly IAssemblyResolver _assemblyResolver = NetFrameworkAssemblyResolver.Current;
-
         private static readonly Instruction[] _dummyInstructions = {
             Instruction.Create(OpCodes.Ldc_I4, 1),
             Instruction.Create(OpCodes.Ldc_I4, 2),
@@ -90,7 +89,7 @@ namespace FodyTools.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         public void InsertIntoFinalizerTest()
         {
-            var type = ModuleHelper.LoadType<SampleWithConstructors>(_assemblyResolver);
+            var type = ModuleHelper.LoadType<SampleWithConstructors>();
 
             type.InsertIntoFinalizer(_dummyInstructions);
 
@@ -143,7 +142,7 @@ namespace FodyTools.Tests
         [Fact]
         public void GetDefaultConstructorReturnsValidConstructorTest()
         {
-            var type = ModuleHelper.LoadType<SampleWithConstructors>(_assemblyResolver);
+            var type = ModuleHelper.LoadType<SampleWithConstructors>();
 
             var method = type.GetDefaultConstructor();
 
@@ -154,7 +153,7 @@ namespace FodyTools.Tests
         [Fact]
         public void GetSelfAndBaseTypesTest()
         {
-            var type = ModuleHelper.LoadType<SampleWithConstructors>(_assemblyResolver);
+            var type = ModuleHelper.LoadType<SampleWithConstructors>();
 
             var expected = new []
             {
@@ -170,7 +169,7 @@ namespace FodyTools.Tests
         [Fact]
         public void GetBaseTypesTest()
         {
-            var type = ModuleHelper.LoadType<SampleWithConstructors>(_assemblyResolver);
+            var type = ModuleHelper.LoadType<SampleWithConstructors>();
 
             var expected = new []
             {
