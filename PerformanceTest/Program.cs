@@ -1,16 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using FodyTools;
-using FodyTools.Tests.Tools;
-using JetBrains.Annotations;
-using Mono.Cecil;
-using Xunit;
-
-namespace PerformanceTest
+﻿namespace PerformanceTest
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Linq;
+
+    using FodyTools;
+    using FodyTools.Tests.Tools;
+
+    using JetBrains.Annotations;
+
+    using Mono.Cecil;
+
+    using Xunit;
+
     internal static class Program
     {
         static void Main(string[] args)

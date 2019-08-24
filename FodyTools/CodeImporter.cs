@@ -15,9 +15,6 @@
     using Mono.Cecil.Cil;
     using Mono.Cecil.Rocks;
 
-    using ICustomAttributeProvider = Mono.Cecil.ICustomAttributeProvider;
-    using MethodBody = Mono.Cecil.Cil.MethodBody;
-
     /// <summary>
     /// A class to import code from one module to another; like e.g. ILMerge, but only imports the specified classes and their local references.
     /// </summary>
@@ -542,7 +539,7 @@
             target.MethodReturnType = targetReturnType;
         }
 
-        private void CopyAttributes([NotNull] ICustomAttributeProvider source, [NotNull] ICustomAttributeProvider target)
+        private void CopyAttributes([NotNull] Mono.Cecil.ICustomAttributeProvider source, [NotNull] Mono.Cecil.ICustomAttributeProvider target)
         {
             if (!source.HasCustomAttributes)
                 return;
@@ -662,7 +659,7 @@
             }
         }
 
-        private void CopyExceptionHandlers([NotNull] MethodBody source, [NotNull] MethodBody target)
+        private void CopyExceptionHandlers([NotNull] Mono.Cecil.Cil.MethodBody source, [NotNull] Mono.Cecil.Cil.MethodBody target)
         {
             if (!source.HasExceptionHandlers)
             {
@@ -1181,7 +1178,7 @@
             }
         }
 
-        private static void MergeAttributes([NotNull] CodeImporter codeImporter, [CanBeNull] ICustomAttributeProvider attributeProvider)
+        private static void MergeAttributes([NotNull] CodeImporter codeImporter, [CanBeNull] Mono.Cecil.ICustomAttributeProvider attributeProvider)
         {
             if (attributeProvider?.HasCustomAttributes != true)
                 return;

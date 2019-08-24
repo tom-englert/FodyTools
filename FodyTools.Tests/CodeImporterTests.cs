@@ -1,25 +1,31 @@
 ﻿// ReSharper disable AssignNullToNotNullAttribute
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using JetBrains.Annotations;
-using Mono.Cecil;
-using ReferencedAssembly;
-using Xunit;
-using Xunit.Abstractions;
-using EmptyAssembly;
-using FodyTools.Tests.Tools;
-
 #pragma warning disable 649
 
 #pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
 
 namespace FodyTools.Tests
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Linq;
+
+    using EmptyAssembly;
+
+    using FodyTools.Tests.Tools;
+
+    using JetBrains.Annotations;
+
+    using Mono.Cecil;
+
+    using ReferencedAssembly;
+
+    using Xunit;
+    using Xunit.Abstractions;
+
     public class CodeImporterTests
     {
         [NotNull]

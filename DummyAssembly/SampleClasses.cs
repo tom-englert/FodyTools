@@ -1,6 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using TomsToolbox.Core;
+﻿using TomsToolbox.Core;
+
 // ReSharper disable AssignNullToNotNullAttribute
 
 [assembly: PluginModule("1", "2", "3")]
@@ -8,11 +7,12 @@ using TomsToolbox.Core;
 
 namespace FodyTools
 {
-    using ReferencedAssembly;
     using System;
-    using System.Collections.Specialized;
+    using System.Collections;
+    using System.Collections.Generic;
     using System.ComponentModel;
-    using System.Xml.Serialization;
+
+    using ReferencedAssembly;
 
     [Sequence(1)]
     public class SimpleSampleClass

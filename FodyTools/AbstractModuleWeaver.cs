@@ -13,8 +13,6 @@ namespace FodyTools
     using Mono.Cecil;
     using Mono.Cecil.Cil;
 
-    using TypeSystem = Fody.TypeSystem;
-
     /// <summary>
     /// A generic logger interface to decouple implementation.
     /// </summary>
@@ -82,7 +80,7 @@ namespace FodyTools
         /// Gets the fody basic type system.
         /// </summary>
         [NotNull]
-        TypeSystem TypeSystem { get; }
+        Fody.TypeSystem TypeSystem { get; }
 
         /// <summary>
         /// Gets the module definition of the target module.
@@ -118,7 +116,7 @@ namespace FodyTools
         /// Commonly used <see cref="T:Mono.Cecil.TypeReference" />s.
         /// </summary>
         [NotNull]
-        protected new TypeSystem TypeSystem => base.TypeSystem;
+        protected new Fody.TypeSystem TypeSystem => base.TypeSystem;
 
         /// <summary>
         /// The full path of the target assembly.
