@@ -1166,15 +1166,10 @@
 
             foreach (var parameter in provider.GenericParameters)
             {
-                MergeTypes(codeImporter, parameter.Constraints.Select(c => c.ConstraintType).ToList(), provider as MethodReference);
-            }
-        }
-
-        private static void MergeTypes([NotNull] CodeImporter codeImporter, [NotNull] IList<TypeReference> types, [CanBeNull] MethodReference targetMethod)
-        {
-            for (var i = 0; i < types.Count; i++)
-            {
-                types[i] = codeImporter.ImportType(types[i], targetMethod);
+                foreach (var constraint in parameter.Constraints)
+                {
+                    constraint.ConstraintType = codeImporter.ImportType(constraint.ConstraintType, provider as MethodReference);
+                }
             }
         }
 
