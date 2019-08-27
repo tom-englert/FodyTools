@@ -145,17 +145,14 @@
             }
 
             [CanBeNull]
-            public AssemblyDefinition Resolve([NotNull] AssemblyNameReference nameReference)
+            public AssemblyDefinition Resolve([NotNull] AssemblyNameReference name)
             {
-                return Resolve(nameReference, new ReaderParameters());
+                return _internalResolver?.Resolve(name, new ReaderParameters()) ?? _defaultResolver.Resolve(name);
             }
 
             [CanBeNull]
             public AssemblyDefinition Resolve([NotNull] AssemblyNameReference name, [NotNull] ReaderParameters parameters)
             {
-                if (parameters.AssemblyResolver == null)
-                    parameters.AssemblyResolver = this;
-
                 return _internalResolver?.Resolve(name, parameters) ?? _defaultResolver.Resolve(name, parameters);
             }
 
