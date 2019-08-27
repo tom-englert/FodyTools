@@ -121,6 +121,7 @@
 
         private class AssemblyResolverAdapter : IAssemblyResolver
         {
+            private readonly Dictionary<string, AssemblyDefinition> _cache = new Dictionary<string, AssemblyDefinition>();
             private readonly IAssemblyResolver _defaultResolver = new DefaultAssemblyResolver();
             [CanBeNull]
             private IInternalAssemblyResolver _internalResolver;
@@ -145,15 +146,24 @@
             }
 
             [CanBeNull]
-            public AssemblyDefinition Resolve([NotNull] AssemblyNameReference name)
+            public AssemblyDefinition Resolve([NotNull] AssemblyNameReference nameReference)
             {
-                return _internalResolver?.Resolve(name, new ReaderParameters()) ?? _defaultResolver.Resolve(name);
+                var name = nameReference.Name;
+
+                if (_cache.TryGetValue(name, out var definition))
+                    return definition;
+
+                var assemblyDefinition = Resolve(nameReference, new ReaderParameters { AssemblyResolver = this });
+
+                _cache.Add(name, assemblyDefinition);
+
+                return assemblyDefinition;
             }
 
             [CanBeNull]
-            public AssemblyDefinition Resolve([NotNull] AssemblyNameReference name, [NotNull] ReaderParameters parameters)
+            public AssemblyDefinition Resolve([NotNull] AssemblyNameReference nameReference, [NotNull] ReaderParameters parameters)
             {
-                return _internalResolver?.Resolve(name, parameters) ?? _defaultResolver.Resolve(name, parameters);
+                return _internalResolver?.Resolve(nameReference, parameters) ?? _defaultResolver.Resolve(nameReference, parameters);
             }
 
             public void Dispose()
@@ -165,7 +175,6 @@
         private class NetFrameworkAssemblyResolver : IInternalAssemblyResolver
         {
             private readonly string _refAssembliesFolder;
-            private readonly Dictionary<string, AssemblyDefinition> _cache = new Dictionary<string, AssemblyDefinition>();
 
             public NetFrameworkAssemblyResolver(Version frameworkVersion)
             {
@@ -177,16 +186,11 @@
             {
                 var name = nameReference.Name;
 
-                if (_cache.TryGetValue(name, out var definition))
-                    return definition;
-
                 var path = Path.Combine(_refAssembliesFolder, name + ".dll");
                 if (!File.Exists(path))
                     return null;
 
                 var assemblyDefinition = AssemblyDefinition.ReadAssembly(path, parameters);
-
-                _cache.Add(name, assemblyDefinition);
 
                 return assemblyDefinition;
             }
