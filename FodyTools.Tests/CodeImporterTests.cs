@@ -80,7 +80,7 @@ namespace FodyTools.Tests
 
             foreach (var type in importedTypes)
             {
-                _testOutputHelper.WriteLine(type.Key);
+                _testOutputHelper.WriteLine(type.Key.FullName);
             }
 
             var importedModules = target.ListImportedModules();
@@ -132,14 +132,14 @@ namespace FodyTools.Tests
 
             var importedTypes = target.ListImportedTypes();
 
-            if (importedTypes.ContainsKey("TomsToolbox.Core.NetStandardExtensions"))
+            if (importedTypes.Keys.Select(t => t.FullName).Contains("TomsToolbox.Core.NetStandardExtensions"))
             {
                 numberOfTypes += 1;
             }
 
             foreach (var type in importedTypes)
             {
-                _testOutputHelper.WriteLine(type.Key);
+                _testOutputHelper.WriteLine(type.Key.FullName);
             }
 
 
@@ -293,7 +293,7 @@ namespace FodyTools.Tests
 
             module.Write(targetAssemblyPath);
 
-            var allTypes = module.Types.ToDictionary(t => t.FullName);
+            var allTypes = module.Types.ToDictionary(t => t);
 
             var importedModules = codeImporter.ListImportedModules();
 

@@ -32,13 +32,13 @@
         private readonly Dictionary<string, ModuleDefinition> _sourceModuleDefinitions = new Dictionary<string, ModuleDefinition>();
 
         [NotNull]
-        private readonly Dictionary<string, TypeDefinition> _targetTypesBySourceName = new Dictionary<string, TypeDefinition>();
+        private readonly Dictionary<TypeDefinition, TypeDefinition> _targetTypesBySource = new Dictionary<TypeDefinition, TypeDefinition>();
 
         [NotNull]
         private readonly HashSet<TypeDefinition> _targetTypes = new HashSet<TypeDefinition>();
 
         [NotNull]
-        private readonly Dictionary<string, MethodDefinition> _targetMethods = new Dictionary<string, MethodDefinition>();
+        private readonly Dictionary<MethodDefinition, MethodDefinition> _targetMethods = new Dictionary<MethodDefinition, MethodDefinition>();
 
         [NotNull]
         private readonly IList<Action> _deferredActions = new List<Action>();
@@ -241,9 +241,9 @@
         /// </summary>
         /// <returns>The collection of imported types.</returns>
         [NotNull]
-        public IDictionary<string, TypeDefinition> ListImportedTypes(bool includeNested = false)
+        public IDictionary<TypeDefinition, TypeDefinition> ListImportedTypes(bool includeNested = false)
         {
-            return _targetTypesBySourceName
+            return _targetTypesBySource
                 .Where(t => includeNested || t.Value?.DeclaringType == null)
                 .ToDictionary(item => item.Key, item => item.Value);
         }
@@ -330,7 +330,7 @@
             if (sourceType == null)
                 return null;
 
-            if (_targetTypesBySourceName.TryGetValue(sourceType.FullName, out var targetType))
+            if (_targetTypesBySource.TryGetValue(sourceType, out var targetType))
                 return targetType;
 
             if (_targetTypes.Contains(sourceType))
@@ -347,7 +347,7 @@
                 PackingSize = sourceType.PackingSize
             };
 
-            _targetTypesBySourceName.Add(sourceType.FullName, targetType);
+            _targetTypesBySource.Add(sourceType, targetType);
             _targetTypes.Add(targetType);
 
             targetType.DeclaringType = ImportTypeDefinition(sourceType.DeclaringType);
@@ -464,9 +464,7 @@
             if (IsLocalOrExternalReference(sourceDefinition.DeclaringType))
                 return sourceDefinition;
 
-            var key = sourceDefinition.FullName;
-
-            if (_targetMethods.TryGetValue(key, out var target))
+            if (_targetMethods.TryGetValue(sourceDefinition, out var target))
                 return target;
 
             target = new MethodDefinition(sourceDefinition.Name, sourceDefinition.Attributes, TemporaryPlaceholderType)
@@ -474,7 +472,7 @@
                 ImplAttributes = sourceDefinition.ImplAttributes
             };
 
-            _targetMethods.Add(key, target);
+            _targetMethods.Add(sourceDefinition, target);
 
             foreach (var sourceOverride in sourceDefinition.Overrides)
             {

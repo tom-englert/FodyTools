@@ -37,7 +37,7 @@
         }
 
         public static void VerifyTypes(
-            [NotNull] IDictionary<string, TypeDefinition> importedTypes,
+            [NotNull] IDictionary<TypeDefinition, TypeDefinition> importedTypes,
             [NotNull] ICollection<ModuleDefinition> importedModules,
             [NotNull] string targetAssemblyPath)
         {
@@ -45,7 +45,7 @@
         }
 
         public static void VerifyTypes(
-            [NotNull] IDictionary<string, TypeDefinition> importedTypes,
+            [NotNull] IDictionary<TypeDefinition, TypeDefinition> importedTypes,
             [NotNull] ICollection<ModuleDefinition> importedModules,
             [NotNull] string targetAssemblyPath,
             [NotNull] Action<string, string, string> assert)
@@ -64,20 +64,20 @@
 
             foreach (var type in importedTypes)
             {
-                if (type.Key.StartsWith("<"))
+                if (type.Key.FullName.StartsWith("<"))
                     continue;
 
-                var assemblyPath = importedTypeMap.TryGetValue(type.Key, out var sourceType) ? sourceType.Module.FileName : targetAssemblyPath;
+                var assemblyPath = importedTypeMap.TryGetValue(type.Key.FullName, out var sourceType) ? sourceType.Module.FileName : targetAssemblyPath;
 
-                var decompiled = ILDasm.Decompile(assemblyPath, type.Key);
+                var decompiled = ILDasm.Decompile(assemblyPath, type.Key.FullName);
 
                 var decompiledSource = FixSourceNamespaces(assemblyPrefixes, FixIndenting(FixAttributeOrder(decompiled)));
-                var decompiledTarget = FixSystemNamespaces(FixIndenting(FixAttributeOrder(ILDasm.Decompile(targetAssemblyPath, type.Key))));
+                var decompiledTarget = FixSystemNamespaces(FixIndenting(FixAttributeOrder(ILDasm.Decompile(targetAssemblyPath, type.Key.FullName))));
 
                 File.WriteAllText(Path.Combine(tempPath, "source.txt"), decompiledSource);
                 File.WriteAllText(Path.Combine(tempPath, "target.txt"), decompiledTarget);
 
-                assert(type.Key, decompiledSource, decompiledTarget);
+                assert(type.Key.FullName, decompiledSource, decompiledTarget);
             }
         }
 
