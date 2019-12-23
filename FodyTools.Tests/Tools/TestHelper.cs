@@ -58,7 +58,8 @@
 
             var assemblyPrefixes = importedModules
                 .Select(m => $"[{m.Assembly.Name.Name}]")
-                .ToReadOnlyList();
+                .ToList()
+                .AsReadOnly();
 
             var tempPath = TempPath;
 
@@ -118,6 +119,7 @@
             var result = regex.Replace(value, "[System]");
 
             result = result.Replace("[mscorlib]", "[System]");
+            result = result.Replace("[WindowsBase]", "[System]");
 
             return result;
         }

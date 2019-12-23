@@ -555,9 +555,29 @@
                     continue;
 
                 var targetAttribute = new CustomAttribute(TargetModule.ImportReference(constructor), sourceAttribute.GetBlob());
+
                 if (sourceAttribute.HasConstructorArguments)
                 {
-                    targetAttribute.ConstructorArguments.AddRange(sourceAttribute.ConstructorArguments.Select(a => new CustomAttributeArgument(InternalImportType(a.Type, null), a.Value)));
+                    foreach (var a in sourceAttribute.ConstructorArguments)
+                    {
+                        targetAttribute.ConstructorArguments.Add(new CustomAttributeArgument(InternalImportType(a.Type, null), a.Value));
+                    }
+                }
+
+                if (sourceAttribute.HasProperties)
+                {
+                    foreach (var property in sourceAttribute.Properties)
+                    {
+                        targetAttribute.Properties.Add(new Mono.Cecil.CustomAttributeNamedArgument(property.Name, new CustomAttributeArgument(InternalImportType(property.Argument.Type, null), property.Argument.Value)));
+                    }
+                }
+
+                if (sourceAttribute.HasFields)
+                {
+                    foreach (var field in sourceAttribute.Fields)
+                    {
+                        targetAttribute.Fields.Add(new Mono.Cecil.CustomAttributeNamedArgument(field.Name, new CustomAttributeArgument(InternalImportType(field.Argument.Type, null), field.Argument.Value)));
+                    }
                 }
 
                 target.CustomAttributes.Add(targetAttribute);

@@ -129,6 +129,7 @@ namespace FodyTools
         }
     }
 
+    [SimpleAttribute]
     public class ComplexSampleClass<T1, T2> : TomsToolbox.Core.WeakEventListener<T1, T2, EventArgs>
         where T1 : TomsToolbox.Core.DelegateComparer<T2>
         where T2 : class, TomsToolbox.Core.ITimeService
@@ -187,5 +188,4 @@ namespace FodyTools
             var x = SomeMethod(y);
         }
     }
-
 }
