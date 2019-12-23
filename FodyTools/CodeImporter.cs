@@ -616,6 +616,7 @@
                     Attributes = sourceParameter.Attributes
                 };
 
+                CopyAttributes(sourceParameter, targetParameter);
                 CopyConstraints(sourceParameter, targetParameter, null);
 
                 target.GenericParameters.Add(targetParameter);
@@ -638,6 +639,7 @@
                     Attributes = sourceParameter.Attributes
                 };
 
+                CopyAttributes(sourceParameter, targetParameter);
                 CopyConstraints(sourceParameter, targetParameter, target);
 
                 target.GenericParameters.Add(targetParameter);
