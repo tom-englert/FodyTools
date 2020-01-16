@@ -65,6 +65,22 @@ namespace FodyTools
             yield return new Structure { Value2 = "V2" };
         }
 
+        public void MethodWithExceptionHandler()
+        {
+            try
+            {
+
+            }
+            catch (CustomException)
+            {
+                throw;
+            }
+            catch
+            {
+                // else do nothing
+            }
+        }
+
         class GetItemsImpl : IEnumerable<Structure>, IEnumerator<Structure>
         {
             private Structure _current;
