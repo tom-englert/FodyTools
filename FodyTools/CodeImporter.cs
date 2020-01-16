@@ -1050,120 +1050,135 @@
 
                 typeDefinition.BaseType = codeImporter.ImportType(typeDefinition.BaseType, null);
 
-                foreach (var interfaceImplementation in typeDefinition.Interfaces)
+                if (typeDefinition.HasInterfaces)
                 {
-                    MergeAttributes(codeImporter, interfaceImplementation);
-                    interfaceImplementation.InterfaceType = codeImporter.ImportType(interfaceImplementation.InterfaceType, null);
-                }
-
-                foreach (var fieldDefinition in typeDefinition.Fields)
-                {
-                    MergeAttributes(codeImporter, fieldDefinition);
-                    fieldDefinition.FieldType = codeImporter.ImportType(fieldDefinition.FieldType, null);
-                }
-
-                foreach (var eventDefinition in typeDefinition.Events)
-                {
-                    MergeAttributes(codeImporter, eventDefinition);
-                    eventDefinition.EventType = codeImporter.ImportType(eventDefinition.EventType, null);
-                }
-
-                foreach (var propertyDefinition in typeDefinition.Properties)
-                {
-                    MergeAttributes(codeImporter, propertyDefinition);
-
-                    propertyDefinition.PropertyType = codeImporter.ImportType(propertyDefinition.PropertyType, null);
-
-                    if (!propertyDefinition.HasParameters)
-                        continue;
-
-                    foreach (var parameter in propertyDefinition.Parameters)
+                    foreach (var interfaceImplementation in typeDefinition.Interfaces)
                     {
-                        MergeAttributes(codeImporter, parameter);
-                        parameter.ParameterType = codeImporter.ImportType(parameter.ParameterType, null);
+                        MergeAttributes(codeImporter, interfaceImplementation);
+                        interfaceImplementation.InterfaceType = codeImporter.ImportType(interfaceImplementation.InterfaceType, null);
                     }
                 }
 
-                foreach (var methodDefinition in typeDefinition.Methods)
+                if (typeDefinition.HasFields)
                 {
-                    MergeAttributes(codeImporter, methodDefinition);
-                    MergeGenericParameters(codeImporter, methodDefinition);
-
-                    methodDefinition.ReturnType = codeImporter.ImportType(methodDefinition.ReturnType, methodDefinition);
-
-                    if (methodDefinition.HasOverrides)
+                    foreach (var fieldDefinition in typeDefinition.Fields)
                     {
-                        foreach (var methodOverride in methodDefinition.Overrides)
-                        {
-                            if (methodOverride is MethodDefinition)
-                            {
-                                if (!codeImporter.IsLocalOrExternalReference(methodOverride.DeclaringType))
-                                {
-                                    throw new NotImplementedException("Method overrides using MethodDefinition is not supported");
-                                }
-                            }
-                            else
-                            {
-                                MergeMethodReference(codeImporter, methodOverride, methodDefinition);
-                            }
-                        }
+                        MergeAttributes(codeImporter, fieldDefinition);
+                        fieldDefinition.FieldType = codeImporter.ImportType(fieldDefinition.FieldType, null);
                     }
+                }
 
-                    if (methodDefinition.HasParameters)
+                if (typeDefinition.HasEvents)
+                {
+                    foreach (var eventDefinition in typeDefinition.Events)
                     {
-                        foreach (var parameter in methodDefinition.Parameters)
+                        MergeAttributes(codeImporter, eventDefinition);
+                        eventDefinition.EventType = codeImporter.ImportType(eventDefinition.EventType, null);
+                    }
+                }
+
+                if (typeDefinition.HasProperties)
+                {
+                    foreach (var propertyDefinition in typeDefinition.Properties)
+                    {
+                        MergeAttributes(codeImporter, propertyDefinition);
+
+                        propertyDefinition.PropertyType = codeImporter.ImportType(propertyDefinition.PropertyType, null);
+
+                        if (!propertyDefinition.HasParameters)
+                            continue;
+
+                        foreach (var parameter in propertyDefinition.Parameters)
                         {
                             MergeAttributes(codeImporter, parameter);
-                            parameter.ParameterType = codeImporter.ImportType(parameter.ParameterType, methodDefinition);
+                            parameter.ParameterType = codeImporter.ImportType(parameter.ParameterType, null);
                         }
                     }
+                }
 
-                    var methodBody = methodDefinition.Body;
-                    if (methodBody == null)
-                        continue;
-
-                    if (methodBody.HasVariables)
+                if (typeDefinition.HasMethods)
+                {
+                    foreach (var methodDefinition in typeDefinition.Methods)
                     {
-                        foreach (var variable in methodBody.Variables)
+                        MergeAttributes(codeImporter, methodDefinition);
+                        MergeGenericParameters(codeImporter, methodDefinition);
+
+                        methodDefinition.ReturnType = codeImporter.ImportType(methodDefinition.ReturnType, methodDefinition);
+
+                        if (methodDefinition.HasOverrides)
                         {
-                            variable.VariableType = codeImporter.ImportType(variable.VariableType, methodDefinition);
+                            foreach (var methodOverride in methodDefinition.Overrides)
+                            {
+                                if (methodOverride is MethodDefinition)
+                                {
+                                    if (!codeImporter.IsLocalOrExternalReference(methodOverride.DeclaringType))
+                                    {
+                                        throw new NotImplementedException("Method overrides using MethodDefinition is not supported");
+                                    }
+                                }
+                                else
+                                {
+                                    MergeMethodReference(codeImporter, methodOverride, methodDefinition);
+                                }
+                            }
                         }
-                    }
 
-                    foreach (var instruction in methodBody.Instructions)
-                    {
-                        switch (instruction.Operand)
+                        if (methodDefinition.HasParameters)
                         {
-                            case MethodDefinition _:
-                                break;
-
-                            case GenericInstanceMethod genericInstanceMethod:
-                                instruction.Operand = codeImporter.Import(genericInstanceMethod);
-                                break;
-
-                            case MethodReference methodReference:
-                                MergeMethodReference(codeImporter, methodReference, methodDefinition);
-                                break;
-
-                            case TypeDefinition _:
-                                break;
-
-                            case TypeReference typeReference:
-                                instruction.Operand = codeImporter.ImportType(typeReference, methodDefinition);
-                                break;
-
-                            case FieldReference fieldReference:
-                                fieldReference.FieldType = codeImporter.ImportType(fieldReference.FieldType, methodDefinition);
-                                fieldReference.DeclaringType = codeImporter.ImportType(fieldReference.DeclaringType, methodDefinition);
-                                break;
+                            foreach (var parameter in methodDefinition.Parameters)
+                            {
+                                MergeAttributes(codeImporter, parameter);
+                                parameter.ParameterType = codeImporter.ImportType(parameter.ParameterType, methodDefinition);
+                            }
                         }
-                    }
 
-                    if (methodBody.HasExceptionHandlers)
-                    {
-                        foreach (var exceptionHandler in methodBody.ExceptionHandlers)
+                        var methodBody = methodDefinition.Body;
+                        if (methodBody == null)
+                            continue;
+
+                        if (methodBody.HasVariables)
                         {
-                            exceptionHandler.CatchType = codeImporter.ImportType(exceptionHandler.CatchType, methodDefinition);
+                            foreach (var variable in methodBody.Variables)
+                            {
+                                variable.VariableType = codeImporter.ImportType(variable.VariableType, methodDefinition);
+                            }
+                        }
+
+                        foreach (var instruction in methodBody.Instructions)
+                        {
+                            switch (instruction.Operand)
+                            {
+                                case MethodDefinition _:
+                                    break;
+
+                                case GenericInstanceMethod genericInstanceMethod:
+                                    instruction.Operand = codeImporter.Import(genericInstanceMethod);
+                                    break;
+
+                                case MethodReference methodReference:
+                                    MergeMethodReference(codeImporter, methodReference, methodDefinition);
+                                    break;
+
+                                case TypeDefinition _:
+                                    break;
+
+                                case TypeReference typeReference:
+                                    instruction.Operand = codeImporter.ImportType(typeReference, methodDefinition);
+                                    break;
+
+                                case FieldReference fieldReference:
+                                    fieldReference.FieldType = codeImporter.ImportType(fieldReference.FieldType, methodDefinition);
+                                    fieldReference.DeclaringType = codeImporter.ImportType(fieldReference.DeclaringType, methodDefinition);
+                                    break;
+                            }
+                        }
+
+                        if (methodBody.HasExceptionHandlers)
+                        {
+                            foreach (var exceptionHandler in methodBody.ExceptionHandlers)
+                            {
+                                exceptionHandler.CatchType = codeImporter.ImportType(exceptionHandler.CatchType, methodDefinition);
+                            }
                         }
                     }
                 }
