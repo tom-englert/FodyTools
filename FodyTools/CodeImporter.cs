@@ -1109,19 +1109,25 @@
                         }
                     }
 
-                    foreach (var parameter in methodDefinition.Parameters)
+                    if (methodDefinition.HasParameters)
                     {
-                        MergeAttributes(codeImporter, parameter);
-                        parameter.ParameterType = codeImporter.ImportType(parameter.ParameterType, methodDefinition);
+                        foreach (var parameter in methodDefinition.Parameters)
+                        {
+                            MergeAttributes(codeImporter, parameter);
+                            parameter.ParameterType = codeImporter.ImportType(parameter.ParameterType, methodDefinition);
+                        }
                     }
 
                     var methodBody = methodDefinition.Body;
                     if (methodBody == null)
                         continue;
 
-                    foreach (var variable in methodBody.Variables)
+                    if (methodBody.HasVariables)
                     {
-                        variable.VariableType = codeImporter.ImportType(variable.VariableType, methodDefinition);
+                        foreach (var variable in methodBody.Variables)
+                        {
+                            variable.VariableType = codeImporter.ImportType(variable.VariableType, methodDefinition);
+                        }
                     }
 
                     foreach (var instruction in methodBody.Instructions)
@@ -1150,6 +1156,14 @@
                                 fieldReference.FieldType = codeImporter.ImportType(fieldReference.FieldType, methodDefinition);
                                 fieldReference.DeclaringType = codeImporter.ImportType(fieldReference.DeclaringType, methodDefinition);
                                 break;
+                        }
+                    }
+
+                    if (methodBody.HasExceptionHandlers)
+                    {
+                        foreach (var exceptionHandler in methodBody.ExceptionHandlers)
+                        {
+                            exceptionHandler.CatchType = codeImporter.ImportType(exceptionHandler.CatchType, methodDefinition);
                         }
                     }
                 }
