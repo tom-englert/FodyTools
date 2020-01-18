@@ -45,6 +45,17 @@ namespace FodyTools
             collection.AddRange(values);
         }
 
+        public static void ReplaceItems<T>([CanBeNull, ItemCanBeNull] this IList<T> collection, [NotNull] Func<T, T> selector)
+        {
+            if (collection == null)
+                return;
+
+            for (int i = 0; i < collection.Count; i++)
+            {
+                collection[i] = selector(collection[i]);
+            }
+        }
+
         public static void RemoveAll<T>([NotNull, ItemCanBeNull] this ICollection<T> target, [NotNull] Func<T, bool> condition)
         {
             target.RemoveAll(target.Where(condition).ToList());

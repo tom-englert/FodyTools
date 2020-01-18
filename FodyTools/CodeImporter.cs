@@ -13,7 +13,6 @@
 
     using Mono.Cecil;
     using Mono.Cecil.Cil;
-    using Mono.Cecil.Rocks;
 
     /// <summary>
     /// A class to import code from one module to another; like e.g. ILMerge, but only imports the specified classes and their local references.
@@ -341,7 +340,12 @@
 
             RegisterSourceModule(sourceType.Module);
 
-            targetType = new TypeDefinition(NamespaceDecorator(sourceType.Namespace), sourceType.Name, sourceType.Attributes)
+            string DecorateNamespace(TypeDefinition type)
+            {
+                return type.IsNested ? type.Namespace : NamespaceDecorator(type.Namespace);
+            }
+
+            targetType = new TypeDefinition(DecorateNamespace(sourceType), sourceType.Name, sourceType.Attributes)
             {
                 ClassSize = sourceType.ClassSize,
                 PackingSize = sourceType.PackingSize
@@ -544,17 +548,12 @@
 
             foreach (var sourceAttribute in source.CustomAttributes)
             {
-                var attributeType = InternalImportType(sourceAttribute.AttributeType, null);
-
-                var constructor = attributeType.Resolve()
-                    .GetConstructors()
-                    .Where(ctor => !ctor.IsStatic)
-                    .Single(ctor => ctor.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(sourceAttribute.Constructor.Parameters.Select(p => p.ParameterType.FullName)));
+                var constructor = ImportMethod(sourceAttribute.Constructor);
 
                 if (constructor == null)
                     continue;
 
-                var targetAttribute = new CustomAttribute(TargetModule.ImportReference(constructor), sourceAttribute.GetBlob());
+                var targetAttribute = new CustomAttribute(constructor);
 
                 if (sourceAttribute.HasConstructorArguments)
                 {
@@ -666,7 +665,7 @@
             }
         }
 
-        private void CopyConstraints(GenericParameter sourceParameter, GenericParameter targetParameter, MethodReference targetMethod)
+        private void CopyConstraints(GenericParameter sourceParameter, GenericParameter targetParameter, [CanBeNull] MethodReference targetMethod)
         {
             if (!sourceParameter.HasConstraints)
                 return;
@@ -821,6 +820,7 @@
         }
 
         [ContractAnnotation("source:notnull=>notnull")]
+        [CanBeNull]
         public TypeReference ImportType([CanBeNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
         {
             // ReSharper disable once AssignNullToNotNullAttribute
@@ -828,6 +828,7 @@
         }
 
         [ContractAnnotation("source:notnull=>notnull")]
+        [CanBeNull]
         private TypeReference InternalImportType([CanBeNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
         {
             switch (source)
@@ -898,10 +899,31 @@
 
             var index = source.Position;
 
-            if (index < genericParameterProvider.GenericParameters.Count)
+            if (index < genericParameterProvider?.GenericParameters.Count)
+            {
                 return genericParameterProvider.GenericParameters[index];
+            }
 
             return source;
+        }
+
+        [CanBeNull]
+        public MethodReference ImportMethod([CanBeNull] MethodReference source)
+        {
+            switch (source)
+            {
+                case MethodDefinition methodDefinition:
+                    return ImportMethodDefinition(methodDefinition, ImportTypeDefinition(source.DeclaringType.Resolve()));
+
+                case MethodReference methodReference:
+                    return ImportMethodReference(methodReference);
+
+                case null:
+                    return null;
+
+                default:
+                    throw new InvalidOperationException("unsupported method type: " + source.GetType());
+            }
         }
 
         [NotNull]
@@ -1229,14 +1251,21 @@
 
             foreach (var attribute in attributeProvider.CustomAttributes)
             {
-                attribute.Constructor.DeclaringType = codeImporter.ImportType(attribute.Constructor.DeclaringType, null);
+                attribute.Constructor = codeImporter.ImportMethod(attribute.Constructor);
 
-                if (!attribute.HasConstructorArguments)
-                    continue;
-
-                for (var index = 0; index < attribute.ConstructorArguments.Count; index++)
+                if (attribute.HasConstructorArguments)
                 {
-                    attribute.ConstructorArguments[index] = new CustomAttributeArgument(attribute.ConstructorArguments[index].Type, attribute.ConstructorArguments[index].Value);
+                    attribute.ConstructorArguments.ReplaceItems(arg => new CustomAttributeArgument(codeImporter.ImportType(arg.Type, null), arg.Value));
+                }
+
+                if (attribute.HasFields)
+                {
+                    attribute.Fields.ReplaceItems(arg => new Mono.Cecil.CustomAttributeNamedArgument(arg.Name, new CustomAttributeArgument(codeImporter.ImportType(arg.Argument.Type, null), arg.Argument.Value)));
+                }
+
+                if (attribute.HasProperties)
+                {
+                    attribute.Properties.ReplaceItems(arg => new Mono.Cecil.CustomAttributeNamedArgument(arg.Name, new CustomAttributeArgument(codeImporter.ImportType(arg.Argument.Type, null), arg.Argument.Value)));
                 }
             }
         }

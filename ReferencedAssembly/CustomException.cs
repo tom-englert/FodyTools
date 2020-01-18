@@ -4,6 +4,7 @@
     using System.Runtime.Serialization;
 
     [Serializable]
+    [Simple(SimpleEnum.Value2)]
     public class CustomException : Exception
     {
         public CustomException()

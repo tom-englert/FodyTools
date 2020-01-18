@@ -50,12 +50,6 @@
             [NotNull] string targetAssemblyPath,
             [NotNull] Action<string, string, string> assert)
         {
-            var importedTypeMap = importedModules
-                .SelectMany(m => m.Types)
-                .GroupBy(t => t.FullName)
-                .Where(g => g.Count() == 1)
-                .ToDictionary(t => t.Key, t => t.Single());
-
             var assemblyPrefixes = importedModules
                 .Select(m => $"[{m.Assembly.Name.Name}]")
                 .ToList()
@@ -65,20 +59,33 @@
 
             foreach (var type in importedTypes)
             {
-                if (type.Key.FullName.StartsWith("<"))
+                var sourceType = type.Key;
+                var sourceTypeName = sourceType.FullName;
+                var targetType = type.Value;
+                var targetTypeName = targetType.FullName;
+                if (sourceTypeName.StartsWith("<"))
                     continue;
 
-                var assemblyPath = importedTypeMap.TryGetValue(type.Key.FullName, out var sourceType) ? sourceType.Module.FileName : targetAssemblyPath;
+                var assemblyPath = sourceType.Module.FileName;
 
-                var decompiled = ILDasm.Decompile(assemblyPath, type.Key.FullName);
+                var prefix = targetTypeName.Substring(0, targetTypeName.Length - sourceTypeName.Length);
 
-                var decompiledSource = FixSourceNamespaces(assemblyPrefixes, FixIndenting(FixAttributeOrder(decompiled)));
-                var decompiledTarget = FixSystemNamespaces(FixIndenting(FixAttributeOrder(ILDasm.Decompile(targetAssemblyPath, type.Key.FullName))));
+                var decompiledSource = ILDasm.Decompile(assemblyPath, sourceTypeName);
+                var decompiledTarget = ILDasm.Decompile(targetAssemblyPath, targetTypeName);
+                if (!string.IsNullOrEmpty(prefix))
+                {
+                    decompiledTarget = decompiledTarget
+                        .Replace(prefix + ".", string.Empty)
+                        .Replace(prefix, string.Empty);
+                }
 
-                File.WriteAllText(Path.Combine(tempPath, "source.txt"), decompiledSource);
-                File.WriteAllText(Path.Combine(tempPath, "target.txt"), decompiledTarget);
+                var normalizedDecompiledSource = FixSourceNamespaces(assemblyPrefixes, FixIndenting(FixAttributeOrder(decompiledSource)));
+                var normalizedDecompiledTarget = FixSystemNamespaces(FixIndenting(FixAttributeOrder(decompiledTarget)));
 
-                assert(type.Key.FullName, decompiledSource, decompiledTarget);
+                File.WriteAllText(Path.Combine(tempPath, "source.txt"), normalizedDecompiledSource);
+                File.WriteAllText(Path.Combine(tempPath, "target.txt"), normalizedDecompiledTarget);
+
+                assert(targetTypeName, normalizedDecompiledSource, normalizedDecompiledTarget);
             }
         }
 
@@ -88,7 +95,7 @@
             var target = decompiledTarget.Replace("\r\n", "\n").Split('\n').OrderBy(line => line).SkipWhile(string.IsNullOrWhiteSpace);
 
             var mismatches = Enumerate.AsTuples(expected, target)
-                .Select((tuple, index) => new {tuple.Item1, tuple.Item2, index})
+                .Select((tuple, index) => new { tuple.Item1, tuple.Item2, index })
                 .Where(tuple => tuple.Item1 != tuple.Item2)
                 .ToList();
 

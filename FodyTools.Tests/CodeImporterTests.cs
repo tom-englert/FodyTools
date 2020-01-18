@@ -265,15 +265,18 @@ namespace FodyTools.Tests
         }
 
 
-        [Fact]
-        public void ILMerge()
+        [Theory]
+        [InlineData("")]
+        [InlineData("$$$")]
+        public void ILMerge(string namespacePrefix)
         {
             var module = ModuleHelper.LoadModule<SimpleSampleClass>();
 
             var codeImporter = new CodeImporter(module)
             {
                 HideImportedTypes = false,
-                ModuleResolver = new AssemblyModuleResolver(typeof(TomsToolbox.Core.AssemblyExtensions).Assembly, typeof(Structure).Assembly)
+                ModuleResolver = new AssemblyModuleResolver(typeof(TomsToolbox.Core.AssemblyExtensions).Assembly, typeof(Structure).Assembly),
+                NamespaceDecorator = ns => namespacePrefix + ns,
             };
 
             codeImporter.ILMerge();
@@ -293,11 +296,10 @@ namespace FodyTools.Tests
 
             module.Write(targetAssemblyPath);
 
-            var allTypes = module.Types.ToDictionary(t => t);
-
             var importedModules = codeImporter.ListImportedModules();
+            var importedTypes = codeImporter.ListImportedTypes();
 
-            TestHelper.VerifyTypes(allTypes, importedModules, targetAssemblyPath);
+            TestHelper.VerifyTypes(importedTypes, importedModules, targetAssemblyPath);
 
             var il = TestHelper.ILDasm.Decompile(targetAssemblyPath);
 
