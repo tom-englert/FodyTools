@@ -10,6 +10,7 @@
     using System.Reflection;
 
     using JetBrains.Annotations;
+    using NotNullAttribute = JetBrains.Annotations.NotNullAttribute;
 
     using Mono.Cecil;
     using Mono.Cecil.Cil;
