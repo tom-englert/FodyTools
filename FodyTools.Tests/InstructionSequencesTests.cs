@@ -8,8 +8,6 @@
 
     using FodyTools.Tests.Tools;
 
-    using JetBrains.Annotations;
-
     using Mono.Cecil.Cil;
 
     using Xunit;
@@ -190,7 +188,6 @@
 
         }
 
-        [NotNull]
         private InstructionSequences LoadInstructionSequences()
         {
             var method = ModuleHelper.LoadMethod(() => new SimpleTestClass().SimpleMethod(default));

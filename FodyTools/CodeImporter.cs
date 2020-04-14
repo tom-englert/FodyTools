@@ -9,12 +9,8 @@
     using System.Linq.Expressions;
     using System.Reflection;
 
-    using JetBrains.Annotations;
-    using NotNullAttribute = JetBrains.Annotations.NotNullAttribute;
-
     using Mono.Cecil;
     using Mono.Cecil.Cil;
-
     /// <summary>
     /// A class to import code from one module to another; like e.g. ILMerge, but only imports the specified classes and their local references.
     /// </summary>
@@ -24,23 +20,12 @@
     /// </remarks>
     internal sealed class CodeImporter
     {
-        [NotNull]
         // ReSharper disable once AssignNullToNotNullAttribute
         private static readonly ConstructorInfo _instructionConstructor = typeof(Instruction).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
-
-        [NotNull]
         private readonly Dictionary<string, ModuleDefinition> _sourceModuleDefinitions = new Dictionary<string, ModuleDefinition>();
-
-        [NotNull]
         private readonly Dictionary<TypeDefinition, TypeDefinition> _targetTypesBySource = new Dictionary<TypeDefinition, TypeDefinition>();
-
-        [NotNull]
         private readonly HashSet<TypeDefinition> _targetTypes = new HashSet<TypeDefinition>();
-
-        [NotNull]
         private readonly Dictionary<MethodDefinition, MethodDefinition> _targetMethods = new Dictionary<MethodDefinition, MethodDefinition>();
-
-        [NotNull]
         private readonly IList<Action> _deferredActions = new List<Action>();
 
         private enum Priority
@@ -53,24 +38,16 @@
         /// Initializes a new instance of the <see cref="CodeImporter"/> class.
         /// </summary>
         /// <param name="targetModule">The target module into which the specified code will be imported.</param>
-        public CodeImporter([NotNull] ModuleDefinition targetModule)
+        public CodeImporter(ModuleDefinition targetModule)
         {
             TargetModule = targetModule;
             AssemblyResolver = targetModule.AssemblyResolver;
         }
-
-        [NotNull]
+        
         public ModuleDefinition TargetModule { get; }
-
-        [CanBeNull]
-        public IModuleResolver ModuleResolver { get; set; }
-
-        [CanBeNull]
-        public IAssemblyResolver AssemblyResolver { get; set; }
-
-        [NotNull]
+        public IModuleResolver? ModuleResolver { get; set; }
+        public IAssemblyResolver? AssemblyResolver { get; set; }
         public Func<string, string> NamespaceDecorator { get; set; } = value => value;
-
         public bool HideImportedTypes { get; set; } = true;
 
         /// <summary>
@@ -80,8 +57,7 @@
         /// <returns>
         /// The type definition of the imported type in the target module.
         /// </returns>
-        [NotNull]
-        public TypeDefinition Import([NotNull] Type type)
+        public TypeDefinition Import(Type type)
         {
             return ImportType(type);
         }
@@ -93,22 +69,17 @@
         /// <returns>
         /// The type definition of the imported type in the target module.
         /// </returns>
-        [NotNull]
         public TypeDefinition Import<T>()
         {
             return Import(typeof(T));
         }
-
-        [NotNull]
-        public TypeDefinition Import([NotNull] TypeDefinition sourceType)
+        public TypeDefinition Import(TypeDefinition sourceType)
         {
             RegisterSourceModule(sourceType.Module);
 
             return ProcessDeferredActions(ImportTypeDefinition(sourceType));
         }
-
-        [NotNull]
-        public GenericInstanceMethod Import([NotNull] GenericInstanceMethod method)
+        public GenericInstanceMethod Import(GenericInstanceMethod method)
         {
             return ProcessDeferredActions(ImportGenericInstanceMethod(method));
         }
@@ -122,8 +93,7 @@
         /// <returns>The method definition of the imported method.</returns>
         /// <exception cref="ArgumentException">Only method call expression is supported. - expression</exception>
         /// <exception cref="InvalidOperationException">Importing method failed.</exception>
-        [NotNull]
-        public MethodDefinition ImportMethod<T>([NotNull] Expression<Func<T>> expression)
+        public MethodDefinition ImportMethod<T>(Expression<Func<T>> expression)
         {
             return ImportMethodInternal(expression);
         }
@@ -136,14 +106,12 @@
         /// <returns>The method definition of the imported method.</returns>
         /// <exception cref="ArgumentException">Only method call expression is supported. - expression</exception>
         /// <exception cref="InvalidOperationException">Importing method failed.</exception>
-        [NotNull]
-        public MethodDefinition ImportMethod([NotNull] Expression<Action> expression)
+        public MethodDefinition ImportMethod(Expression<Action> expression)
         {
             return ImportMethodInternal(expression);
         }
 
-        [NotNull]
-        private MethodDefinition ImportMethodInternal([NotNull] LambdaExpression expression)
+        private MethodDefinition ImportMethodInternal(LambdaExpression expression)
         {
             expression.GetMethodInfo(out var declaringType, out var methodName, out var argumentTypes);
 
@@ -164,8 +132,7 @@
         /// or
         /// Only a property expression is supported here. - expression
         /// </exception>
-        [NotNull]
-        public PropertyDefinition ImportProperty<T>([NotNull] Expression<Func<T>> expression)
+        public PropertyDefinition ImportProperty<T>(Expression<Func<T>> expression)
         {
             if (!(expression.Body is MemberExpression memberExpression))
                 throw new ArgumentException("Only a member expression is supported here.", nameof(expression));
@@ -192,8 +159,7 @@
         /// or
         /// Only a field expression is supported here. - expression
         /// </exception>
-        [NotNull]
-        public FieldDefinition ImportField<T>([NotNull] Expression<Func<T>> expression)
+        public FieldDefinition ImportField<T>(Expression<Func<T>> expression)
         {
             if (!(expression.Body is MemberExpression memberExpression))
                 throw new ArgumentException("Only a member expression is supported here.", nameof(expression));
@@ -220,8 +186,7 @@
         /// or
         /// Only a event expression is supported here. - expression
         /// </exception>
-        [NotNull]
-        public EventDefinition ImportEvent<T>([NotNull] Expression<Func<T>> expression)
+        public EventDefinition ImportEvent<T>(Expression<Func<T>> expression)
         {
             if (!(expression.Body is MemberExpression memberExpression))
                 throw new ArgumentException("Only a member expression is supported here.", nameof(expression));
@@ -240,7 +205,6 @@
         /// Returns a collection of the imported types.
         /// </summary>
         /// <returns>The collection of imported types.</returns>
-        [NotNull]
         public IDictionary<TypeDefinition, TypeDefinition> ListImportedTypes(bool includeNested = false)
         {
             return _targetTypesBySource
@@ -252,14 +216,12 @@
         /// Returns a collection of the imported modules.
         /// </summary>
         /// <returns>The collection of imported modules.</returns>
-        [NotNull]
         public ICollection<ModuleDefinition> ListImportedModules()
         {
             return _sourceModuleDefinitions.Values;
         }
 
-        [NotNull]
-        private ModuleDefinition RegisterSourceModule([NotNull] Assembly assembly)
+        private ModuleDefinition RegisterSourceModule(Assembly assembly)
         {
             var assemblyName = assembly.FullName;
 
@@ -287,7 +249,7 @@
             return sourceModule;
         }
 
-        public void RegisterSourceModule([NotNull] ModuleDefinition sourceModule)
+        public void RegisterSourceModule(ModuleDefinition sourceModule)
         {
             var assemblyName = sourceModule.Assembly.FullName;
 
@@ -309,8 +271,7 @@
             _sourceModuleDefinitions[assemblyName] = sourceModule;
         }
 
-        [NotNull]
-        private TypeDefinition ImportType([NotNull] Type type)
+        private TypeDefinition ImportType(Type type)
         {
             var assembly = type.Assembly;
 
@@ -318,15 +279,18 @@
 
             var sourceType = sourceModule.GetType(type.GetFullName());
 
-            if (sourceType == null)
+            var importedTypeDefinition = ImportTypeDefinition(sourceType);
+
+            if (importedTypeDefinition == null)
                 throw new InvalidOperationException("Did not find type " + type.GetFullName() + " in module " + sourceModule.FileName);
 
-            return ProcessDeferredActions(ImportTypeDefinition(sourceType));
+            return ProcessDeferredActions(importedTypeDefinition);
         }
 
-        [ContractAnnotation("sourceType:notnull=>notnull")]
-        private TypeDefinition ImportTypeDefinition([CanBeNull] TypeDefinition sourceType)
+        [return: NotNullIfNotNull("sourceType")]
+        private TypeDefinition? ImportTypeDefinition(TypeDefinition? sourceType)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             if (sourceType == null)
                 return null;
 
@@ -391,7 +355,7 @@
             return targetType;
         }
 
-        private void CopyMethods([NotNull] TypeDefinition source, [NotNull] TypeDefinition target)
+        private void CopyMethods(TypeDefinition source, TypeDefinition target)
         {
             foreach (var method in source.Methods)
             {
@@ -399,7 +363,7 @@
             }
         }
 
-        private void CopyProperties([NotNull] TypeDefinition source, [NotNull] TypeDefinition target)
+        private void CopyProperties(TypeDefinition source, TypeDefinition target)
         {
             foreach (var sourceDefinition in source.Properties)
             {
@@ -415,7 +379,7 @@
             }
         }
 
-        private void CopyEvents([NotNull] TypeDefinition source, [NotNull] TypeDefinition target)
+        private void CopyEvents(TypeDefinition source, TypeDefinition target)
         {
             foreach (var sourceDefinition in source.Events)
             {
@@ -431,7 +395,7 @@
             }
         }
 
-        private void CopyFields([NotNull] TypeDefinition source, [NotNull] TypeDefinition target)
+        private void CopyFields(TypeDefinition source, TypeDefinition target)
         {
             foreach (var sourceDefinition in source.Fields)
             {
@@ -459,9 +423,7 @@
             }
         }
 
-        [CanBeNull]
-        [ContractAnnotation("sourceDefinition:notnull=>notnull")]
-        private MethodDefinition ImportMethodDefinition([CanBeNull] MethodDefinition sourceDefinition, [NotNull] TypeDefinition targetType)
+        private MethodDefinition? ImportMethodDefinition(MethodDefinition? sourceDefinition, TypeDefinition targetType)
         {
             if (sourceDefinition == null)
                 return null;
@@ -520,7 +482,7 @@
             return target;
         }
 
-        private void CopyReturnType([NotNull] IMethodSignature source, [NotNull] MethodReference target)
+        private void CopyReturnType(IMethodSignature source, MethodReference target)
         {
             var sourceReturnType = source.MethodReturnType;
 
@@ -542,7 +504,7 @@
             target.MethodReturnType = targetReturnType;
         }
 
-        private void CopyAttributes([NotNull] Mono.Cecil.ICustomAttributeProvider source, [NotNull] Mono.Cecil.ICustomAttributeProvider target)
+        private void CopyAttributes(Mono.Cecil.ICustomAttributeProvider source, Mono.Cecil.ICustomAttributeProvider target)
         {
             if (!source.HasCustomAttributes)
                 return;
@@ -584,7 +546,7 @@
             }
         }
 
-        private void ImportMethodBody([NotNull] MethodDefinition source, [NotNull] MethodDefinition target)
+        private void ImportMethodBody(MethodDefinition source, MethodDefinition target)
         {
             if (!source.HasBody)
                 return;
@@ -602,7 +564,7 @@
             ExecuteDeferred(Priority.Instructions, () => CopyInstructions(source, target));
         }
 
-        private void CopyParameters([NotNull] IMethodSignature sourceMethod, [NotNull] MethodReference targetMethod)
+        private void CopyParameters(IMethodSignature sourceMethod, MethodReference targetMethod)
         {
             foreach (var sourceParameter in sourceMethod.Parameters)
             {
@@ -624,7 +586,7 @@
             }
         }
 
-        private void CopyGenericParameters([NotNull] TypeDefinition source, [NotNull] TypeDefinition target)
+        private void CopyGenericParameters(TypeDefinition source, TypeDefinition target)
         {
             if (!source.HasGenericParameters)
                 return;
@@ -643,7 +605,7 @@
             }
         }
 
-        private void CopyGenericParameters([NotNull] MethodReference source, [NotNull] MethodReference target)
+        private void CopyGenericParameters(MethodReference source, MethodReference target)
         {
             if (!source.HasGenericParameters)
                 return;
@@ -666,7 +628,7 @@
             }
         }
 
-        private void CopyConstraints(GenericParameter sourceParameter, GenericParameter targetParameter, [CanBeNull] MethodReference targetMethod)
+        private void CopyConstraints(GenericParameter sourceParameter, GenericParameter targetParameter, MethodReference? targetMethod)
         {
             if (!sourceParameter.HasConstraints)
                 return;
@@ -679,7 +641,7 @@
             }
         }
 
-        private void CopyExceptionHandlers([NotNull] Mono.Cecil.Cil.MethodBody source, [NotNull] Mono.Cecil.Cil.MethodBody target)
+        private void CopyExceptionHandlers(Mono.Cecil.Cil.MethodBody source, Mono.Cecil.Cil.MethodBody target)
         {
             if (!source.HasExceptionHandlers)
             {
@@ -726,7 +688,7 @@
             }
         }
 
-        private void CopyInstructions([NotNull] MethodDefinition source, [NotNull] MethodDefinition target)
+        private void CopyInstructions(MethodDefinition source, MethodDefinition target)
         {
             var targetDebugInformation = target.DebugInformation;
             var sourceDebugInformation = source.DebugInformation;
@@ -767,9 +729,8 @@
             }
         }
 
-        [NotNull]
         [SuppressMessage("ReSharper", "ImplicitlyCapturedClosure")]
-        private Instruction CloneInstruction([NotNull] Instruction source, [NotNull] MethodDefinition targetMethod, [NotNull] IReadOnlyDictionary<Instruction, Instruction> instructionMap)
+        private Instruction CloneInstruction(Instruction source, MethodDefinition targetMethod, IReadOnlyDictionary<Instruction, Instruction> instructionMap)
         {
             var targetInstruction = (Instruction)_instructionConstructor.Invoke(new[] { source.OpCode, source.Operand });
 
@@ -808,8 +769,7 @@
             return targetInstruction;
         }
 
-        [NotNull]
-        private static SequencePoint CloneSequencePoint([NotNull] Instruction instruction, [NotNull] SequencePoint sequencePoint)
+        private static SequencePoint CloneSequencePoint(Instruction instruction, SequencePoint sequencePoint)
         {
             return new SequencePoint(instruction, sequencePoint.Document)
             {
@@ -820,17 +780,14 @@
             };
         }
 
-        [ContractAnnotation("source:notnull=>notnull")]
-        [CanBeNull]
-        public TypeReference ImportType([CanBeNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
+        [return: NotNullIfNotNull("source")]
+        public TypeReference? ImportType(TypeReference? source, MethodReference? targetMethod)
         {
-            // ReSharper disable once AssignNullToNotNullAttribute
             return ProcessDeferredActions(InternalImportType(source, targetMethod));
         }
 
-        [ContractAnnotation("source:notnull=>notnull")]
-        [CanBeNull]
-        private TypeReference InternalImportType([CanBeNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
+        [return: NotNullIfNotNull("source")]
+        private TypeReference? InternalImportType(TypeReference? source, MethodReference? targetMethod)
         {
             switch (source)
             {
@@ -860,8 +817,7 @@
             }
         }
 
-        [NotNull]
-        private TypeReference ImportTypeReference([NotNull] TypeReference source, [CanBeNull] MethodReference targetMethod)
+        private TypeReference ImportTypeReference(TypeReference source, MethodReference? targetMethod)
         {
             Debug.Assert(source.GetType() == typeof(TypeReference));
 
@@ -878,8 +834,7 @@
             return InternalImportType(typeDefinition, targetMethod);
         }
 
-        [NotNull]
-        private TypeReference ImportGenericInstanceType([NotNull] GenericInstanceType source, [CanBeNull] MethodReference targetMethod)
+        private TypeReference ImportGenericInstanceType(GenericInstanceType source, MethodReference? targetMethod)
         {
             var target = new GenericInstanceType(InternalImportType(source.ElementType, targetMethod));
 
@@ -891,12 +846,11 @@
             return target;
         }
 
-        [NotNull]
-        private TypeReference ImportGenericParameter([NotNull] GenericParameter source, [CanBeNull] MethodReference targetMethod)
+        private TypeReference ImportGenericParameter(GenericParameter source, MethodReference? targetMethod)
         {
             var genericParameterProvider = (source.Type == GenericParameterType.Method)
                 ? targetMethod ?? throw new InvalidOperationException("Need a method reference for generic method parameter.")
-                : (IGenericParameterProvider)InternalImportType(source.DeclaringType, targetMethod);
+                : (IGenericParameterProvider)InternalImportType(source.DeclaringType, targetMethod)!;
 
             var index = source.Position;
 
@@ -927,8 +881,7 @@
             }
         }
 
-        [NotNull]
-        private MethodReference ImportMethodReference([NotNull] MethodReference source)
+        private MethodReference ImportMethodReference(MethodReference source)
         {
             Debug.Assert(source.GetType() == typeof(MethodReference));
 
@@ -949,15 +902,14 @@
             return target;
         }
 
-        [NotNull]
-        private GenericInstanceMethod ImportGenericInstanceMethod([NotNull] GenericInstanceMethod source)
+        private GenericInstanceMethod ImportGenericInstanceMethod(GenericInstanceMethod source)
         {
             var elementMethod = source.ElementMethod;
 
             switch (source.ElementMethod)
             {
                 case MethodDefinition sourceMethodDefinition:
-                    elementMethod = ImportMethodDefinition(sourceMethodDefinition, ImportTypeDefinition(sourceMethodDefinition.DeclaringType));
+                    elementMethod = ImportMethodDefinition(sourceMethodDefinition, ImportTypeDefinition(sourceMethodDefinition.DeclaringType))!;
                     break;
 
                 case GenericInstanceMethod genericInstanceMethod:
@@ -979,7 +931,7 @@
             return target;
         }
 
-        public bool IsLocalOrExternalReference([NotNull] TypeReference typeReference)
+        public bool IsLocalOrExternalReference(TypeReference typeReference)
         {
             var scope = typeReference.Scope;
 
@@ -1006,7 +958,7 @@
                 && !ResolveModule(typeReference, assemblyName);
         }
 
-        private bool ResolveModule([NotNull] TypeReference typeReference, [NotNull] string assemblyName)
+        private bool ResolveModule(TypeReference typeReference, string assemblyName)
         {
             var module = ModuleResolver?.Resolve(typeReference, assemblyName);
 
@@ -1018,7 +970,7 @@
 
         }
 
-        private void ExecuteDeferred(Priority priority, [NotNull] Action action)
+        private void ExecuteDeferred(Priority priority, Action action)
         {
             switch (priority)
             {
@@ -1032,11 +984,10 @@
             }
         }
 
-        [NotNull]
         private TypeReference TemporaryPlaceholderType => new TypeReference("temporary", "type", TargetModule, TargetModule);
 
-        [ContractAnnotation("target:notnull=>notnull")]
-        private T ProcessDeferredActions<T>(T target)
+        [return: NotNullIfNotNull("target")]
+        private T? ProcessDeferredActions<T>(T? target)
             where T : class
         {
             while (true)
@@ -1055,7 +1006,7 @@
 
     internal static class CodeImporterExtensions
     {
-        public static void ILMerge([NotNull] this CodeImporter codeImporter)
+        public static void ILMerge(this CodeImporter codeImporter)
         {
             var module = codeImporter.TargetModule;
 
@@ -1212,7 +1163,7 @@
             module.AssemblyReferences.RemoveAll(ar => importedAssemblyNames.Contains(ar.FullName));
         }
 
-        private static void MergeMethodReference([NotNull] CodeImporter codeImporter, [NotNull] MethodReference methodReference, [NotNull] MethodDefinition methodDefinition)
+        private static void MergeMethodReference(CodeImporter codeImporter, MethodReference methodReference, MethodDefinition methodDefinition)
         {
             methodReference.DeclaringType = codeImporter.ImportType(methodReference.DeclaringType, methodDefinition);
             methodReference.ReturnType = codeImporter.ImportType(methodReference.ReturnType, methodDefinition);
@@ -1231,7 +1182,7 @@
             }
         }
 
-        private static void MergeGenericParameters([NotNull] CodeImporter codeImporter, [CanBeNull] IGenericParameterProvider provider)
+        private static void MergeGenericParameters(CodeImporter codeImporter, IGenericParameterProvider? provider)
         {
             if (provider?.HasGenericParameters != true)
                 return;
@@ -1245,7 +1196,7 @@
             }
         }
 
-        private static void MergeAttributes([NotNull] CodeImporter codeImporter, [CanBeNull] Mono.Cecil.ICustomAttributeProvider attributeProvider)
+        private static void MergeAttributes(CodeImporter codeImporter, Mono.Cecil.ICustomAttributeProvider? attributeProvider)
         {
             if (attributeProvider?.HasCustomAttributes != true)
                 return;
@@ -1274,27 +1225,24 @@
 
     internal interface IModuleResolver
     {
-        [CanBeNull]
-        ModuleDefinition Resolve([NotNull] TypeReference typeReference, [NotNull] string assemblyName);
+        ModuleDefinition? Resolve(TypeReference typeReference, string assemblyName);
     }
 
     internal class AssemblyModuleResolver : IModuleResolver
     {
-        [NotNull]
         private readonly HashSet<string> _assemblyNames;
 
-        public AssemblyModuleResolver([NotNull, ItemNotNull] params Assembly[] assemblies)
+        public AssemblyModuleResolver(params Assembly[] assemblies)
         {
             _assemblyNames = new HashSet<string>(assemblies.Select(a => a.FullName));
         }
 
-        public AssemblyModuleResolver([NotNull, ItemNotNull] params string[] assemblyNames)
+        public AssemblyModuleResolver(params string[] assemblyNames)
         {
             _assemblyNames = new HashSet<string>(assemblyNames);
         }
 
-        [CanBeNull]
-        public ModuleDefinition Resolve(TypeReference typeReference, string assemblyName)
+        public ModuleDefinition? Resolve(TypeReference typeReference, string assemblyName)
         {
             return _assemblyNames.Contains(assemblyName) ? typeReference.Resolve()?.Module : null;
         }
@@ -1302,11 +1250,9 @@
 
     internal class LocalReferenceModuleResolver : IModuleResolver
     {
-        [NotNull]
         private readonly HashSet<string> _ignoredAssemblyNames = new HashSet<string>();
 
-        [CanBeNull]
-        public ModuleDefinition Resolve(TypeReference typeReference, string assemblyName)
+        public ModuleDefinition? Resolve(TypeReference typeReference, string assemblyName)
         {
             if (_ignoredAssemblyNames.Contains(assemblyName))
                 return null;

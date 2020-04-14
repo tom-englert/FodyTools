@@ -6,8 +6,6 @@
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
-    using JetBrains.Annotations;
-
     using Mono.Cecil;
     using Mono.Cecil.Cil;
 
@@ -21,7 +19,7 @@
         /// <param name="index">The index.</param>
         /// <param name="expectedOpCodes">The expected op codes.</param>
         /// <exception cref="InvalidOperationException">Expected op code at index {index}: {expectedOpCode}, but was {opCode}</exception>
-        public static void RemoveAt([NotNull, ItemNotNull] this IList<Instruction> instructions, int index, [NotNull] params OpCode[] expectedOpCodes)
+        public static void RemoveAt(this IList<Instruction> instructions, int index, params OpCode[] expectedOpCodes)
         {
             var opCode = instructions[index].OpCode;
             if (!expectedOpCodes.Contains(opCode))
@@ -37,7 +35,7 @@
         /// <param name="stackSize">Size of the stack, adjusted by the instructions impact.</param>
         /// <exception cref="InvalidOperationException">Can't compute stack delta along nonlinear instruction path.</exception>
         [SuppressMessage("ReSharper", "InconsistentNaming")]
-        public static void ComputeStackDelta([NotNull] this Instruction instruction, ref int stackSize)
+        public static void ComputeStackDelta(this Instruction instruction, ref int stackSize)
         {
             switch (instruction.OpCode.FlowControl)
             {
@@ -75,8 +73,7 @@
         /// <summary>Clones the specified instruction.</summary>
         /// <param name="instruction">The instruction.</param>
         /// <returns>A new instruction with the same OpCode and Operand.</returns>
-        [NotNull]
-        public static Instruction Clone([NotNull] this Instruction instruction)
+        public static Instruction Clone(this Instruction instruction)
         {
             var clone = Instruction.Create(OpCodes.Nop);
 
@@ -93,8 +90,7 @@
         /// <param name="opCode">The op code.</param>
         /// <param name="operand">The operand.</param>
         /// <returns>A copy of the original instruction.</returns>
-        [NotNull]
-        public static Instruction ReplaceWith([NotNull] this Instruction instruction, OpCode opCode, [CanBeNull] object operand = null)
+        public static Instruction ReplaceWith(this Instruction instruction, OpCode opCode, object? operand = null)
         {
             var clone = instruction.Clone();
 
@@ -104,7 +100,7 @@
             return clone;
         }
 
-        private static bool HasImplicitThis([NotNull] this IMethodSignature self)
+        private static bool HasImplicitThis(this IMethodSignature self)
         {
             return self.HasThis && !self.ExplicitThis;
         }

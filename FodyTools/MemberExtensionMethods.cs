@@ -6,8 +6,6 @@ namespace FodyTools
     using System.Collections.Generic;
     using System.Linq;
 
-    using JetBrains.Annotations;
-
     using Mono.Cecil;
     using Mono.Cecil.Cil;
 
@@ -26,8 +24,7 @@ namespace FodyTools
         /// or
         /// method is already a generic instance
         /// </exception>
-        [NotNull]
-        public static MethodReference OnGenericType([NotNull] this MethodReference method, [NotNull] TypeReference genericType)
+                public static MethodReference OnGenericType(this MethodReference method, TypeReference genericType)
         {
             if (!genericType.IsGenericInstance)
                 throw new InvalidOperationException("Need a generic type as the target.");
@@ -55,8 +52,7 @@ namespace FodyTools
         /// <param name="method">The method.</param>
         /// <param name="genericType">Type of the generic.</param>
         /// <returns>The bound or the original method.</returns>
-        [NotNull]
-        public static MethodReference OnGenericTypeOrSelf([NotNull] this MethodReference method, [NotNull] TypeReference genericType)
+                public static MethodReference OnGenericTypeOrSelf(this MethodReference method, TypeReference genericType)
         {
             if (!genericType.IsGenericInstance || method.IsGenericInstance)
                 return method;
@@ -64,8 +60,7 @@ namespace FodyTools
             return method.OnGenericType(genericType);
         }
 
-        [NotNull]
-        public static GenericInstanceMethod MakeGenericInstanceMethod([NotNull] this MethodReference method, [NotNull] params TypeReference[] arguments)
+                public static GenericInstanceMethod MakeGenericInstanceMethod(this MethodReference method, params TypeReference[] arguments)
         {
             var newMethod = new GenericInstanceMethod(method);
 
@@ -78,15 +73,13 @@ namespace FodyTools
             return newMethod;
         }
 
-        [CanBeNull]
-        public static SequencePoint GetEntryPoint([CanBeNull] this MethodReference method, [CanBeNull] ISymbolReader symbolReader)
+        public static SequencePoint? GetEntryPoint(this MethodReference? method, ISymbolReader? symbolReader)
         {
             return method?.Resolve()?.ReadSequencePoints(symbolReader)?.FirstOrDefault();
         }
 
-        [CanBeNull]
         // ReSharper disable once ReturnTypeCanBeEnumerable.Global
-        public static IList<SequencePoint> ReadSequencePoints([CanBeNull] this MethodDefinition method, [CanBeNull] ISymbolReader symbolReader)
+        public static IList<SequencePoint>? ReadSequencePoints(this MethodDefinition? method, ISymbolReader? symbolReader)
         {
             return (method?.DebugInformation?.HasSequencePoints == true)
                 ? symbolReader?.Read(method)?.SequencePoints

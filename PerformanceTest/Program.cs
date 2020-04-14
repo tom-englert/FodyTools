@@ -9,7 +9,6 @@
     using FodyTools;
     using FodyTools.Tests.Tools;
 
-    using JetBrains.Annotations;
 
     using Mono.Cecil;
 
@@ -17,7 +16,7 @@
 
     internal static class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
@@ -70,7 +69,7 @@
             Assert.True(peVerify);
         }
 
-        private static void AssertIl([NotNull] string typeName, [NotNull] string source, [NotNull] string target)
+        private static void AssertIl(string typeName, string source, string target)
         {
             switch (typeName)
             {
@@ -86,7 +85,7 @@
             }
         }
 
-        private static void AssertIlIsSubset([NotNull] string source, [NotNull] string target)
+        private static void AssertIlIsSubset(string source, string target)
         {
             var tempPath = TestHelper.TempPath;
 

@@ -5,8 +5,6 @@
     using System.Diagnostics;
     using System.Linq;
 
-    using JetBrains.Annotations;
-
     using Mono.Cecil.Cil;
 
     /// <summary>
@@ -14,7 +12,7 @@
     /// </summary>
     internal class InstructionSequences : ReadOnlyCollection<InstructionSequence>
     {
-        public InstructionSequences([NotNull, ItemNotNull] IList<Instruction> instructions, [CanBeNull, ItemNotNull] IList<SequencePoint> sequencePoints)
+        public InstructionSequences(IList<Instruction> instructions, IList<SequencePoint>? sequencePoints)
             : base(CreateSequences(instructions, sequencePoints).ToList())
         {
             Instructions = instructions;
@@ -22,8 +20,7 @@
 
         public IList<Instruction> Instructions { get; }
 
-        [NotNull, ItemNotNull]
-        private static IEnumerable<InstructionSequence> CreateSequences([NotNull, ItemNotNull] IList<Instruction> instructions, [CanBeNull, ItemNotNull] IList<SequencePoint> sequencePoints)
+        private static IEnumerable<InstructionSequence> CreateSequences(IList<Instruction> instructions, IList<SequencePoint>? sequencePoints)
         {
             if (sequencePoints?.Any() != true)
             {
@@ -48,17 +45,15 @@
 
         private class SequencePointMapper
         {
-            [NotNull, ItemNotNull]
             private readonly IList<SequencePoint> _sequencePoints;
             private int _index = 1;
 
-            public SequencePointMapper([NotNull, ItemNotNull] IList<SequencePoint> sequencePoints)
+            public SequencePointMapper(IList<SequencePoint> sequencePoints)
             {
                 _sequencePoints = sequencePoints;
             }
 
-            [NotNull]
-            public SequencePoint GetNext(int offset)
+                        public SequencePoint GetNext(int offset)
             {
                 while (true)
                 {

@@ -10,8 +10,6 @@ namespace FodyTools
 
     using Fody;
 
-    using JetBrains.Annotations;
-
     using Mono.Cecil;
 
     internal static class TypeSystemExtensionMethods
@@ -19,40 +17,34 @@ namespace FodyTools
         #region Event
         #region Event Add
 
-        [CanBeNull]
-        public static MethodReference TryImportEventAdd([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name)
+        public static MethodReference? TryImportEventAdd(this ITypeSystem typeSystem, Type declaringType, string name)
         {
             return TryImport(typeSystem, declaringType, name, t => t.Events, e => e.AddMethod);
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportEventAdd<T>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference? TryImportEventAdd<T>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.TryImportEventAdd(typeof(T), name);
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportEventAdd<TResult>([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Func<TResult>> expression)
+        public static MethodReference? TryImportEventAdd<TResult>(this ITypeSystem typeSystem, Expression<Func<TResult>> expression)
         {
             GetMemberInfo(expression, out var declaringType, out var name);
 
             return typeSystem.TryImportEventAdd(declaringType, name);
         }
 
-        [NotNull]
-        public static MethodReference ImportEventAdd([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name)
+        public static MethodReference ImportEventAdd(this ITypeSystem typeSystem, Type declaringType, string name)
         {
             return typeSystem.TryImportEventAdd(declaringType, name) ?? throw new WeavingException($"Can't find add method for event {name} on type {declaringType}");
         }
 
-        [NotNull]
-        public static MethodReference ImportEventAdd<T>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference ImportEventAdd<T>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.ImportEventAdd(typeof(T), name);
         }
 
-        [NotNull]
-        public static MethodReference ImportEventAdd<TResult>([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Func<TResult>> expression)
+        public static MethodReference ImportEventAdd<TResult>(this ITypeSystem typeSystem, Expression<Func<TResult>> expression)
         {
             GetMemberInfo(expression, out var declaringType, out var name);
 
@@ -62,40 +54,34 @@ namespace FodyTools
         #endregion
         #region Event Remove
 
-        [CanBeNull]
-        public static MethodReference TryImportEventRemove([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name)
+        public static MethodReference? TryImportEventRemove(this ITypeSystem typeSystem, Type declaringType, string name)
         {
             return TryImport(typeSystem, declaringType, name, t => t.Events, e => e.RemoveMethod);
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportEventRemove<T>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference? TryImportEventRemove<T>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.TryImportEventRemove(typeof(T), name);
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportEventRemove<TResult>([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Func<TResult>> expression)
+        public static MethodReference? TryImportEventRemove<TResult>(this ITypeSystem typeSystem, Expression<Func<TResult>> expression)
         {
             GetMemberInfo(expression, out var declaringType, out var name);
 
             return typeSystem.TryImportEventRemove(declaringType, name);
         }
 
-        [NotNull]
-        public static MethodReference ImportEventRemove([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name)
+        public static MethodReference ImportEventRemove(this ITypeSystem typeSystem, Type declaringType, string name)
         {
             return typeSystem.TryImportEventRemove(declaringType, name) ?? throw new WeavingException($"Can't find remove for event {name} on type {declaringType}");
         }
 
-        [NotNull]
-        public static MethodReference ImportEventRemove<T>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference ImportEventRemove<T>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.ImportEventRemove(typeof(T), name);
         }
 
-        [NotNull]
-        public static MethodReference ImportEventRemove<TResult>([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Func<TResult>> expression)
+        public static MethodReference ImportEventRemove<TResult>(this ITypeSystem typeSystem, Expression<Func<TResult>> expression)
         {
             GetMemberInfo(expression, out var declaringType, out var name);
 
@@ -107,41 +93,35 @@ namespace FodyTools
 
         #region Property
         #region Property Get
-        
-        [CanBeNull]
-        public static MethodReference TryImportPropertyGet([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name)
+
+        public static MethodReference? TryImportPropertyGet(this ITypeSystem typeSystem, Type declaringType, string name)
         {
             return TryImport(typeSystem, declaringType, name, t => t.Properties, p => p.GetMethod);
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportPropertyGet<T>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference? TryImportPropertyGet<T>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.TryImportPropertyGet(typeof(T), name);
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportPropertyGet<TResult>([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Func<TResult>> expression)
+        public static MethodReference? TryImportPropertyGet<TResult>(this ITypeSystem typeSystem, Expression<Func<TResult>> expression)
         {
             GetMemberInfo(expression, out var declaringType, out var name);
 
             return typeSystem.TryImportPropertyGet(declaringType, name);
         }
 
-        [NotNull]
-        public static MethodReference ImportPropertyGet([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name)
+        public static MethodReference ImportPropertyGet(this ITypeSystem typeSystem, Type declaringType, string name)
         {
             return typeSystem.TryImportPropertyGet(declaringType, name) ?? throw new WeavingException($"Can't find getter for property {name} on type {declaringType}");
         }
 
-        [NotNull]
-        public static MethodReference ImportPropertyGet<T>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference ImportPropertyGet<T>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.ImportPropertyGet(typeof(T), name);
         }
 
-        [NotNull]
-        public static MethodReference ImportPropertyGet<TResult>([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Func<TResult>> expression)
+        public static MethodReference ImportPropertyGet<TResult>(this ITypeSystem typeSystem, Expression<Func<TResult>> expression)
         {
             GetMemberInfo(expression, out var declaringType, out var name);
 
@@ -151,40 +131,34 @@ namespace FodyTools
         #endregion
         #region Property Set
 
-        [CanBeNull]
-        public static MethodReference TryImportPropertySet([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name)
+        public static MethodReference? TryImportPropertySet(this ITypeSystem typeSystem, Type declaringType, string name)
         {
             return TryImport(typeSystem, declaringType, name, t => t.Properties, p => p.SetMethod);
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportPropertySet<T>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference? TryImportPropertySet<T>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.TryImportPropertySet(typeof(T), name);
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportPropertySet<TResult>([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Func<TResult>> expression)
+        public static MethodReference? TryImportPropertySet<TResult>(this ITypeSystem typeSystem, Expression<Func<TResult>> expression)
         {
             GetMemberInfo(expression, out var declaringType, out var name);
 
             return typeSystem.TryImportPropertySet(declaringType, name);
         }
 
-        [NotNull]
-        public static MethodReference ImportPropertySet([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name)
+        public static MethodReference ImportPropertySet(this ITypeSystem typeSystem, Type declaringType, string name)
         {
             return typeSystem.TryImportPropertySet(declaringType, name) ?? throw new WeavingException($"Can't find setter for property {name} on type {declaringType}");
         }
 
-        [NotNull]
-        public static MethodReference ImportPropertySet<T>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference ImportPropertySet<T>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.ImportPropertySet(typeof(T), name);
         }
 
-        [NotNull]
-        public static MethodReference ImportPropertySet<TResult>([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Func<TResult>> expression)
+        public static MethodReference ImportPropertySet<TResult>(this ITypeSystem typeSystem, Expression<Func<TResult>> expression)
         {
             GetMemberInfo(expression, out var declaringType, out var name);
 
@@ -196,93 +170,79 @@ namespace FodyTools
 
         #region Method
 
-        [CanBeNull]
-        private static MethodReference TryImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull, ItemNotNull] IReadOnlyList<Type> argumentTypes)
+        private static MethodReference? TryImportMethod(this ITypeSystem typeSystem, Type declaringType, string name, IReadOnlyList<Type> argumentTypes)
         {
             return TryImport(typeSystem, declaringType, name, t => t.Methods, m => ParametersMatch(m.Parameters, argumentTypes), m => m);
         }
 
-        [NotNull]
-        private static MethodReference ImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull, ItemNotNull] IReadOnlyList<Type> argumentTypes)
+        private static MethodReference ImportMethod(this ITypeSystem typeSystem, Type declaringType, string name, IReadOnlyList<Type> argumentTypes)
         {
             return TryImport(typeSystem, declaringType, name, t => t.Methods, m => ParametersMatch(m.Parameters, argumentTypes), m => m)
                    ?? throw new WeavingException($"Can't find method {name}({string.Join(", ", argumentTypes)}) on type {declaringType}");
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportMethod<T>([NotNull] this ITypeSystem typeSystem, [NotNull] string name, [NotNull, ItemNotNull] params Type[] argumentTypes)
+        public static MethodReference? TryImportMethod<T>(this ITypeSystem typeSystem, string name, params Type[] argumentTypes)
         {
             return typeSystem.TryImportMethod(typeof(T), name, argumentTypes);
         }
 
-        [NotNull]
-        public static MethodReference ImportMethod<T>([NotNull] this ITypeSystem typeSystem, [NotNull] string name, [NotNull, ItemNotNull] params Type[] argumentTypes)
+        public static MethodReference ImportMethod<T>(this ITypeSystem typeSystem, string name, params Type[] argumentTypes)
         {
             return typeSystem.ImportMethod(typeof(T), name, argumentTypes);
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportMethod<T, TP1>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference? TryImportMethod<T, TP1>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.TryImportMethod<T>(name, typeof(TP1));
         }
 
-        [NotNull]
-        public static MethodReference ImportMethod<T, TP1>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference ImportMethod<T, TP1>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.ImportMethod<T>(name, typeof(TP1));
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportMethod<T, TP1, TP2>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference? TryImportMethod<T, TP1, TP2>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.TryImportMethod<T>(name, typeof(TP1), typeof(TP2));
         }
 
-        [NotNull]
-        public static MethodReference ImportMethod<T, TP1, TP2>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference ImportMethod<T, TP1, TP2>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.ImportMethod<T>(name, typeof(TP1), typeof(TP2));
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportMethod<T, TP1, TP2, TP3>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference? TryImportMethod<T, TP1, TP2, TP3>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.TryImportMethod<T>(name, typeof(TP1), typeof(TP2), typeof(TP3));
         }
 
-        [NotNull]
-        public static MethodReference ImportMethod<T, TP1, TP2, TP3>([NotNull] this ITypeSystem typeSystem, [NotNull] string name)
+        public static MethodReference ImportMethod<T, TP1, TP2, TP3>(this ITypeSystem typeSystem, string name)
         {
             return typeSystem.ImportMethod<T>(name, typeof(TP1), typeof(TP2), typeof(TP3));
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportMethod<TResult>([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Func<TResult>> expression)
+        public static MethodReference? TryImportMethod<TResult>(this ITypeSystem typeSystem, Expression<Func<TResult>> expression)
         {
             GetMethodInfo(expression, out var declaringType, out var methodName, out var argumentTypes);
 
             return typeSystem.TryImportMethod(declaringType, methodName, argumentTypes);
         }
 
-        [NotNull]
-        public static MethodReference ImportMethod<TResult>([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Func<TResult>> expression)
+        public static MethodReference ImportMethod<TResult>(this ITypeSystem typeSystem, Expression<Func<TResult>> expression)
         {
             GetMethodInfo(expression, out var declaringType, out var methodName, out var argumentTypes);
 
             return typeSystem.ImportMethod(declaringType, methodName, argumentTypes);
         }
 
-        [CanBeNull]
-        public static MethodReference TryImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Action> expression)
+        public static MethodReference? TryImportMethod(this ITypeSystem typeSystem, Expression<Action> expression)
         {
             GetMethodInfo(expression, out var declaringType, out var methodName, out var argumentTypes);
 
             return typeSystem.TryImportMethod(declaringType, methodName, argumentTypes);
         }
 
-        [NotNull]
-        public static MethodReference ImportMethod([NotNull] this ITypeSystem typeSystem, [NotNull] Expression<Action> expression)
+        public static MethodReference ImportMethod(this ITypeSystem typeSystem, Expression<Action> expression)
         {
             GetMethodInfo(expression, out var declaringType, out var methodName, out var argumentTypes);
 
@@ -293,14 +253,12 @@ namespace FodyTools
 
         #region Type
 
-        [NotNull]
-        public static TypeReference ImportType([NotNull] this ITypeSystem typeSystem, [NotNull] Type type)
+        public static TypeReference ImportType(this ITypeSystem typeSystem, Type type)
         {
             return typeSystem.ModuleDefinition.ImportReference(typeSystem.FindType(GetFullName(type)));
         }
 
-        [CanBeNull]
-        public static TypeReference TryImportType([NotNull] this ITypeSystem typeSystem, [NotNull] Type type)
+        public static TypeReference? TryImportType(this ITypeSystem typeSystem, Type type)
         {
             if (!typeSystem.TryFindType(GetFullName(type), out var typeDefinition))
                 return null;
@@ -308,35 +266,31 @@ namespace FodyTools
             return typeSystem.ModuleDefinition.ImportReference(typeDefinition);
         }
 
-        [NotNull]
-        public static TypeReference ImportType<T>([NotNull] this ITypeSystem typeSystem)
+        public static TypeReference ImportType<T>(this ITypeSystem typeSystem)
         {
             return typeSystem.ImportType(typeof(T));
         }
 
-        [CanBeNull]
-        public static TypeReference TryImportType<T>([NotNull] this ITypeSystem typeSystem)
+        public static TypeReference? TryImportType<T>(this ITypeSystem typeSystem)
         {
             return typeSystem.TryImportType(typeof(T));
         }
 
         #endregion
 
-        [NotNull]
-        public static string GetFullName([NotNull] this Type type)
+        public static string GetFullName(this Type type)
         {
             // type.FullName may contain extra generic info!
             return type.Namespace + "." + type.Name;
         }
 
-        [NotNull]
-        public static Type GetDeclaringType([NotNull] this MemberInfo memberInfo)
+        public static Type GetDeclaringType(this MemberInfo memberInfo)
         {
             return memberInfo.DeclaringType ?? throw new InvalidOperationException("Invalid expression, MemberInfo does not have a declaring type.");
 
         }
 
-        public static void GetMemberInfo([NotNull] this LambdaExpression expression, [NotNull] out Type declaringType, [NotNull] out string memberName)
+        public static void GetMemberInfo(this LambdaExpression expression, out Type declaringType, out string memberName)
         {
             switch (expression.Body)
             {
@@ -350,7 +304,7 @@ namespace FodyTools
             }
         }
 
-        public static void GetMethodInfo([NotNull] this LambdaExpression expression, [NotNull] out Type declaringType, [NotNull] out string methodName, [NotNull] out IReadOnlyList<Type> argumentTypes)
+        public static void GetMethodInfo(this LambdaExpression expression, out Type declaringType, out string methodName, out IReadOnlyList<Type> argumentTypes)
         {
             switch (expression.Body)
             {
@@ -371,7 +325,7 @@ namespace FodyTools
             }
         }
 
-        public static bool ParametersMatch([NotNull] this IList<ParameterDefinition> parameters, [NotNull] IReadOnlyList<Type> argumentTypes)
+        public static bool ParametersMatch(this IList<ParameterDefinition> parameters, IReadOnlyList<Type> argumentTypes)
         {
             if (parameters.Count != argumentTypes.Count)
                 return false;
@@ -407,15 +361,13 @@ namespace FodyTools
             return true;
         }
 
-        [CanBeNull]
-        private static MethodReference TryImport<T>([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull] Func<TypeDefinition, IEnumerable<T>> elementLookup, [NotNull] Func<T, MethodDefinition> selector)
+        private static MethodReference? TryImport<T>(this ITypeSystem typeSystem, Type declaringType, string name, Func<TypeDefinition, IEnumerable<T>> elementLookup, Func<T, MethodDefinition> selector)
             where T : class, IMemberDefinition
         {
             return TryImport(typeSystem, declaringType, name, elementLookup, _ => true, selector);
         }
 
-        [CanBeNull]
-        private static MethodReference TryImport<T>([NotNull] this ITypeSystem typeSystem, [NotNull] Type declaringType, [NotNull] string name, [NotNull] Func<TypeDefinition, IEnumerable<T>> elementLookup, [NotNull] Func<T, bool> constraints, [NotNull] Func<T, MethodDefinition> selector)
+        private static MethodReference? TryImport<T>(this ITypeSystem typeSystem, Type declaringType, string name, Func<TypeDefinition, IEnumerable<T>> elementLookup, Func<T, bool> constraints, Func<T, MethodDefinition> selector)
             where T : class, IMemberDefinition
         {
             if (!typeSystem.TryFindType(GetFullName(declaringType), out var typeDefinition))

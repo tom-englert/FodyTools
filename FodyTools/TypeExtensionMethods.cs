@@ -4,8 +4,6 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    using JetBrains.Annotations;
-
     using Mono.Cecil;
     using Mono.Cecil.Cil;
     using Mono.Cecil.Rocks;
@@ -20,8 +18,7 @@
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>The <see cref="MethodDefinition"/> of the default constructor.</returns>
-        [CanBeNull]
-        public static MethodDefinition GetDefaultConstructor([NotNull] this TypeDefinition type)
+        public static MethodDefinition? GetDefaultConstructor(this TypeDefinition type)
         {
             return type.GetConstructors()
                 .FirstOrDefault(ctor => ctor.HasBody && ctor.Parameters.Count == 0 && !ctor.IsStatic);
@@ -32,8 +29,7 @@
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>The type and all it's base types.</returns>
-        [NotNull]
-        public static IEnumerable<TypeDefinition> GetSelfAndBaseTypes([NotNull] this TypeReference type)
+        public static IEnumerable<TypeDefinition> GetSelfAndBaseTypes(this TypeReference type)
         {
             var resolved = type.Resolve();
 
@@ -56,8 +52,7 @@
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>All base types.</returns>
-        [NotNull]
-        public static IEnumerable<TypeDefinition> GetBaseTypes([NotNull] this TypeReference type)
+        public static IEnumerable<TypeDefinition> GetBaseTypes(this TypeReference type)
         {
             return type.GetSelfAndBaseTypes().Skip(1);
         }
@@ -67,7 +62,7 @@
         /// </summary>
         /// <param name="classDefinition">The class definition.</param>
         /// <param name="instructionBuilder">The instruction builder that returns the instructions to insert.</param>
-        public static void InsertIntoConstructors([NotNull] this TypeDefinition classDefinition, [NotNull] Func<IEnumerable<Instruction>> instructionBuilder)
+        public static void InsertIntoConstructors(this TypeDefinition classDefinition, Func<IEnumerable<Instruction>> instructionBuilder)
         {
             foreach (var constructor in classDefinition.GetConstructors().Where(ctor => !ctor.IsStatic))
             {
@@ -98,7 +93,7 @@
         /// <param name="classDefinition">The class definition.</param>
         /// <param name="additionalInstructions">The additional instructions to insert.</param>
         /// <exception cref="System.InvalidOperationException">The existing finalizer is invalid.</exception>
-        public static void InsertIntoFinalizer([NotNull] this TypeDefinition classDefinition, [NotNull] params Instruction[] additionalInstructions)
+        public static void InsertIntoFinalizer(this TypeDefinition classDefinition, params Instruction[] additionalInstructions)
         {
             var finalizer = FindFinalizer(classDefinition);
 
@@ -165,14 +160,13 @@
         /// </summary>
         /// <param name="classDefinition">The class definition.</param>
         /// <returns>The finalizer method, or <c>null</c> if no finalizer exists.</returns>
-        [CanBeNull]
-        public static MethodDefinition FindFinalizer(this TypeDefinition classDefinition)
+        public static MethodDefinition? FindFinalizer(this TypeDefinition classDefinition)
         {
             return classDefinition.GetMethods()
                 .FirstOrDefault(m => m.Name == FinalizerMethodName && !m.HasParameters && (m.Attributes & MethodAttributes.Family) != 0);
         }
 
-        public static void InsertIntoStaticConstructor([NotNull] this TypeDefinition classDefinition, [NotNull] params Instruction[] additionalInstructions)
+        public static void InsertIntoStaticConstructor(this TypeDefinition classDefinition, params Instruction[] additionalInstructions)
         {
             var constructor = classDefinition.GetConstructors()
                 .FirstOrDefault(ctor => ctor.IsStatic);

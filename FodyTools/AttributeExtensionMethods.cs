@@ -3,26 +3,21 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    using JetBrains.Annotations;
-
     using Mono.Cecil;
 
     internal static class AttributeExtensionMethods
     {
-        [CanBeNull]
-        public static CustomAttribute GetAttribute([CanBeNull] this ICustomAttributeProvider attributeProvider, [CanBeNull] string attributeName)
+        public static CustomAttribute? GetAttribute(this ICustomAttributeProvider? attributeProvider, string? attributeName)
         {
             return attributeProvider?.CustomAttributes.GetAttribute(attributeName);
         }
 
-        [CanBeNull]
-        public static CustomAttribute GetAttribute([CanBeNull] this IEnumerable<CustomAttribute> attributes, [CanBeNull] string attributeName)
+        public static CustomAttribute? GetAttribute(this IEnumerable<CustomAttribute>? attributes, string? attributeName)
         {
             return attributes?.FirstOrDefault(attribute => attribute.Constructor.DeclaringType.FullName == attributeName);
         }
 
-        [CanBeNull]
-        public static T GetReferenceTypeConstructorArgument<T>([CanBeNull] this CustomAttribute attribute)
+        public static T? GetReferenceTypeConstructorArgument<T>(this CustomAttribute? attribute)
             where T : class
         {
             return attribute?.ConstructorArguments?
@@ -30,7 +25,7 @@
                 .FirstOrDefault(value => value != null);
         }
 
-        public static T? GetValueTypeConstructorArgument<T>([CanBeNull] this CustomAttribute attribute)
+        public static T? GetValueTypeConstructorArgument<T>(this CustomAttribute? attribute)
             where T : struct
         {
             return attribute?.ConstructorArguments?
@@ -38,7 +33,7 @@
                 .FirstOrDefault(value => value != null);
         }
 
-        public static T GetPropertyValue<T>([NotNull] this CustomAttribute attribute, [CanBeNull] string propertyName, T defaultValue)
+        public static T GetPropertyValue<T>(this CustomAttribute attribute, string? propertyName, T defaultValue)
         {
             return attribute.Properties.Where(p => p.Name == propertyName)
                 .Select(p => (T)p.Argument.Value)

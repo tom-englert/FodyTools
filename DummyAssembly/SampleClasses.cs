@@ -1,6 +1,5 @@
 ﻿using TomsToolbox.Core;
 
-// ReSharper disable AssignNullToNotNullAttribute
 
 [assembly: PluginModule("1", "2", "3")]
 [module: PluginModule("4", "5", "6")]
@@ -13,6 +12,7 @@ namespace FodyTools
     using System.ComponentModel;
 
     using ReferencedAssembly;
+
 
     [Sequence(1)]
     public class SimpleSampleClass

@@ -1,4 +1,3 @@
-// ReSharper disable AnnotateCanBeNullParameter
 #pragma warning disable S112 // General exceptions should never be thrown => in indexers IndexOutOfRange exception is expected.
 
 namespace FodyTools
@@ -8,8 +7,6 @@ namespace FodyTools
     using System.Collections.Generic;
     using System.Linq;
 
-    using JetBrains.Annotations;
-
     using Mono.Cecil.Cil;
 
     /// <summary>
@@ -17,12 +14,10 @@ namespace FodyTools
     /// </summary>
     internal class InstructionSequence : IList<Instruction>
     {
-        [NotNull, ItemNotNull]
         private readonly IList<Instruction> _instructions;
-        [CanBeNull, ItemNotNull]
-        private readonly InstructionSequence _previous;
+        private readonly InstructionSequence? _previous;
 
-        public InstructionSequence([NotNull, ItemNotNull] IList<Instruction> instructions, [CanBeNull, ItemNotNull] InstructionSequence previous, int count, [CanBeNull] SequencePoint point)
+        public InstructionSequence(IList<Instruction> instructions, InstructionSequence? previous, int count, SequencePoint? point)
         {
             _instructions = instructions;
             _previous = previous;
@@ -32,16 +27,15 @@ namespace FodyTools
 
         public int Count { get; private set; }
 
-        [CanBeNull]
-        public SequencePoint Point { get; }
+        public SequencePoint? Point { get; }
 
         private int StartIndex => _previous?.NextStartIndex ?? 0;
 
         private int NextStartIndex => StartIndex + Count;
 
-        public int IndexOf([CanBeNull] Instruction item)
+        public int IndexOf(Instruction? item)
         {
-            var index = _instructions.IndexOf(item);
+            var index = _instructions.IndexOf(item!);
             var startIndex = StartIndex;
 
             if ((index >= startIndex) && (index < startIndex + Count))
@@ -50,13 +44,13 @@ namespace FodyTools
             return -1;
         }
 
-        public void Insert(int index, [CanBeNull] Instruction item)
+        public void Insert(int index, Instruction? item)
         {
             if ((index < 0) || (index > Count))
                 throw new IndexOutOfRangeException();
 
             var startIndex = StartIndex;
-            _instructions.Insert(index + startIndex, item);
+            _instructions.Insert(index + startIndex, item!);
             Count += 1;
         }
 
@@ -71,8 +65,7 @@ namespace FodyTools
             Count -= 1;
         }
 
-        [NotNull]
-        public Instruction this[int index]
+                public Instruction this[int index]
         {
             get
             {
@@ -114,11 +107,11 @@ namespace FodyTools
             return ((IEnumerable<Instruction>)this).GetEnumerator();
         }
 
-        public void Add([CanBeNull] Instruction item)
+        public void Add(Instruction? item)
         {
             var startIndex = StartIndex;
 
-            _instructions.Insert(startIndex + Count, item);
+            _instructions.Insert(startIndex + Count, item!);
 
             Count += 1;
         }
@@ -128,11 +121,11 @@ namespace FodyTools
             throw new NotImplementedException();
         }
 
-        public bool Contains([CanBeNull] Instruction item)
+        public bool Contains(Instruction? item)
         {
             var startIndex = StartIndex;
 
-            var itemIndex = _instructions.IndexOf(item);
+            var itemIndex = _instructions.IndexOf(item!);
 
             return (itemIndex >= startIndex) && (itemIndex < (startIndex + Count));
         }
@@ -156,11 +149,11 @@ namespace FodyTools
             }
         }
 
-        public bool Remove([CanBeNull] Instruction item)
+        public bool Remove(Instruction? item)
         {
             var startIndex = StartIndex;
 
-            var itemIndex = _instructions.IndexOf(item);
+            var itemIndex = _instructions.IndexOf(item!);
 
             if ((itemIndex < startIndex) || (itemIndex >= (startIndex + Count)))
                 return false;

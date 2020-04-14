@@ -7,8 +7,6 @@
     using System.Linq;
     using System.Text.RegularExpressions;
 
-    using JetBrains.Annotations;
-
     using Mono.Cecil;
 
     using TomsToolbox.Core;
@@ -24,7 +22,6 @@
         private const string Framework = "CORE";
 #endif
 
-        [NotNull]
         public static string TempPath
         {
             get
@@ -37,18 +34,18 @@
         }
 
         public static void VerifyTypes(
-            [NotNull] IDictionary<TypeDefinition, TypeDefinition> importedTypes,
-            [NotNull] ICollection<ModuleDefinition> importedModules,
-            [NotNull] string targetAssemblyPath)
+            IDictionary<TypeDefinition, TypeDefinition> importedTypes,
+            ICollection<ModuleDefinition> importedModules,
+            string targetAssemblyPath)
         {
             VerifyTypes(importedTypes, importedModules, targetAssemblyPath, (assemblyName, source, target) => AssertIlStrict(source, target));
         }
 
         public static void VerifyTypes(
-            [NotNull] IDictionary<TypeDefinition, TypeDefinition> importedTypes,
-            [NotNull] ICollection<ModuleDefinition> importedModules,
-            [NotNull] string targetAssemblyPath,
-            [NotNull] Action<string, string, string> assert)
+            IDictionary<TypeDefinition, TypeDefinition> importedTypes,
+            ICollection<ModuleDefinition> importedModules,
+            string targetAssemblyPath,
+            Action<string, string, string> assert)
         {
             var assemblyPrefixes = importedModules
                 .Select(m => $"[{m.Assembly.Name.Name}]")
@@ -89,7 +86,7 @@
             }
         }
 
-        public static void AssertIlStrict([NotNull] string decompiledSource, [NotNull] string decompiledTarget)
+        public static void AssertIlStrict(string decompiledSource, string decompiledTarget)
         {
             var expected = decompiledSource.Replace("\r\n", "\n").Split('\n').OrderBy(line => line).SkipWhile(string.IsNullOrWhiteSpace);
             var target = decompiledTarget.Replace("\r\n", "\n").Split('\n').OrderBy(line => line).SkipWhile(string.IsNullOrWhiteSpace);
@@ -102,24 +99,21 @@
             Assert.Empty(mismatches);
         }
 
-        [NotNull]
-        private static string FixAttributeOrder([NotNull] string value)
+        private static string FixAttributeOrder(string value)
         {
             return value.Replace(
                 "  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) \r\n  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) ",
                 "  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) \r\n  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) ");
         }
 
-        [NotNull]
-        private static string FixSourceNamespaces([NotNull] IEnumerable<string> assemblyPrefixes, [NotNull] string value)
+        private static string FixSourceNamespaces(IEnumerable<string> assemblyPrefixes, string value)
         {
             value = assemblyPrefixes.Aggregate(value, (current, modulePrefix) => current.Replace(modulePrefix, string.Empty));
 
             return FixSystemNamespaces(value);
         }
 
-        [NotNull]
-        private static string FixSystemNamespaces([NotNull] string value)
+        private static string FixSystemNamespaces(string value)
         {
             var regex = new Regex(@"\[System\.[\.\w]+\]");
 
@@ -132,14 +126,12 @@
             return result;
         }
 
-        [NotNull]
-        private static string FixIndenting([NotNull] string value)
+        private static string FixIndenting(string value)
         {
             return string.Join(Environment.NewLine, value.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Select(TrimIndent));
         }
 
-        [NotNull]
-        private static string TrimIndent([NotNull] string line)
+        private static string TrimIndent(string line)
         {
             var spaces = new string(' ', 16);
             if (line.StartsWith(spaces))
@@ -152,12 +144,12 @@
         {
             private static readonly string _peVerifyPath = SdkTool.Find("PEVerify.exe");
 
-            public static bool Verify(string assemblyPath, [NotNull] ITestOutputHelper testOutputHelper, params string[] additionalIgnoreCodes)
+            public static bool Verify(string assemblyPath, ITestOutputHelper testOutputHelper, params string[] additionalIgnoreCodes)
             {
                 return Verify(assemblyPath, testOutputHelper.WriteLine, additionalIgnoreCodes);
             }
 
-            public static bool Verify(string assemblyPath, [NotNull] Action<string> writeOutput, params string[] additionalIgnoreCodes)
+            public static bool Verify(string assemblyPath, Action<string> writeOutput, params string[] additionalIgnoreCodes)
             {
                 var workingDirectory = Path.GetDirectoryName(assemblyPath);
 
@@ -205,7 +197,6 @@
         {
             private static readonly string _ilDasmPath = SdkTool.Find("ILDasm.exe");
 
-            [NotNull]
             public static string Decompile(string assemblyPath)
             {
                 var startInfo = new ProcessStartInfo(_ilDasmPath, $"\"{assemblyPath}\" /text")
@@ -221,7 +212,6 @@
                 }
             }
 
-            [NotNull]
             public static string Decompile(string assemblyPath, string className)
             {
                 // var startInfo = new ProcessStartInfo(_ilDasmPath, $"\"{assemblyPath}\" /text /classlist /item:{className}")
@@ -241,8 +231,7 @@
 
         private static class SdkTool
         {
-            [NotNull]
-            public static string Find([NotNull] string fileName)
+            public static string Find(string fileName)
             {
                 var windowsSdkDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft SDKs\\Windows");
 
@@ -256,8 +245,7 @@
                 return path;
             }
 
-            [NotNull]
-            private static Version GetFileVersion([NotNull] string path)
+            private static Version GetFileVersion(string path)
             {
                 var versionInfo = FileVersionInfo.GetVersionInfo(path);
                 return new Version(versionInfo.FileMajorPart, versionInfo.FileMinorPart, versionInfo.FileBuildPart);

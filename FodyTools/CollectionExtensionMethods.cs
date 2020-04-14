@@ -6,16 +6,14 @@ namespace FodyTools
     using System.Collections.Generic;
     using System.Linq;
 
-    using JetBrains.Annotations;
-
     internal static class CollectionExtensionMethods
     {
-        public static void AddRange<T>([NotNull, ItemCanBeNull] this IList<T> collection, [NotNull, ItemCanBeNull] params T[] values)
+        public static void AddRange<T>(this IList<T> collection, params T[] values)
         {
             AddRange(collection, (IEnumerable<T>)values);
         }
 
-        public static void AddRange<T>([NotNull, ItemCanBeNull] this IList<T> collection, [NotNull, ItemCanBeNull] IEnumerable<T> values)
+        public static void AddRange<T>(this IList<T> collection, IEnumerable<T> values)
         {
             foreach (var value in values)
             {
@@ -23,12 +21,12 @@ namespace FodyTools
             }
         }
 
-        public static void InsertRange<T>([NotNull, ItemCanBeNull] this IList<T> collection, int index, [NotNull, ItemCanBeNull] params T[] values)
+        public static void InsertRange<T>(this IList<T> collection, int index, params T[] values)
         {
             InsertRange(collection, index, (IEnumerable<T>)values);
         }
 
-        public static void InsertRange<T>([NotNull, ItemCanBeNull] this IList<T> collection, int index, [NotNull, ItemCanBeNull] IEnumerable<T> values)
+        public static void InsertRange<T>(this IList<T> collection, int index, IEnumerable<T> values)
         {
             foreach (var value in values)
             {
@@ -36,7 +34,7 @@ namespace FodyTools
             }
         }
 
-        public static void Replace<T>([CanBeNull, ItemCanBeNull] this IList<T> collection, [CanBeNull, ItemCanBeNull] IEnumerable<T> values)
+        public static void Replace<T>(this IList<T>? collection, IEnumerable<T>? values)
         {
             if ((collection == null) || (values == null))
                 return;
@@ -45,7 +43,7 @@ namespace FodyTools
             collection.AddRange(values);
         }
 
-        public static void ReplaceItems<T>([CanBeNull, ItemCanBeNull] this IList<T> collection, [NotNull] Func<T, T> selector)
+        public static void ReplaceItems<T>(this IList<T>? collection, Func<T, T> selector)
         {
             if (collection == null)
                 return;
@@ -56,12 +54,12 @@ namespace FodyTools
             }
         }
 
-        public static void RemoveAll<T>([NotNull, ItemCanBeNull] this ICollection<T> target, [NotNull] Func<T, bool> condition)
+        public static void RemoveAll<T>(this ICollection<T> target, Func<T, bool> condition)
         {
             target.RemoveAll(target.Where(condition).ToList());
         }
 
-        public static void RemoveAll<T>([NotNull, ItemCanBeNull] this ICollection<T> target, [NotNull, ItemCanBeNull] IEnumerable<T> items)
+        public static void RemoveAll<T>(this ICollection<T> target, IEnumerable<T> items)
         {
             foreach (var i in items)
             {
@@ -69,8 +67,7 @@ namespace FodyTools
             }
         }
 
-        [NotNull]
-        public static IReadOnlyList<T> ToReadOnlyList<T>([NotNull, ItemCanBeNull] this IEnumerable<T> items)
+        public static IReadOnlyList<T> ToReadOnlyList<T>(this IEnumerable<T> items)
         {
             return items.ToList().AsReadOnly();
         }

@@ -28,7 +28,6 @@ namespace FodyTools.Tests
 
     public class CodeImporterTests
     {
-        [NotNull]
         private readonly ITestOutputHelper _testOutputHelper;
 
         public enum ModuleResolver
@@ -37,7 +36,7 @@ namespace FodyTools.Tests
             LocalModuleResolver
         }
 
-        public CodeImporterTests([NotNull] ITestOutputHelper testOutputHelper)
+        public CodeImporterTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
         }
@@ -48,7 +47,7 @@ namespace FodyTools.Tests
 #else
         [InlineData(7, ModuleResolver.LocalModuleResolver, typeof(Test<>))]
 #endif
-        public void SimpleTypesTest(int numberOfTypes, ModuleResolver moduleResolver, [NotNull, ItemNotNull] params Type[] types)
+        public void SimpleTypesTest(int numberOfTypes, ModuleResolver moduleResolver, params Type[] types)
         {
             var module = ModuleHelper.LoadModule<EmptyClass>();
 
@@ -97,7 +96,7 @@ namespace FodyTools.Tests
         [InlineData(13, typeof(TomsToolbox.Core.WeakEventSource<>), typeof(TomsToolbox.Core.WeakEventListener<,,>), typeof(Test<>))]
         [InlineData(4, typeof(TomsToolbox.Core.AutoWeakIndexer<,>))]
         [InlineData(2, typeof(TomsToolbox.Core.CollectionExtensions))]
-        public void ComplexTypesTest(int numberOfTypes, [NotNull, ItemNotNull] params Type[] types)
+        public void ComplexTypesTest(int numberOfTypes, params Type[] types)
         {
             var module = ModuleHelper.LoadModule<EmptyClass>();
 
@@ -201,7 +200,7 @@ namespace FodyTools.Tests
 
         private class T1 : TomsToolbox.Core.DelegateComparer<T2>
         {
-            public T1([NotNull] Func<T2, T2, int> comparer) : base(comparer)
+            public T1(Func<T2, T2, int> comparer) : base(comparer)
             {
             }
         }

@@ -7,8 +7,6 @@
     using System.Linq.Expressions;
     using System.Runtime.Versioning;
 
-    using JetBrains.Annotations;
-
     using Mono.Cecil;
     using Mono.Cecil.Rocks;
 
@@ -87,8 +85,7 @@
             return method;
         }
 
-        [CanBeNull]
-        public static FrameworkName GetTargetFrameworkName([NotNull] this ModuleDefinition moduleDefinition)
+        public static FrameworkName? GetTargetFrameworkName(this ModuleDefinition moduleDefinition)
         {
             return moduleDefinition.Assembly
                 .CustomAttributes
@@ -99,8 +96,7 @@
                 .FirstOrDefault();
         }
 
-        [CanBeNull]
-        public static FrameworkName GetTargetFrameworkName([NotNull] this Type typeInTargetAssembly)
+        public static FrameworkName? GetTargetFrameworkName(this Type typeInTargetAssembly)
         {
             return typeInTargetAssembly.Assembly
                 .CustomAttributes
@@ -115,27 +111,25 @@
 
         private interface IInternalAssemblyResolver
         {
-            [CanBeNull]
-            AssemblyDefinition Resolve([NotNull] AssemblyNameReference nameReference, [NotNull] ReaderParameters parameters);
+            AssemblyDefinition? Resolve(AssemblyNameReference nameReference, ReaderParameters parameters);
         }
 
         private class AssemblyResolverAdapter : IAssemblyResolver
         {
             private readonly Dictionary<string, AssemblyDefinition> _cache = new Dictionary<string, AssemblyDefinition>();
             private readonly IAssemblyResolver _defaultResolver = new DefaultAssemblyResolver();
-            [CanBeNull]
-            private IInternalAssemblyResolver _internalResolver;
+            private IInternalAssemblyResolver? _internalResolver;
 
             public AssemblyResolverAdapter()
             {
             }
 
-            public AssemblyResolverAdapter([CanBeNull] FrameworkName frameworkName)
+            public AssemblyResolverAdapter(FrameworkName? frameworkName)
             {
                 Init(frameworkName);
             }
 
-            public void Init([CanBeNull] FrameworkName frameworkName)
+            public void Init(FrameworkName? frameworkName)
             {
                 switch (frameworkName?.Identifier)
                 {
@@ -145,8 +139,7 @@
                 }
             }
 
-            [CanBeNull]
-            public AssemblyDefinition Resolve([NotNull] AssemblyNameReference nameReference)
+            public AssemblyDefinition? Resolve(AssemblyNameReference nameReference)
             {
                 var name = nameReference.Name;
 
@@ -160,8 +153,7 @@
                 return assemblyDefinition;
             }
 
-            [CanBeNull]
-            public AssemblyDefinition Resolve([NotNull] AssemblyNameReference nameReference, [NotNull] ReaderParameters parameters)
+            public AssemblyDefinition? Resolve(AssemblyNameReference name, ReaderParameters parameters)
             {
                 return _internalResolver?.Resolve(nameReference, parameters) ?? _defaultResolver.Resolve(nameReference, parameters);
             }
@@ -181,8 +173,7 @@
                 _refAssembliesFolder = Environment.ExpandEnvironmentVariables(@"%ProgramFiles(x86)%\Reference Assemblies\Microsoft\Framework\.NETFramework\v" + frameworkVersion);
             }
 
-            [CanBeNull]
-            public AssemblyDefinition Resolve([NotNull] AssemblyNameReference nameReference, [NotNull] ReaderParameters parameters)
+            public AssemblyDefinition? Resolve(AssemblyNameReference nameReference, ReaderParameters parameters)
             {
                 var name = nameReference.Name;
 
