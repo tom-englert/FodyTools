@@ -10,6 +10,7 @@ namespace FodyTools
 
     using Mono.Cecil;
     using Mono.Cecil.Cil;
+
     /// <summary>
     /// A generic logger interface to decouple implementation.
     /// </summary>

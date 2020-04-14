@@ -2,7 +2,6 @@
 {
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
-    using System.Diagnostics;
     using System.Linq;
 
     using Mono.Cecil.Cil;
@@ -57,15 +56,12 @@
                 while (true)
                 {
                     if (_index >= _sequencePoints.Count)
-                        // ReSharper disable once AssignNullToNotNullAttribute
                         return _sequencePoints.Last();
 
                     var nextPoint = _sequencePoints[_index];
 
-                    // ReSharper disable once PossibleNullReferenceException
                     if (nextPoint.Offset > offset)
                     {
-                        // ReSharper disable once AssignNullToNotNullAttribute
                         return _sequencePoints[_index - 1];
                     }
 

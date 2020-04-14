@@ -74,7 +74,6 @@ namespace FodyTools
 
                 var startIndex = StartIndex;
 
-                // ReSharper disable once AssignNullToNotNullAttribute
                 return _instructions[startIndex + index];
             }
             set
