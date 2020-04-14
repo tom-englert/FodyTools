@@ -65,7 +65,7 @@ namespace FodyTools
             Count -= 1;
         }
 
-                public Instruction this[int index]
+        public Instruction this[int index]
         {
             get
             {

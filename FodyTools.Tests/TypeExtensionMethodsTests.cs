@@ -1,4 +1,6 @@
-﻿namespace FodyTools.Tests
+﻿#pragma warning disable CS8602 // Dereference of a possibly null reference.
+
+namespace FodyTools.Tests
 {
     using System.Linq;
     using System.Runtime.CompilerServices;

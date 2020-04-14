@@ -97,7 +97,7 @@ namespace FodyTools
 
             bool IEnumerator.MoveNext()
             {
-                _current = new Structure {Value1 = "1"};
+                _current = new Structure { Value1 = "1" };
                 return true;
             }
 

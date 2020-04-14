@@ -1,8 +1,11 @@
-﻿// ReSharper disable AssignNullToNotNullAttribute
-
+﻿// ReSharper disable all
 #pragma warning disable 649
-
 #pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+#pragma warning disable CS8603 // Possible null reference return.
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+
+#nullable disable
 
 namespace FodyTools.Tests
 {
@@ -16,8 +19,6 @@ namespace FodyTools.Tests
     using EmptyAssembly;
 
     using FodyTools.Tests.Tools;
-
-    using JetBrains.Annotations;
 
     using Mono.Cecil;
 
@@ -50,11 +51,6 @@ namespace FodyTools.Tests
         public void SimpleTypesTest(int numberOfTypes, ModuleResolver moduleResolver, params Type[] types)
         {
             var module = ModuleHelper.LoadModule<EmptyClass>();
-
-            var governingType = types.First();
-
-            Debug.Assert(module != null, nameof(module) + " != null");
-            Debug.Assert(governingType?.Namespace != null, nameof(governingType) + " != null");
 
             var moduleResolverInstance = moduleResolver == ModuleResolver.AssemblyModuleResolver
                 ? (IModuleResolver)new AssemblyModuleResolver(typeof(TomsToolbox.Core.AssemblyExtensions).Assembly, typeof(TomsToolbox.Core.DefaultValue).Assembly)
@@ -101,9 +97,6 @@ namespace FodyTools.Tests
             var module = ModuleHelper.LoadModule<EmptyClass>();
 
             var governingType = types.First();
-
-            Debug.Assert(module != null, nameof(module) + " != null");
-            Debug.Assert(governingType?.Namespace != null, nameof(governingType) + " != null");
 
             var target = new CodeImporter(module)
             {
@@ -156,8 +149,8 @@ namespace FodyTools.Tests
 
             var target = new CodeImporter(module);
 
-            var importedMethod1 = target.ImportMethod(() => default(MyEventArgs).GetValue());
-            var importedMethod2 = target.ImportMethod(() => default(MyEventArgs).GetValue(default));
+            var importedMethod1 = target.ImportMethod(() => default(MyEventArgs)!.GetValue());
+            var importedMethod2 = target.ImportMethod(() => default(MyEventArgs)!.GetValue(default!));
 
             Assert.NotEqual(importedMethod2, importedMethod1);
             Assert.Equal(importedMethod2.DeclaringType, importedMethod1.DeclaringType);
@@ -173,8 +166,8 @@ namespace FodyTools.Tests
 
             var target = new CodeImporter(module);
 
-            var importedMethod1 = target.ImportMethod(() => new ComplexSampleClass<T1, T2>(default, default, default));
-            var importedMethod2 = target.ImportMethod(() => default(ComplexSampleClass<T1, T2>).SomeMethod<T>(default, default, default));
+            var importedMethod1 = target.ImportMethod(() => new ComplexSampleClass<T1, T2>(default!, default!, default));
+            var importedMethod2 = target.ImportMethod(() => default(ComplexSampleClass<T1, T2>)!.SomeMethod<T>(default, default, default));
 
             Assert.NotEqual(importedMethod2, importedMethod1);
             Assert.Equal(importedMethod2.DeclaringType, importedMethod1.DeclaringType);
@@ -243,8 +236,9 @@ namespace FodyTools.Tests
             var target = new CodeImporter(module);
 
             var importedField = target.ImportField(() => default(MyEventArgs).field);
+            var importedTypes = target.ListImportedTypes();
 
-            Assert.Equal(importedField.DeclaringType, target.ListImportedTypes().Single().Value);
+            Assert.Equal(importedField.DeclaringType, importedTypes.Single().Value);
         }
 
         [Fact]

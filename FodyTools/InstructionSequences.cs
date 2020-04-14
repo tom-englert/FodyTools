@@ -34,11 +34,10 @@
                 .Select(inst => sequencePointMapper.GetNext(inst.Offset))
                 .GroupBy(item => item);
 
-            InstructionSequence previous = null;
+            InstructionSequence? previous = null;
 
             foreach (var group in sequences)
             {
-                Debug.Assert(group != null, "group != null");
                 yield return (previous = new InstructionSequence(instructions, previous, group.Count(), group.Key));
             }
         }
@@ -53,7 +52,7 @@
                 _sequencePoints = sequencePoints;
             }
 
-                        public SequencePoint GetNext(int offset)
+            public SequencePoint GetNext(int offset)
             {
                 while (true)
                 {

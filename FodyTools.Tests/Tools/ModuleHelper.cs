@@ -85,28 +85,6 @@
             return method;
         }
 
-        public static FrameworkName? GetTargetFrameworkName(this ModuleDefinition moduleDefinition)
-        {
-            return moduleDefinition.Assembly
-                .CustomAttributes
-                .Where(attr => attr.AttributeType.FullName == typeof(TargetFrameworkAttribute).FullName)
-                .Select(attr => attr.ConstructorArguments.Select(arg => arg.Value as string).FirstOrDefault())
-                .Where(name => !string.IsNullOrEmpty(name))
-                .Select(name => new FrameworkName(name))
-                .FirstOrDefault();
-        }
-
-        public static FrameworkName? GetTargetFrameworkName(this Type typeInTargetAssembly)
-        {
-            return typeInTargetAssembly.Assembly
-                .CustomAttributes
-                .Where(attr => attr.AttributeType.FullName == typeof(TargetFrameworkAttribute).FullName)
-                .Select(attr => attr.ConstructorArguments.Select(arg => arg.Value as string).FirstOrDefault())
-                .Where(name => !string.IsNullOrEmpty(name))
-                .Select(name => new FrameworkName(name))
-                .FirstOrDefault();
-        }
-
         public static IAssemblyResolver AssemblyResolver => new AssemblyResolverAdapter(typeof(ModuleHelper).GetTargetFrameworkName());
 
         private interface IInternalAssemblyResolver
@@ -116,7 +94,7 @@
 
         private class AssemblyResolverAdapter : IAssemblyResolver
         {
-            private readonly Dictionary<string, AssemblyDefinition> _cache = new Dictionary<string, AssemblyDefinition>();
+            private readonly IDictionary<string, AssemblyDefinition?> _cache = new Dictionary<string, AssemblyDefinition?>();
             private readonly IAssemblyResolver _defaultResolver = new DefaultAssemblyResolver();
             private IInternalAssemblyResolver? _internalResolver;
 
@@ -153,7 +131,7 @@
                 return assemblyDefinition;
             }
 
-            public AssemblyDefinition? Resolve(AssemblyNameReference name, ReaderParameters parameters)
+            public AssemblyDefinition? Resolve(AssemblyNameReference nameReference, ReaderParameters parameters)
             {
                 return _internalResolver?.Resolve(nameReference, parameters) ?? _defaultResolver.Resolve(nameReference, parameters);
             }

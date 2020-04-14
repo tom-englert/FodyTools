@@ -39,7 +39,7 @@
             Assert.Equal(6, sequence5.Count);
             Assert.Equal(instructions[7], sequence5[0]);
             Assert.Equal(OpCodes.Ldloc_0, sequence5[0].OpCode);
-            Assert.Equal(213, sequence5.Point?.StartLine);
+            Assert.Equal(210, sequence5.Point?.StartLine);
         }
 
         [Fact]

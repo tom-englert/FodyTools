@@ -27,7 +27,7 @@
             {
                 HideImportedTypes = false,
                 ModuleResolver = new AssemblyModuleResolver(
-                    typeof(Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialog).Assembly, 
+                    typeof(Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialog).Assembly,
                     typeof(Microsoft.WindowsAPICodePack.Dialogs.TaskDialog).Assembly,
                     typeof(Newtonsoft.Json.JsonConvert).Assembly)
             };

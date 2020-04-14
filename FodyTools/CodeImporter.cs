@@ -43,7 +43,7 @@
             TargetModule = targetModule;
             AssemblyResolver = targetModule.AssemblyResolver;
         }
-        
+
         public ModuleDefinition TargetModule { get; }
         public IModuleResolver? ModuleResolver { get; set; }
         public IAssemblyResolver? AssemblyResolver { get; set; }
@@ -862,22 +862,18 @@
             return source;
         }
 
-        [CanBeNull]
-        public MethodReference ImportMethod([CanBeNull] MethodReference source)
+        public MethodReference? ImportMethod(MethodReference? source)
         {
             switch (source)
             {
                 case MethodDefinition methodDefinition:
                     return ImportMethodDefinition(methodDefinition, ImportTypeDefinition(source.DeclaringType.Resolve()));
 
-                case MethodReference methodReference:
-                    return ImportMethodReference(methodReference);
-
                 case null:
                     return null;
 
                 default:
-                    throw new InvalidOperationException("unsupported method type: " + source.GetType());
+                    return ImportMethodReference(source);
             }
         }
 

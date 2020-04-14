@@ -1,5 +1,8 @@
 ﻿#pragma warning disable CS0618 // Type or member is obsolete
 #pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+#pragma warning disable CS8601 // Possible null reference assignment.
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
 
 namespace FodyTools.Tests
 {

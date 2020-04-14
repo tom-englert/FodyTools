@@ -1,4 +1,6 @@
 ﻿#pragma warning disable CS1720 // Expression will always cause a System.NullReferenceException because the type's default value is null
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
 
 namespace FodyTools.Tests
 {
@@ -22,7 +24,7 @@ namespace FodyTools.Tests
             var importer = new CodeImporter(module);
 
             var type = importer.Import<SimpleSampleClass>();
-            var method = importer.ImportMethod(() => default(SimpleGenericClass<T>).Method(default));
+            var method = importer.ImportMethod(() => default(SimpleGenericClass<T>)!.Method(default));
 
             var genericInstanceType = method.DeclaringType.MakeGenericInstanceType(type);
 

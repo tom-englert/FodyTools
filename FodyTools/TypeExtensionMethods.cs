@@ -175,7 +175,7 @@
             {
                 var module = classDefinition.Module;
 
-                const MethodAttributes attributes 
+                const MethodAttributes attributes
                     = MethodAttributes.Private
                     | MethodAttributes.HideBySig
                     | MethodAttributes.Static
