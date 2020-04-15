@@ -912,6 +912,7 @@
                     elementMethod = ImportGenericInstanceMethod(genericInstanceMethod);
                     break;
 
+                // ReSharper disable once PatternAlwaysOfType
                 case MethodReference sourceMethodReference:
                     elementMethod = ImportMethodReference(sourceMethodReference);
                     break;
