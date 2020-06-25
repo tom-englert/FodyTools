@@ -24,7 +24,7 @@ namespace FodyTools
         /// or
         /// method is already a generic instance
         /// </exception>
-                public static MethodReference OnGenericType(this MethodReference method, TypeReference genericType)
+        public static MethodReference OnGenericType(this MethodReference method, TypeReference genericType)
         {
             if (!genericType.IsGenericInstance)
                 throw new InvalidOperationException("Need a generic type as the target.");
@@ -52,7 +52,7 @@ namespace FodyTools
         /// <param name="method">The method.</param>
         /// <param name="genericType">Type of the generic.</param>
         /// <returns>The bound or the original method.</returns>
-                public static MethodReference OnGenericTypeOrSelf(this MethodReference method, TypeReference genericType)
+        public static MethodReference OnGenericTypeOrSelf(this MethodReference method, TypeReference genericType)
         {
             if (!genericType.IsGenericInstance || method.IsGenericInstance)
                 return method;
@@ -60,7 +60,7 @@ namespace FodyTools
             return method.OnGenericType(genericType);
         }
 
-                public static GenericInstanceMethod MakeGenericInstanceMethod(this MethodReference method, params TypeReference[] arguments)
+        public static GenericInstanceMethod MakeGenericInstanceMethod(this MethodReference method, params TypeReference[] arguments)
         {
             var newMethod = new GenericInstanceMethod(method);
 
@@ -73,16 +73,16 @@ namespace FodyTools
             return newMethod;
         }
 
-        public static SequencePoint? GetEntryPoint(this MethodReference? method, ISymbolReader? symbolReader)
+        public static SequencePoint? GetEntryPoint(this MethodReference? method)
         {
-            return method?.Resolve()?.ReadSequencePoints(symbolReader)?.FirstOrDefault();
+            return method?.Resolve()?.GetSequencePoints()?.FirstOrDefault();
         }
 
         // ReSharper disable once ReturnTypeCanBeEnumerable.Global
-        public static IList<SequencePoint>? ReadSequencePoints(this MethodDefinition? method, ISymbolReader? symbolReader)
+        public static IList<SequencePoint>? GetSequencePoints(this MethodDefinition? method)
         {
             return (method?.DebugInformation?.HasSequencePoints == true)
-                ? symbolReader?.Read(method)?.SequencePoints
+                ? method.DebugInformation.SequencePoints
                 : null;
         }
     }

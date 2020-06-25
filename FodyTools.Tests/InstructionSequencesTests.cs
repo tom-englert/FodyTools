@@ -39,7 +39,7 @@
             Assert.Equal(6, sequence5.Count);
             Assert.Equal(instructions[7], sequence5[0]);
             Assert.Equal(OpCodes.Ldloc_0, sequence5[0].OpCode);
-            Assert.Equal(210, sequence5.Point?.StartLine);
+            Assert.Equal(218, sequence5.Point?.StartLine);
         }
 
         [Fact]
@@ -185,7 +185,15 @@
 
             Assert.True(enumerator.MoveNext());
             Assert.Equal(sequence5[0], enumerator.Current);
+        }
 
+        [Fact]
+        public void ReturnsOneSequenceIfNoDebugInfoIsPresent()
+        {
+            var sequences = new InstructionSequences(new Instruction[] { Instruction.Create(OpCodes.Nop)  }, null);
+
+            Assert.Single(sequences);
+            Assert.Single(sequences[0]);
         }
 
         private InstructionSequences LoadInstructionSequences()
