@@ -73,12 +73,14 @@
         {
             return Import(typeof(T));
         }
+
         public TypeDefinition Import(TypeDefinition sourceType)
         {
             RegisterSourceModule(sourceType.Module);
 
             return ProcessDeferredActions(ImportTypeDefinition(sourceType));
         }
+
         public GenericInstanceMethod Import(GenericInstanceMethod method)
         {
             return ProcessDeferredActions(ImportGenericInstanceMethod(method));
@@ -205,10 +207,11 @@
         /// Returns a collection of the imported types.
         /// </summary>
         /// <returns>The collection of imported types.</returns>
-        public IDictionary<TypeDefinition, TypeDefinition> ListImportedTypes(bool includeNested = false)
+        public IDictionary<TypeDefinition, TypeDefinition> ListImportedTypes(bool includeNested = false, bool includeEmbedded = false)
         {
             return _targetTypesBySource
                 .Where(t => includeNested || t.Value?.DeclaringType == null)
+                .Where(t => includeEmbedded || !t.Value.IsEmbeddedType())
                 .ToDictionary(item => item.Key, item => item.Value);
         }
 
@@ -299,6 +302,25 @@
 
             if (_targetTypes.Contains(sourceType))
                 return sourceType;
+
+            if (sourceType.IsEmbeddedType())
+            {
+                var existingType = TargetModule.GetTypes().FirstOrDefault(t => t.FullName == sourceType.FullName);
+                if (existingType != null)
+                {
+                    _targetTypesBySource[sourceType] = existingType;
+                    foreach (var method in sourceType.Methods)
+                    {
+                        var existingMethod = existingType.Methods.FirstOrDefault(m => m.HasSameNameAndSignature(method));
+                        if (existingMethod != null)
+                        {
+                            _targetMethods[method] = existingMethod;
+                        }
+                    }
+
+                    return existingType;
+                }
+            }
 
             if (IsLocalOrExternalReference(sourceType))
                 return sourceType;
@@ -1158,6 +1180,20 @@
             var importedAssemblyNames = new HashSet<string>(codeImporter.ListImportedModules().Select(m => m.Assembly.FullName));
 
             module.AssemblyReferences.RemoveAll(ar => importedAssemblyNames.Contains(ar.FullName));
+        }
+
+        public static bool IsEmbeddedType(this TypeDefinition typeDefinition)
+        {
+            if (!typeDefinition.HasCustomAttributes)
+                return false;
+
+            return typeDefinition.CustomAttributes.Any(attr => attr.AttributeType.FullName == "Microsoft.CodeAnalysis.EmbeddedAttribute");
+        }
+
+        public static bool HasSameNameAndSignature(this MethodDefinition method1, MethodDefinition method2)
+        {
+            return method1.Name == method2.Name 
+                && method1.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(method2.Parameters.Select(p => p.ParameterType.FullName));
         }
 
         private static void MergeMethodReference(CodeImporter codeImporter, MethodReference methodReference, MethodDefinition methodDefinition)

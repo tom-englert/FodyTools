@@ -25,6 +25,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShellAssembly", "ShellAssem
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReferencedAssembly", "ReferencedAssembly\ReferencedAssembly.csproj", "{F5A8DBB9-DEAB-4783-93C4-D9FFCAF30F97}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DummyNullableAssembly", "DummyNullableAssembly\DummyNullableAssembly.csproj", "{45C51E0B-C45B-40F9-8FDD-41EBADC3D3F1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmptyNullableAssembly", "EmptyNullableAssembly\EmptyNullableAssembly.csproj", "{6EC9109E-FD6C-41E4-BD00-523D646EC7DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +63,14 @@ Global
 		{F5A8DBB9-DEAB-4783-93C4-D9FFCAF30F97}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5A8DBB9-DEAB-4783-93C4-D9FFCAF30F97}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5A8DBB9-DEAB-4783-93C4-D9FFCAF30F97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45C51E0B-C45B-40F9-8FDD-41EBADC3D3F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45C51E0B-C45B-40F9-8FDD-41EBADC3D3F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45C51E0B-C45B-40F9-8FDD-41EBADC3D3F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45C51E0B-C45B-40F9-8FDD-41EBADC3D3F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EC9109E-FD6C-41E4-BD00-523D646EC7DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EC9109E-FD6C-41E4-BD00-523D646EC7DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EC9109E-FD6C-41E4-BD00-523D646EC7DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EC9109E-FD6C-41E4-BD00-523D646EC7DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

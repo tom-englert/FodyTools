@@ -305,6 +305,49 @@ namespace FodyTools.Tests
         }
 
         [Fact]
+        public void ILMergeNullable()
+        {
+            var module = ModuleHelper.LoadModule<DummyNullableAssembly.SimpleSampleClass>();
+
+            var codeImporter = new CodeImporter(module)
+            {
+                HideImportedTypes = false,
+                ModuleResolver = new AssemblyModuleResolver(typeof(TomsToolbox.Essentials.AssemblyExtensions).Assembly, typeof(Structure).Assembly),
+            };
+
+            codeImporter.ILMerge();
+
+            var tempPath = TestHelper.TempPath;
+
+            foreach (var file in new DirectoryInfo(Path.GetDirectoryName(module.FileName)).EnumerateFiles())
+            {
+                file.CopyTo(Path.Combine(tempPath, file.Name), true);
+            }
+
+            var targetAssemblyPath = Path.Combine(tempPath, "TargetAssembly2.dll");
+
+            module.Assembly.Name.Name = "TargetAssembly2";
+            var now = DateTime.Now;
+            module.Assembly.Name.Version = new Version(now.Year, now.Month, now.Day, (int)now.TimeOfDay.TotalMilliseconds);
+
+            module.Write(targetAssemblyPath);
+
+            var importedModules = codeImporter.ListImportedModules();
+            var importedTypes = codeImporter.ListImportedTypes();
+
+            TestHelper.VerifyTypes(importedTypes, importedModules, targetAssemblyPath);
+
+            var il = TestHelper.ILDasm.Decompile(targetAssemblyPath);
+
+            File.WriteAllText(Path.ChangeExtension(targetAssemblyPath, ".il"), il);
+
+            // TODO: check why we get this when target is NetCore
+            // [MD](0x80131252): Error: Token 0x0200001e following ELEMENT_TYPE_CLASS (_VALUETYPE) in signature is a ValueType (Class,respectively). [token:0x04000004]
+
+            Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper, "0x80131252"));
+        }
+
+        [Fact]
         public void ILMerge2()
         {
             var targetDir = Path.Combine(GetType().GetModuleFolder(), "Binaries");
