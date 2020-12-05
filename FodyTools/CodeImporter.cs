@@ -1184,6 +1184,9 @@
 
         public static bool IsEmbeddedType(this TypeDefinition typeDefinition)
         {
+            if (typeDefinition.Namespace == "System.Diagnostics.CodeAnalysis")
+                return true;
+
             if (!typeDefinition.HasCustomAttributes)
                 return false;
 
