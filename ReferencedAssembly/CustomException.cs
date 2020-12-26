@@ -7,6 +7,8 @@
     [Simple(SimpleEnum.Value2)]
     public class CustomException : Exception
     {
+        private static readonly int[] _staticArray = new[] { 5, 4, 3, 2, 1 };
+
         public CustomException()
         {
         }

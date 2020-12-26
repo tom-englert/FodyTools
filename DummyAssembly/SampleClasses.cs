@@ -17,6 +17,8 @@ namespace FodyTools
     [Sequence(1)]
     public class SimpleSampleClass
     {
+        private static readonly int[] _staticArray = new[] {1, 2, 3, 4, 5};
+
         [Sequence(2)]
         private readonly WeakEventSource<CancelEventArgs> _eventSource = new WeakEventSource<CancelEventArgs>();
 

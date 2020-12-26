@@ -67,8 +67,11 @@
 
                 var prefix = targetTypeName.Substring(0, targetTypeName.Length - sourceTypeName.Length);
 
+                var sourceModuleName = sourceType.Module.Name;
+
                 var decompiledSource = ILDasm.Decompile(assemblyPath, sourceTypeName);
-                var decompiledTarget = ILDasm.Decompile(targetAssemblyPath, targetTypeName);
+                var decompiledTarget = ILDasm.Decompile(targetAssemblyPath, targetTypeName).Replace($"{sourceModuleName}!", "");
+
                 if (!string.IsNullOrEmpty(prefix))
                 {
                     decompiledTarget = decompiledTarget

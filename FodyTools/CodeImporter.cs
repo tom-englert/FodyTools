@@ -327,12 +327,19 @@
 
             RegisterSourceModule(sourceType.Module);
 
-            string DecorateNamespace(TypeDefinition type)
+            string DecoratedNamespace(TypeDefinition type)
             {
                 return type.IsNested ? type.Namespace : NamespaceDecorator(type.Namespace);
             }
 
-            targetType = new TypeDefinition(DecorateNamespace(sourceType), sourceType.Name, sourceType.Attributes)
+            string DecoratedTypeName(TypeDefinition type)
+            {
+                return string.IsNullOrEmpty(type.Namespace) && !type.IsNested
+                    ? $"{type.Module.Name}!{type.Name}"
+                    : type.Name;
+            }
+
+            targetType = new TypeDefinition(DecoratedNamespace(sourceType), DecoratedTypeName(sourceType), sourceType.Attributes)
             {
                 ClassSize = sourceType.ClassSize,
                 PackingSize = sourceType.PackingSize
@@ -1195,7 +1202,7 @@
 
         public static bool HasSameNameAndSignature(this MethodDefinition method1, MethodDefinition method2)
         {
-            return method1.Name == method2.Name 
+            return method1.Name == method2.Name
                 && method1.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(method2.Parameters.Select(p => p.ParameterType.FullName));
         }
 
