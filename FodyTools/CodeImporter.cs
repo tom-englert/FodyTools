@@ -1250,7 +1250,16 @@
 
                 if (attribute.HasConstructorArguments)
                 {
-                    attribute.ConstructorArguments.ReplaceItems(arg => new CustomAttributeArgument(codeImporter.ImportType(arg.Type, null), arg.Value));
+                    attribute.ConstructorArguments.ReplaceItems(arg =>
+                    {
+                        var value = arg.Value;
+                        if (value is TypeReference typeReference)
+                        {
+                           value = codeImporter.ImportType(typeReference, null);
+                        }
+
+                        return new CustomAttributeArgument(codeImporter.ImportType(arg.Type, null), value);
+                    });
                 }
 
                 if (attribute.HasFields)

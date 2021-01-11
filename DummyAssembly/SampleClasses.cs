@@ -13,7 +13,7 @@ namespace FodyTools
 
     using ReferencedAssembly;
 
-
+    [TypeConverter(typeof(TomsToolbox.Core.Disposable))]
     [Sequence(1)]
     public class SimpleSampleClass
     {
