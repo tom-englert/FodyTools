@@ -89,10 +89,23 @@
             }
         }
 
+        private static readonly Regex _binaryDataRegex = new Regex("^[0-9A-F]{2} [0-9A-F]{2}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        public static bool IsNotBinaryData(string line)
+        {
+            if (line.Contains("Attribute::.ctor(class [System]System.Type)"))
+                return false;
+
+            if (_binaryDataRegex.Match(line).Success)
+                return false;
+
+            return true;
+        }
+
         public static void AssertIlStrict(string decompiledSource, string decompiledTarget)
         {
-            var expected = decompiledSource.Replace("\r\n", "\n").Split('\n').OrderBy(line => line).SkipWhile(string.IsNullOrWhiteSpace);
-            var target = decompiledTarget.Replace("\r\n", "\n").Split('\n').OrderBy(line => line).SkipWhile(string.IsNullOrWhiteSpace);
+            var expected = decompiledSource.Replace("\r\n", "\n").Split('\n').OrderBy(line => line).SkipWhile(string.IsNullOrWhiteSpace).Where(IsNotBinaryData); 
+            var target = decompiledTarget.Replace("\r\n", "\n").Split('\n').OrderBy(line => line).SkipWhile(string.IsNullOrWhiteSpace).Where(IsNotBinaryData);
 
             var mismatches = Enumerate.AsTuples(expected, target)
                 .Select((tuple, index) => new { tuple.Item1, tuple.Item2, index })
