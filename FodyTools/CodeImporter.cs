@@ -551,7 +551,13 @@
                 {
                     foreach (var a in sourceAttribute.ConstructorArguments)
                     {
-                        targetAttribute.ConstructorArguments.Add(new CustomAttributeArgument(InternalImportType(a.Type, null), a.Value));
+                        var value = a.Value;
+                        if (value is TypeReference typeReference)
+                        {
+                            value = InternalImportType(typeReference, null);
+                        }
+
+                        targetAttribute.ConstructorArguments.Add(new CustomAttributeArgument(InternalImportType(a.Type, null), value));
                     }
                 }
 
@@ -1255,7 +1261,7 @@
                         var value = arg.Value;
                         if (value is TypeReference typeReference)
                         {
-                           value = codeImporter.ImportType(typeReference, null);
+                            value = codeImporter.ImportType(typeReference, null);
                         }
 
                         return new CustomAttributeArgument(codeImporter.ImportType(arg.Type, null), value);
