@@ -303,7 +303,9 @@
             if (_targetTypes.Contains(sourceType))
                 return sourceType;
 
-            if (sourceType.IsEmbeddedType())
+            var isEmbeddedType = sourceType.IsEmbeddedType();
+
+            if (isEmbeddedType)
             {
                 var existingType = TargetModule.GetTypes().FirstOrDefault(t => t.FullName == sourceType.FullName);
                 if (existingType != null)
@@ -329,7 +331,7 @@
 
             string DecoratedNamespace(TypeDefinition type)
             {
-                return type.IsNested ? type.Namespace : NamespaceDecorator(type.Namespace);
+                return (type.IsNested || isEmbeddedType) ? type.Namespace : NamespaceDecorator(type.Namespace);
             }
 
             string DecoratedTypeName(TypeDefinition type)
