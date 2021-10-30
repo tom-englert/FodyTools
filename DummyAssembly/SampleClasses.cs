@@ -133,7 +133,7 @@ namespace FodyTools
     {
         public void Method(Func<T> argument)
         {
-
+            SR.GuardNotNull(argument);
         }
 
         public void Method2<T1>(Func<T> argument, T1 arg1)

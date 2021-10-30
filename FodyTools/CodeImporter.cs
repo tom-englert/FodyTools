@@ -27,6 +27,7 @@
         private readonly HashSet<TypeDefinition> _targetTypes = new HashSet<TypeDefinition>();
         private readonly Dictionary<MethodDefinition, MethodDefinition> _targetMethods = new Dictionary<MethodDefinition, MethodDefinition>();
         private readonly IList<Action> _deferredActions = new List<Action>();
+        private readonly Dictionary<string, TypeDefinition> _targetTypesByFullName;
 
         private enum Priority
         {
@@ -42,6 +43,7 @@
         {
             TargetModule = targetModule;
             AssemblyResolver = targetModule.AssemblyResolver;
+            _targetTypesByFullName = targetModule.GetTypes().ToDictionary(item => item.FullName);
         }
 
         public ModuleDefinition TargetModule { get; }
@@ -297,41 +299,29 @@
             if (sourceType == null)
                 return null;
 
-            if (_targetTypesBySource.TryGetValue(sourceType, out var targetType))
-                return targetType;
+            if (_targetTypesBySource.TryGetValue(sourceType, out var importedTargetType))
+                return importedTargetType;
 
             if (_targetTypes.Contains(sourceType))
                 return sourceType;
 
-            var isEmbeddedType = sourceType.IsEmbeddedType();
-
-            if (isEmbeddedType)
-            {
-                var existingType = TargetModule.GetTypes().FirstOrDefault(t => t.FullName == sourceType.FullName);
-                if (existingType != null)
-                {
-                    _targetTypesBySource[sourceType] = existingType;
-                    foreach (var method in sourceType.Methods)
-                    {
-                        var existingMethod = existingType.Methods.FirstOrDefault(m => m.HasSameNameAndSignature(method));
-                        if (existingMethod != null)
-                        {
-                            _targetMethods[method] = existingMethod;
-                        }
-                    }
-
-                    return existingType;
-                }
-            }
-
             if (IsLocalOrExternalReference(sourceType))
                 return sourceType;
+
+            _targetTypesByFullName.TryGetValue(sourceType.FullName, out var existingType);
+
+            var isEmbeddedType = sourceType.IsEmbeddedType();
+
+            if (existingType != null && isEmbeddedType)
+            {
+                return MergeIntoExistingType(existingType, sourceType);
+            }
 
             RegisterSourceModule(sourceType.Module);
 
             string DecoratedNamespace(TypeDefinition type)
             {
-                return (type.IsNested || isEmbeddedType) ? type.Namespace : NamespaceDecorator(type.Namespace);
+                return type.IsNested || isEmbeddedType ? type.Namespace : NamespaceDecorator(type.Namespace);
             }
 
             string DecoratedTypeName(TypeDefinition type)
@@ -341,7 +331,7 @@
                     : type.Name;
             }
 
-            targetType = new TypeDefinition(DecoratedNamespace(sourceType), DecoratedTypeName(sourceType), sourceType.Attributes)
+            var targetType = new TypeDefinition(DecoratedNamespace(sourceType), DecoratedTypeName(sourceType), sourceType.Attributes)
             {
                 ClassSize = sourceType.ClassSize,
                 PackingSize = sourceType.PackingSize
@@ -351,6 +341,15 @@
             _targetTypes.Add(targetType);
 
             targetType.DeclaringType = ImportTypeDefinition(sourceType.DeclaringType);
+
+            try
+            {
+                _targetTypesByFullName.Add(targetType.FullName, targetType);
+            }
+            catch (ArgumentException)
+            {
+                throw new InvalidOperationException($"IL Import failed: {targetType.FullName} already exists in target module.");
+            }
 
             CopyGenericParameters(sourceType, targetType);
 
@@ -384,6 +383,26 @@
             CopyAttributes(sourceType, targetType);
 
             return targetType;
+        }
+
+        private TypeDefinition MergeIntoExistingType(TypeDefinition existingType, TypeDefinition sourceType)
+        {
+            _targetTypesBySource[sourceType] = existingType;
+
+            foreach (var method in sourceType.Methods)
+            {
+                var existingMethod = existingType.Methods.FirstOrDefault(m => m.HasSameNameAndSignature(method));
+                if (existingMethod != null)
+                {
+                    _targetMethods[method] = existingMethod;
+                }
+                else
+                {
+                    ImportMethodDefinition(method, existingType);
+                }
+            }
+
+            return existingType;
         }
 
         private void CopyMethods(TypeDefinition source, TypeDefinition target)
@@ -1197,21 +1216,42 @@
             module.AssemblyReferences.RemoveAll(ar => importedAssemblyNames.Contains(ar.FullName));
         }
 
-        public static bool IsEmbeddedType(this TypeDefinition typeDefinition)
+        public static bool IsStatic(this TypeDefinition type)
         {
-            if (typeDefinition.Namespace == "System.Diagnostics.CodeAnalysis")
-                return true;
+            return type.IsAbstract && type.IsSealed;
+        }
 
-            if (!typeDefinition.HasCustomAttributes)
+        public static bool IsEmbeddedType(this TypeDefinition type)
+        {
+            if (type.IsPublic)
                 return false;
 
-            return typeDefinition.CustomAttributes.Any(attr => attr.AttributeType.FullName == "Microsoft.CodeAnalysis.EmbeddedAttribute");
+            if (!type.IsStatic() && (type.BaseType?.Name != "Attribute"))
+                return false;
+
+            if (type.DeclaringType != null)
+            {
+                return type.DeclaringType.IsEmbeddedType();
+            }
+
+            if (type.Namespace?.Split('.').FirstOrDefault() == "System")
+                return true;
+
+            if (!type.HasCustomAttributes)
+                return false;
+
+            return type.CustomAttributes.Any(attr => attr.AttributeType.FullName == "Microsoft.CodeAnalysis.EmbeddedAttribute");
         }
 
         public static bool HasSameNameAndSignature(this MethodDefinition method1, MethodDefinition method2)
         {
             return method1.Name == method2.Name
-                && method1.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(method2.Parameters.Select(p => p.ParameterType.FullName));
+                   && method1.Parameters.Zip(method2.Parameters, IsSameParameter).All(item => item);
+        }
+
+        private static bool IsSameParameter(ParameterDefinition left, ParameterDefinition right)
+        {
+            return left.ParameterType.FullName == right.ParameterType.FullName && left.Attributes == right.Attributes;
         }
 
         private static void MergeMethodReference(CodeImporter codeImporter, MethodReference methodReference, MethodDefinition methodDefinition)

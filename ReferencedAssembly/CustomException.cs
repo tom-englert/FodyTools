@@ -11,10 +11,12 @@
 
         public CustomException()
         {
+            SR.AnotherGuard();
         }
 
         public CustomException(string message) : base(message)
         {
+            SR.GuardNotNull(message);
         }
 
         public CustomException(string message, Exception inner) : base(message, inner)
