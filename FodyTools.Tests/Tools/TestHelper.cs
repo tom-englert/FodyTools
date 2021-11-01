@@ -115,6 +115,16 @@
             Assert.Empty(mismatches);
         }
 
+        public static string RemoveComments(this string il)
+        {
+            return string.Join("\r\n", il.Replace("\r\n", "\n").Split('\n').Where(IsData));
+        }
+
+        private static bool IsData(string value)
+        {
+            return !value.TrimStart().StartsWith("//");
+        }
+
         private static string FixAttributeOrder(string value)
         {
             return value.Replace(

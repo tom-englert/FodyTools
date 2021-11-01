@@ -71,11 +71,11 @@ namespace FodyTools
         {
             try
             {
-
+                StaticClass.Method1();
             }
             catch (CustomException)
             {
-                throw;
+                throw new CustomException("Test");
             }
             catch
             {

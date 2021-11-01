@@ -12,7 +12,6 @@ namespace FodyTools.Tests
     using System;
     using System.Collections;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
 
@@ -24,9 +23,12 @@ namespace FodyTools.Tests
 
     using ReferencedAssembly;
 
+    using VerifyXunit;
+
     using Xunit;
     using Xunit.Abstractions;
 
+    [UsesVerify]
     public class CodeImporterTests
     {
         private readonly ITestOutputHelper _testOutputHelper;
@@ -380,6 +382,34 @@ namespace FodyTools.Tests
 
                 Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper));
             }
+        }
+
+        [Fact]
+        public async void CompactModeTest()
+        {
+            var module = ModuleHelper.LoadModule<SimpleSampleClass>();
+
+            var codeImporter = new CodeImporter(module)
+            {
+                ModuleResolver = new AssemblyModuleResolver(typeof(Structure).Assembly),
+                SkipPropertiesAndEvents = true,
+                DeferMethodImport = method => method.IsStatic && !method.IsConstructor
+            };
+
+            codeImporter.ILMerge();
+
+            var tempPath = TestHelper.TempPath;
+
+            var targetAssemblyPath = Path.Combine(tempPath, "TargetAssembly2.dll");
+
+            module.Assembly.Name.Name = "TargetAssembly2";
+            module.Write(targetAssemblyPath);
+
+            var il = TestHelper.ILDasm.Decompile(targetAssemblyPath).RemoveComments();
+
+            await Verifier.Verify(il).UniqueForRuntime().UniqueForAssemblyConfiguration();
+
+            Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper, "0x80131252"));
         }
     }
 

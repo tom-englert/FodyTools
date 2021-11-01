@@ -1,4 +1,6 @@
-﻿namespace FodyTools
+﻿// ReSharper disable InconsistentNaming
+
+namespace FodyTools
 {
     using System;
     using System.Collections.Generic;
@@ -20,7 +22,6 @@
     /// </remarks>
     internal sealed class CodeImporter
     {
-        // ReSharper disable once AssignNullToNotNullAttribute
         private static readonly ConstructorInfo _instructionConstructor = typeof(Instruction).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(OpCode), typeof(object) }, null);
         private readonly Dictionary<string, ModuleDefinition> _sourceModuleDefinitions = new Dictionary<string, ModuleDefinition>();
         private readonly Dictionary<TypeDefinition, TypeDefinition> _targetTypesBySource = new Dictionary<TypeDefinition, TypeDefinition>();
@@ -51,6 +52,8 @@
         public IAssemblyResolver? AssemblyResolver { get; set; }
         public Func<string, string> NamespaceDecorator { get; set; } = value => value;
         public bool HideImportedTypes { get; set; } = true;
+        public bool SkipPropertiesAndEvents { get; set; }
+        public Func<MethodDefinition, bool> DeferMethodImport = _ => false;
 
         /// <summary>
         /// Imports the specified type and it's local references from it's source module into the target module.
@@ -230,7 +233,7 @@
         {
             var assemblyName = assembly.FullName;
 
-            if (_sourceModuleDefinitions.TryGetValue(assemblyName, out var sourceModule) && (sourceModule != null))
+            if (_sourceModuleDefinitions.TryGetValue(assemblyName, out var sourceModule))
                 return sourceModule;
 
             var fileName = new Uri(assembly.CodeBase, UriKind.Absolute).LocalPath;
@@ -295,7 +298,6 @@
         [return: NotNullIfNotNull("sourceType")]
         private TypeDefinition? ImportTypeDefinition(TypeDefinition? sourceType)
         {
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             if (sourceType == null)
                 return null;
 
@@ -385,36 +387,45 @@
             return targetType;
         }
 
-        private TypeDefinition MergeIntoExistingType(TypeDefinition existingType, TypeDefinition sourceType)
+        private TypeDefinition MergeIntoExistingType(TypeDefinition existing, TypeDefinition source)
         {
-            _targetTypesBySource[sourceType] = existingType;
+            _targetTypesBySource[source] = existing;
 
-            foreach (var method in sourceType.Methods)
+            foreach (var method in source.Methods)
             {
-                var existingMethod = existingType.Methods.FirstOrDefault(m => m.HasSameNameAndSignature(method));
+                var existingMethod = existing.Methods.FirstOrDefault(m => m.HasSameNameAndSignature(method));
                 if (existingMethod != null)
                 {
                     _targetMethods[method] = existingMethod;
                 }
                 else
                 {
-                    ImportMethodDefinition(method, existingType);
+                    if (DeferMethodImport(method))
+                        continue;
+
+                    ImportMethodDefinition(method, existing);
                 }
             }
 
-            return existingType;
+            return existing;
         }
 
         private void CopyMethods(TypeDefinition source, TypeDefinition target)
         {
             foreach (var method in source.Methods)
             {
+                if (DeferMethodImport(method))
+                    continue;
+
                 ImportMethodDefinition(method, target);
             }
         }
 
         private void CopyProperties(TypeDefinition source, TypeDefinition target)
         {
+            if (SkipPropertiesAndEvents)
+                return;
+
             foreach (var sourceDefinition in source.Properties)
             {
                 var targetDefinition = new PropertyDefinition(sourceDefinition.Name, sourceDefinition.Attributes, InternalImportType(sourceDefinition.PropertyType, null))
@@ -431,6 +442,9 @@
 
         private void CopyEvents(TypeDefinition source, TypeDefinition target)
         {
+            if (SkipPropertiesAndEvents)
+                return;
+
             foreach (var sourceDefinition in source.Events)
             {
                 var targetDefinition = new EventDefinition(sourceDefinition.Name, sourceDefinition.Attributes, InternalImportType(sourceDefinition.EventType, null))
@@ -1256,6 +1270,11 @@
 
         private static void MergeMethodReference(CodeImporter codeImporter, MethodReference methodReference, MethodDefinition methodDefinition)
         {
+            if (!codeImporter.IsLocalOrExternalReference(methodReference.DeclaringType))
+            {
+                codeImporter.ImportMethod(methodReference.Resolve());
+            }
+
             methodReference.DeclaringType = codeImporter.ImportType(methodReference.DeclaringType, methodDefinition);
             methodReference.ReturnType = codeImporter.ImportType(methodReference.ReturnType, methodDefinition);
 

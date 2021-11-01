@@ -1,4 +1,6 @@
-﻿using TomsToolbox.Essentials;
+﻿#pragma warning disable CS8603 // Possible null reference return.
+
+using TomsToolbox.Essentials;
 
 [assembly: PluginModule("1", "2", "3")]
 [module: PluginModule("4", "5", "6")]

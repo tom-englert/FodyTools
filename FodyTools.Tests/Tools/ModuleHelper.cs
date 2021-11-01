@@ -155,6 +155,22 @@
             {
                 var name = nameReference.Name;
 
+                if (string.Equals(name, "netstandard", StringComparison.OrdinalIgnoreCase))
+                {
+                    var sdk = @"c:\program files\dotnet\sdk";
+
+                    var netstandard = Directory.EnumerateFiles(sdk, "netstandard.dll", SearchOption.AllDirectories)
+                        .Select(fileName => new FileInfo(fileName))
+                        .OrderByDescending(file => file.Length)
+                        .Select(file => file.FullName)
+                        .FirstOrDefault();
+
+                    if (File.Exists(netstandard))
+                    {
+                        return AssemblyDefinition.ReadAssembly(netstandard, parameters);
+                    }
+                }
+
                 var path = Path.Combine(_refAssembliesFolder, name + ".dll");
                 if (!File.Exists(path))
                     return null;

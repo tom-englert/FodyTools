@@ -11,5 +11,9 @@
         public static void AnotherGuard()
         {
         }
+
+        public static void AnotherMethod()
+        {
+        }
     }
 }

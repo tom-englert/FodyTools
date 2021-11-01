@@ -12,6 +12,7 @@
         public CustomException()
         {
             SR.AnotherGuard();
+            StaticClass.Method2();
         }
 
         public CustomException(string message) : base(message)
@@ -27,6 +28,16 @@
             SerializationInfo info,
             StreamingContext context) : base(info, context)
         {
+        }
+
+        public static void SomeMethod()
+        {
+            Console.WriteLine("SomeMethod");
+        }
+
+        static CustomException()
+        {
+            Console.WriteLine(".cctor");
         }
     }
 }
