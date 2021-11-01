@@ -198,7 +198,6 @@ namespace FodyTools.Tests
             }
         }
 
-
         [Fact]
         public void ImportMethodsThrowsOnInvalidExpression()
         {
@@ -256,7 +255,6 @@ namespace FodyTools.Tests
                 target.ImportField(() => default(MyEventArgs).AnotherValue);
             });
         }
-
 
         [Theory]
         [InlineData("")]
