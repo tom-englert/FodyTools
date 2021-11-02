@@ -181,7 +181,6 @@
 
                 var ignoreCodes = new[]
                 {
-                    "0x80131869", // can't resolve reference => PEVerify can't find the referenced dll...
                     "0x80070002", // The system cannot find the file specified.
                     "0x801318F3"  // Type load failed 
                 }.Concat(additionalIgnoreCodes);

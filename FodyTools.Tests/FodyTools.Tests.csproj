@@ -35,5 +35,6 @@
   <ItemGroup Condition="'$(TargetFramework)'=='net472'">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="WindowsBase" />
+    <ProjectReference Include="..\ShellAssembly\ShellAssembly.csproj" />
   </ItemGroup>
 </Project>

@@ -951,6 +951,8 @@ namespace FodyTools
         {
             Debug.Assert(source.GetType() == typeof(MethodReference));
 
+            ImportReferencedMethod(source);
+
             var target = new MethodReference(source.Name, TemporaryPlaceholderType)
             {
                 HasThis = source.HasThis,
@@ -966,6 +968,16 @@ namespace FodyTools
             CopyReturnType(source, target);
 
             return target;
+        }
+
+        public void ImportReferencedMethod(MethodReference reference)
+        {
+            Debug.Assert(reference.GetType() == typeof(MethodReference));
+
+            if (!IsLocalOrExternalReference(reference.DeclaringType))
+            {
+                ImportMethod(reference.Resolve());
+            }
         }
 
         private GenericInstanceMethod ImportGenericInstanceMethod(GenericInstanceMethod source)
@@ -1270,10 +1282,7 @@ namespace FodyTools
 
         private static void MergeMethodReference(CodeImporter codeImporter, MethodReference methodReference, MethodDefinition methodDefinition)
         {
-            if (!codeImporter.IsLocalOrExternalReference(methodReference.DeclaringType))
-            {
-                codeImporter.ImportMethod(methodReference.Resolve());
-            }
+            codeImporter.ImportReferencedMethod(methodReference);
 
             methodReference.DeclaringType = codeImporter.ImportType(methodReference.DeclaringType, methodDefinition);
             methodReference.ReturnType = codeImporter.ImportType(methodReference.ReturnType, methodDefinition);

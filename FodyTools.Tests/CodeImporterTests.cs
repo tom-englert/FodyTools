@@ -14,6 +14,7 @@ namespace FodyTools.Tests
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Threading.Tasks;
 
     using EmptyAssembly;
 
@@ -347,42 +348,41 @@ namespace FodyTools.Tests
             Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper, "0x80131252"));
         }
 
+#if NETFRAMEWORK
         [Fact]
-        public void ILMerge2()
+        public async void ILMerge2()
         {
-            var targetDir = Path.Combine(GetType().GetModuleFolder(), "Binaries");
+            var module = ModuleHelper.LoadModule<ShellAssembly.Program>();
 
-            using (new CurrentDirectory(targetDir))
+            var codeImporter = new CodeImporter(module)
             {
-                var assemblyPath = Path.Combine(targetDir, "ResxManager.exe");
-                var module = ModuleHelper.LoadModule(assemblyPath);
+                HideImportedTypes = false,
+                ModuleResolver = new AssemblyModuleResolver(
+                    typeof(Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialog).Assembly,
+                    typeof(Microsoft.WindowsAPICodePack.Dialogs.TaskDialog).Assembly,
+                    typeof(Newtonsoft.Json.JsonConvert).Assembly),
+                SkipPropertiesAndEvents = true,
+                DeferMethodImport = methodDefinition => methodDefinition.IsStatic && !methodDefinition.IsConstructor
+            };
 
-                var codeImporter = new CodeImporter(module)
-                {
-                    HideImportedTypes = false,
-                    ModuleResolver = new LocalReferenceModuleResolver()
-                };
+            codeImporter.ILMerge();
 
-                codeImporter.ILMerge();
+            var tempPath = TestHelper.TempPath;
 
-                var tempPath = TestHelper.TempPath;
+            var targetAssemblyPath = Path.Combine(tempPath, "TargetAssembly2.dll");
 
-                foreach (var file in new DirectoryInfo(targetDir).EnumerateFiles())
-                {
-                    file.CopyTo(Path.Combine(tempPath, file.Name), true);
-                }
+            module.Assembly.Name.Name = "TargetAssembly2";
+            module.Write(targetAssemblyPath);
 
-                var targetAssemblyPath = Path.Combine(tempPath, "TargetAssembly2.dll");
+            Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper));
 
-                module.Assembly.Name.Name = "TargetAssembly2";
-                var now = DateTime.Now;
-                module.Assembly.Name.Version = new Version(now.Year, now.Month, now.Day, (int)now.TimeOfDay.TotalMilliseconds);
+            //var il = TestHelper.ILDasm.Decompile(targetAssemblyPath).RemoveComments();
 
-                module.Write(targetAssemblyPath);
+            //await Verifier.Verify(il).UniqueForRuntime().UniqueForAssemblyConfiguration();
 
-                Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper));
-            }
+            await Task.CompletedTask;
         }
+#endif
 
         [Fact]
         public async void CompactModeTest()

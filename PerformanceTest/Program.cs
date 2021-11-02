@@ -54,6 +54,7 @@
             module.Write(targetAssemblyPath);
 
             var peVerify = TestHelper.PEVerify.Verify(targetAssemblyPath, line => Console.WriteLine(line));
+            Assert.True(peVerify);
 
             var importedTypes = codeImporter.ListImportedTypes();
 
@@ -65,8 +66,6 @@
 
             Console.WriteLine("Done - press any key...");
             Console.ReadKey();
-
-            Assert.True(peVerify);
         }
 
         private static void AssertIl(string typeName, string source, string target)
