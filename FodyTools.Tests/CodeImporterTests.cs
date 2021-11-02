@@ -277,10 +277,7 @@ namespace FodyTools.Tests
 
             var tempPath = TestHelper.TempPath;
 
-            foreach (var file in new DirectoryInfo(Path.GetDirectoryName(module.FileName)).EnumerateFiles())
-            {
-                file.CopyTo(Path.Combine(tempPath, file.Name), true);
-            }
+            CopyLocalReferences(module, tempPath);
 
             var targetAssemblyPath = Path.Combine(tempPath, "TargetAssembly2.dll");
 
@@ -400,6 +397,8 @@ namespace FodyTools.Tests
 
             var tempPath = TestHelper.TempPath;
 
+            CopyLocalReferences(module, tempPath);
+
             var targetAssemblyPath = Path.Combine(tempPath, "TargetAssembly2.dll");
 
             module.Assembly.Name.Name = "TargetAssembly2";
@@ -410,6 +409,14 @@ namespace FodyTools.Tests
             await Verifier.Verify(il).UniqueForRuntime().UniqueForAssemblyConfiguration();
 
             Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper, "0x80131252"));
+        }
+
+        private static void CopyLocalReferences(ModuleDefinition module, string targetPath)
+        {
+            foreach (var file in new DirectoryInfo(Path.GetDirectoryName(module.FileName)).EnumerateFiles())
+            {
+                file.CopyTo(Path.Combine(targetPath, file.Name), true);
+            }
         }
     }
 
