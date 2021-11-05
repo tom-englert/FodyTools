@@ -1,11 +1,12 @@
 ﻿namespace ReferencedAssembly
 {
     using System;
+    using System.Collections;
     using System.Runtime.Serialization;
 
     [Serializable]
     [Simple(SimpleEnum.Value2)]
-    public class CustomException : Exception
+    public class CustomException : Exception, IEnumerable
     {
         private static readonly int[] _staticArray = new[] { 5, 4, 3, 2, 1 };
 
@@ -38,6 +39,11 @@
         static CustomException()
         {
             Console.WriteLine(".cctor");
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return default;
         }
     }
 }

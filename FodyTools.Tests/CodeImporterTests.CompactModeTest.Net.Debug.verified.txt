@@ -1000,7 +1000,7 @@
     .size 20
   } // end of class '__StaticArrayInitTypeSize=20'
 
-  .field static assembly initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=20' '4F6ADDC9659D6FB90FE94B6688A79F2A1FA8D36EC43F8F3E1D9B6528C448A384' at I_000025B4
+  .field static assembly initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=20' '4F6ADDC9659D6FB90FE94B6688A79F2A1FA8D36EC43F8F3E1D9B6528C448A384' at I_000025C8
 } // end of class '<PrivateImplementationDetails>'
 
 .class private sequential ansi serializable sealed beforefieldinit ReferencedAssembly.Structure
@@ -1037,6 +1037,7 @@
 
 .class private auto ansi serializable ReferencedAssembly.CustomException
        extends [mscorlib]System.Exception
+       implements [mscorlib]System.Collections.IEnumerable
 {
   .custom instance void ReferencedAssembly.SimpleAttribute::.ctor(valuetype ReferencedAssembly.SimpleEnum) = ( 01 00 01 00 00 00 00 00 ) 
   .field private static initonly int32[] _staticArray
@@ -1118,6 +1119,22 @@
     IL_0022:  ret
   } // end of method CustomException::.cctor
 
+  .method private hidebysig newslot virtual final 
+          instance class [mscorlib]System.Collections.IEnumerator 
+          System.Collections.IEnumerable.GetEnumerator() cil managed
+  {
+    .override [mscorlib]System.Collections.IEnumerable::GetEnumerator
+    .maxstack  1
+    .locals init (class [mscorlib]System.Collections.IEnumerator V_0)
+    IL_0000:  nop
+    IL_0001:  ldnull
+    IL_0002:  stloc.0
+    IL_0003:  br.s       IL_0005
+
+    IL_0005:  ldloc.0
+    IL_0006:  ret
+  } // end of method CustomException::System.Collections.IEnumerable.GetEnumerator
+
 } // end of class ReferencedAssembly.CustomException
 
 .class private auto ansi beforefieldinit ReferencedAssembly.SimpleAttribute
@@ -1185,14 +1202,14 @@
     .size 20
   } // end of class '__StaticArrayInitTypeSize=20'
 
-  .field static assembly initonly valuetype 'ReferencedAssembly.dll!<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=20' '9F6F066313FE3C753CCA95B263A3F9228A899ACAB758CC3A3AAE0E558D93DCC5' at I_000025C8
+  .field static assembly initonly valuetype 'ReferencedAssembly.dll!<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=20' '9F6F066313FE3C753CCA95B263A3F9228A899ACAB758CC3A3AAE0E558D93DCC5' at I_000025DC
 } // end of class 'ReferencedAssembly.dll!<PrivateImplementationDetails>'
 
 
 
-.data cil I_000025B4 = bytearray (
+.data cil I_000025C8 = bytearray (
                  01 00 00 00 02 00 00 00 03 00 00 00 04 00 00 00
                  05 00 00 00) 
-.data cil I_000025C8 = bytearray (
+.data cil I_000025DC = bytearray (
                  05 00 00 00 04 00 00 00 03 00 00 00 02 00 00 00
                  01 00 00 00) 

@@ -351,6 +351,20 @@ namespace FodyTools.Tests
         {
             var module = ModuleHelper.LoadModule<ShellAssembly.Program>();
 
+            static bool CanDeferMethodImport(MethodDefinition method)
+            {
+                if (method.IsConstructor)
+                    return false;
+
+                if (method.IsStatic)
+                    return true;
+
+                if (method.HasOverrides || method.IsAbstract || method.IsVirtual || method.IsPInvokeImpl)
+                    return false;
+
+                return true;
+            }
+
             var codeImporter = new CodeImporter(module)
             {
                 HideImportedTypes = false,
@@ -359,7 +373,7 @@ namespace FodyTools.Tests
                     typeof(Microsoft.WindowsAPICodePack.Dialogs.TaskDialog).Assembly,
                     typeof(Newtonsoft.Json.JsonConvert).Assembly),
                 SkipPropertiesAndEvents = true,
-                DeferMethodImport = methodDefinition => methodDefinition.IsStatic && !methodDefinition.IsConstructor
+                DeferMethodImport = CanDeferMethodImport
             };
 
             codeImporter.ILMerge();
