@@ -52,8 +52,8 @@ namespace FodyTools
         public IAssemblyResolver? AssemblyResolver { get; set; }
         public Func<string, string> NamespaceDecorator { get; set; } = value => value;
         public bool HideImportedTypes { get; set; } = true;
-        public bool SkipPropertiesAndEvents { get; set; }
-        public Func<MethodDefinition, bool> DeferMethodImport = _ => false;
+        public bool CompactMode { get; set; } = true;
+        public Func<MethodDefinition, bool> DeferMethodImportCallback = DefaultCanDeferMethodImport;
 
         /// <summary>
         /// Imports the specified type and it's local references from it's source module into the target module.
@@ -227,6 +227,24 @@ namespace FodyTools
         public ICollection<ModuleDefinition> ListImportedModules()
         {
             return _sourceModuleDefinitions.Values;
+        }
+
+        private static bool DefaultCanDeferMethodImport(MethodDefinition method)
+        {
+            if (method.IsConstructor)
+                return false;
+
+            if (method.IsStatic)
+                return true;
+
+            var declaringType = method.DeclaringType;
+
+            return !declaringType.IsInterface && !declaringType.IsValueType && !method.IsAbstract && !method.IsVirtual && !method.IsPInvokeImpl;
+        }
+
+        private bool DeferMethodImport(MethodDefinition method)
+        {
+            return CompactMode && DeferMethodImportCallback(method);
         }
 
         private ModuleDefinition RegisterSourceModule(Assembly assembly)
@@ -423,7 +441,7 @@ namespace FodyTools
 
         private void CopyProperties(TypeDefinition source, TypeDefinition target)
         {
-            if (SkipPropertiesAndEvents)
+            if (CompactMode)
                 return;
 
             foreach (var sourceDefinition in source.Properties)
@@ -442,7 +460,7 @@ namespace FodyTools
 
         private void CopyEvents(TypeDefinition source, TypeDefinition target)
         {
-            if (SkipPropertiesAndEvents)
+            if (CompactMode)
                 return;
 
             foreach (var sourceDefinition in source.Events)

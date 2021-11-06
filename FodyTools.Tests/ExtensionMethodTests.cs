@@ -21,7 +21,7 @@ namespace FodyTools.Tests
         public void OnGenericTypeTest1()
         {
             var module = ModuleHelper.LoadModule<EmptyClass>();
-            var importer = new CodeImporter(module);
+            var importer = new CodeImporter(module) { CompactMode = false };
 
             var type = importer.Import<SimpleSampleClass>();
             var method = importer.ImportMethod(() => default(SimpleGenericClass<T>)!.Method(default));
@@ -61,7 +61,7 @@ namespace FodyTools.Tests
         public void OnGenericTypeTest3()
         {
             var module = ModuleHelper.LoadModule<EmptyClass>();
-            var importer = new CodeImporter(module);
+            var importer = new CodeImporter(module) { CompactMode = false };
 
             var type = importer.Import<SimpleSampleClass>();
             var method = importer.ImportMethod(() => default(SimpleGenericClass<T>).Method2<T1>(default, default));

@@ -64,7 +64,8 @@ namespace FodyTools.Tests
             var target = new CodeImporter(module)
             {
                 ModuleResolver = moduleResolverInstance,
-                HideImportedTypes = false
+                HideImportedTypes = false,
+                CompactMode = false
             };
 
             foreach (var type in types)
@@ -105,6 +106,7 @@ namespace FodyTools.Tests
             {
                 // else IL comparison will fail:
                 HideImportedTypes = false,
+                CompactMode = false
             };
 
             foreach (var type in types)
@@ -150,7 +152,7 @@ namespace FodyTools.Tests
         {
             var module = ModuleHelper.LoadModule<EmptyClass>();
 
-            var target = new CodeImporter(module);
+            var target = new CodeImporter(module) { CompactMode = false };
 
             var importedMethod1 = target.ImportMethod(() => default(MyEventArgs)!.GetValue());
             var importedMethod2 = target.ImportMethod(() => default(MyEventArgs)!.GetValue(default!));
@@ -167,7 +169,7 @@ namespace FodyTools.Tests
         {
             var module = ModuleHelper.LoadModule<EmptyClass>();
 
-            var target = new CodeImporter(module);
+            var target = new CodeImporter(module) { CompactMode = false };
 
             var importedMethod1 = target.ImportMethod(() => new ComplexSampleClass<T1, T2>(default!, default!, default));
             var importedMethod2 = target.ImportMethod(() => default(ComplexSampleClass<T1, T2>)!.SomeMethod<T>(default, default, default));
@@ -214,7 +216,7 @@ namespace FodyTools.Tests
         public void ImportPropertyTest()
         {
             var module = ModuleDefinition.CreateModule("CodeImporterSmokeTest", new ModuleParameters { Kind = ModuleKind.Dll, AssemblyResolver = ModuleHelper.AssemblyResolver });
-            var target = new CodeImporter(module);
+            var target = new CodeImporter(module) { CompactMode = false };
 
             var importedProperty = target.ImportProperty(() => default(MyEventArgs).AnotherValue);
 
@@ -271,6 +273,7 @@ namespace FodyTools.Tests
                 HideImportedTypes = false,
                 ModuleResolver = new AssemblyModuleResolver(typeof(TomsToolbox.Core.AssemblyExtensions).Assembly, typeof(Structure).Assembly),
                 NamespaceDecorator = ns => namespacePrefix + ns,
+                CompactMode = false
             };
 
             codeImporter.ILMerge();
@@ -311,6 +314,7 @@ namespace FodyTools.Tests
             {
                 HideImportedTypes = false,
                 ModuleResolver = new AssemblyModuleResolver(typeof(TomsToolbox.Essentials.AssemblyExtensions).Assembly, typeof(Structure).Assembly),
+                CompactMode = false
             };
 
             codeImporter.ILMerge();
@@ -372,8 +376,7 @@ namespace FodyTools.Tests
                     typeof(Microsoft.WindowsAPICodePack.Dialogs.CommonFileDialog).Assembly,
                     typeof(Microsoft.WindowsAPICodePack.Dialogs.TaskDialog).Assembly,
                     typeof(Newtonsoft.Json.JsonConvert).Assembly),
-                SkipPropertiesAndEvents = true,
-                DeferMethodImport = CanDeferMethodImport
+                CompactMode = true
             };
 
             codeImporter.ILMerge();
@@ -403,8 +406,6 @@ namespace FodyTools.Tests
             var codeImporter = new CodeImporter(module)
             {
                 ModuleResolver = new AssemblyModuleResolver(typeof(Structure).Assembly),
-                SkipPropertiesAndEvents = true,
-                DeferMethodImport = method => method.IsStatic && !method.IsConstructor
             };
 
             codeImporter.ILMerge();
