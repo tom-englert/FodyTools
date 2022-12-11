@@ -5,7 +5,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="TomsToolbox.Core" Version="1.0.75" />
+    <PackageReference Include="TomsToolbox.Essentials" Version="2.8.5" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ReferencedAssembly\ReferencedAssembly.csproj" />

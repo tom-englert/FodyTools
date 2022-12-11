@@ -6,23 +6,19 @@
     IL_0002: stfld System.Int32 FodyTools.Tests.TypeExtensionMethodsTests/SampleWithFinalizer::_i
     IL_0007: ldarg.0
     IL_0008: call System.Void System.Object::.ctor()
-    IL_000d: nop
-    IL_000e: ret
+    IL_000d: ret
 
   System.Void FodyTools.Tests.TypeExtensionMethodsTests/SampleWithFinalizer::Finalize()
-    IL_0000: nop
     IL_0000: ldc.i4 1
     IL_0000: ldc.i4 2
     IL_0000: add
     IL_0000: pop
-    IL_0001: nop
-    IL_0002: ldarg.0
-    IL_0003: ldc.i4.0
-    IL_0004: stfld System.Int32 FodyTools.Tests.TypeExtensionMethodsTests/SampleWithFinalizer::_i
-    IL_0009: leave.s IL_0013
-    IL_000b: ldarg.0
-    IL_000c: call System.Void System.Object::Finalize()
-    IL_0011: nop
-    IL_0012: endfinally
-    IL_0013: ret
+    IL_0000: ldarg.0
+    IL_0001: ldc.i4.0
+    IL_0002: stfld System.Int32 FodyTools.Tests.TypeExtensionMethodsTests/SampleWithFinalizer::_i
+    IL_0007: leave.s IL_0010
+    IL_0009: ldarg.0
+    IL_000a: call System.Void System.Object::Finalize()
+    IL_000f: endfinally
+    IL_0010: ret
 

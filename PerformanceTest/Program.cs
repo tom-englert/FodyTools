@@ -53,12 +53,12 @@
             module.Assembly.Name.Version = new Version(now.Year, now.Month, now.Day, (int)now.TimeOfDay.TotalMilliseconds);
             module.Write(targetAssemblyPath);
 
-            var peVerify = TestHelper.PEVerify.Verify(targetAssemblyPath, line => Console.WriteLine(line));
+            var peVerify = TestHelper.PEVerify.Verify(targetAssemblyPath, Console.WriteLine);
             Assert.True(peVerify);
 
             var importedTypes = codeImporter.ListImportedTypes();
 
-            TestHelper.VerifyTypes(importedTypes, importedModules, targetAssemblyPath, AssertIl);
+            TestHelper.VerifyTypes(importedTypes, importedModules, targetAssemblyPath, AssertIlIsSubset);
 
             var il = TestHelper.ILDasm.Decompile(targetAssemblyPath);
 
@@ -68,32 +68,11 @@
             Console.ReadKey();
         }
 
-        private static void AssertIl(string typeName, string source, string target)
-        {
-            switch (typeName)
-            {
-                case "Microsoft.WindowsAPICodePack.Shell.ShellNativeMethods":
-                case "MS.WindowsAPICodePack.Internal.CoreNativeMethods":
-                case "Microsoft.WindowsAPICodePack.Shell.PropertySystem.SystemProperties":
-                    AssertIlIsSubset(source, target);
-                    break;
-
-                default:
-                    TestHelper.AssertIlStrict(source, target);
-                    break;
-            }
-        }
-
         private static void AssertIlIsSubset(string source, string target)
         {
-            var tempPath = TestHelper.TempPath;
+            var sourceLines = source.Split('\n').ToHashSet();
 
-            File.WriteAllText(Path.Combine(tempPath, "source_1.txt"), string.Join("\n\n", source.Replace("\r\n", "\n").Replace("\n{\n", "\n{\n\n").Split(new[] { "\n\n" }, StringSplitOptions.None).OrderBy(para => para.Split('\n').First().Split(' ').Last())));
-            File.WriteAllText(Path.Combine(tempPath, "target_1.txt"), string.Join("\n\n", target.Replace("\r\n", "\n").Replace("\n{\n", "\n{\n\n").Split(new[] { "\n\n" }, StringSplitOptions.None).OrderBy(para => para.Split('\n').First().Split(' ').Last())));
-
-            var sourceHash = new HashSet<string>(source.Replace("\r\n", "\n").Split('\n'));
-
-            if (!target.Replace("\r\n", "\n").Split('\n').All(line => sourceHash.Contains(line)))
+            if (!target.Split('\n').All(line => sourceLines.Contains(line)))
             {
                 Debugger.Break();
             }

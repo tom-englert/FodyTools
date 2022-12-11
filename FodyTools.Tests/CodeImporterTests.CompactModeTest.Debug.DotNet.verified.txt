@@ -1,0 +1,1528 @@
+﻿.class private auto ansi '<Module>'
+{
+} // end of class <Module>
+
+.class private auto ansi sealed '<PrivateImplementationDetails>'
+	extends [netstandard]System.Object
+{
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	)
+	// Nested Types
+	.class nested private explicit ansi sealed '__StaticArrayInitTypeSize=20'
+		extends [netstandard]System.ValueType
+	{
+		.pack 1
+		.size 20
+
+	} // end of class __StaticArrayInitTypeSize=20
+
+
+	// Fields
+	.field assembly static initonly valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=20' '4F6ADDC9659D6FB90FE94B6688A79F2A1FA8D36EC43F8F3E1D9B6528C448A384' at I_000025F0
+	.data cil I_000025F0 = bytearray (
+	)
+
+} // end of class <PrivateImplementationDetails>
+
+.class private auto ansi sealed 'ReferencedAssembly.dll!<PrivateImplementationDetails>'
+	extends [netstandard]System.Object
+{
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	)
+	// Nested Types
+	.class nested private explicit ansi sealed '__StaticArrayInitTypeSize=20'
+		extends [netstandard]System.ValueType
+	{
+		.pack 1
+		.size 20
+
+	} // end of class __StaticArrayInitTypeSize=20
+
+
+	// Fields
+	.field assembly static initonly valuetype 'ReferencedAssembly.dll!<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=20' '9F6F066313FE3C753CCA95B263A3F9228A899ACAB758CC3A3AAE0E558D93DCC5' at I_00002604
+	.data cil I_00002604 = bytearray (
+	)
+
+} // end of class ReferencedAssembly.dll!<PrivateImplementationDetails>
+
+.class public auto ansi beforefieldinit FodyTools.ComplexSampleClass`2<(class [TomsToolbox.Essentials]TomsToolbox.Essentials.DelegateComparer`1<!T2>) T1, class ([TomsToolbox.Essentials]TomsToolbox.Essentials.ITimeService) T2>
+	extends class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventListener`3<!T1, !T2, class [netstandard]System.EventArgs>
+{
+	.custom instance void ReferencedAssembly.SimpleAttribute::.ctor() = (
+	)
+	.custom instance void ReferencedAssembly.SimpleAttribute::.ctor(valuetype ReferencedAssembly.SimpleEnum) = (
+	)
+	// Nested Types
+	.class nested private auto ansi sealed serializable beforefieldinit '<>c__2`1'<(class [TomsToolbox.Essentials]TomsToolbox.Essentials.DelegateComparer`1<!T2>) T1, class ([TomsToolbox.Essentials]TomsToolbox.Essentials.ITimeService) T2, (class [TomsToolbox.Essentials]TomsToolbox.Essentials.DelegateComparer`1<class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>>) T>
+		extends [netstandard]System.Object
+	{
+		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		)
+		// Fields
+		.field public static initonly class FodyTools.ComplexSampleClass`2/'<>c__2`1'<!T1, !T2, !T> '<>9'
+		.field public static class [netstandard]System.Func`2<int32, string> '<>9__2_0'
+		.custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = (
+		)
+
+		// Methods
+		.method private hidebysig specialname rtspecialname static 
+			void .cctor () cil managed 
+		{
+			// Header size: 1
+			// Code size: 11 (0xb)
+			.maxstack 8
+
+			IL_0000: newobj instance void class FodyTools.ComplexSampleClass`2/'<>c__2`1'<!T1, !T2, !T>::.ctor()
+			IL_0005: stsfld class FodyTools.ComplexSampleClass`2/'<>c__2`1'<!0, !1, !2> class FodyTools.ComplexSampleClass`2/'<>c__2`1'<!T1, !T2, !T>::'<>9'
+			IL_000a: ret
+		} // end of method '<>c__2`1'::.cctor
+
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Header size: 1
+			// Code size: 8 (0x8)
+			.maxstack 8
+
+			IL_0000: ldarg.0
+			IL_0001: call instance void [netstandard]System.Object::.ctor()
+			IL_0006: nop
+			IL_0007: ret
+		} // end of method '<>c__2`1'::.ctor
+
+		.method assembly hidebysig 
+			instance string '<SomeMethod>b__2_0' (
+				int32 i
+			) cil managed 
+		{
+			.custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+			)
+			// Header size: 1
+			// Code size: 8 (0x8)
+			.maxstack 8
+
+			IL_0000: ldarga.s i
+			IL_0002: call instance string [netstandard]System.Int32::ToString()
+			IL_0007: ret
+		} // end of method '<>c__2`1'::'<SomeMethod>b__2_0'
+
+	} // end of class <>c__2`1
+
+	.class nested private auto ansi sealed serializable beforefieldinit '<>c__3`1'<(class [TomsToolbox.Essentials]TomsToolbox.Essentials.DelegateComparer`1<!T2>) T1, class ([TomsToolbox.Essentials]TomsToolbox.Essentials.ITimeService) T2, (class [TomsToolbox.Essentials]TomsToolbox.Essentials.DelegateComparer`1<class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>>) T>
+		extends [netstandard]System.Object
+	{
+		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		)
+		// Fields
+		.field public static initonly class FodyTools.ComplexSampleClass`2/'<>c__3`1'<!T1, !T2, !T> '<>9'
+		.field public static class [netstandard]System.Func`2<int32, string> '<>9__3_0'
+		.custom instance void System.Runtime.CompilerServices.NullableAttribute::.ctor(uint8[]) = (
+		)
+
+		// Methods
+		.method private hidebysig specialname rtspecialname static 
+			void .cctor () cil managed 
+		{
+			// Header size: 1
+			// Code size: 11 (0xb)
+			.maxstack 8
+
+			IL_0000: newobj instance void class FodyTools.ComplexSampleClass`2/'<>c__3`1'<!T1, !T2, !T>::.ctor()
+			IL_0005: stsfld class FodyTools.ComplexSampleClass`2/'<>c__3`1'<!0, !1, !2> class FodyTools.ComplexSampleClass`2/'<>c__3`1'<!T1, !T2, !T>::'<>9'
+			IL_000a: ret
+		} // end of method '<>c__3`1'::.cctor
+
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Header size: 1
+			// Code size: 8 (0x8)
+			.maxstack 8
+
+			IL_0000: ldarg.0
+			IL_0001: call instance void [netstandard]System.Object::.ctor()
+			IL_0006: nop
+			IL_0007: ret
+		} // end of method '<>c__3`1'::.ctor
+
+		.method assembly hidebysig 
+			instance string '<SomeMethod>b__3_0' (
+				int32 i
+			) cil managed 
+		{
+			.custom instance void System.Runtime.CompilerServices.NullableContextAttribute::.ctor(uint8) = (
+			)
+			// Header size: 1
+			// Code size: 8 (0x8)
+			.maxstack 8
+
+			IL_0000: ldarga.s i
+			IL_0002: call instance string [netstandard]System.Int32::ToString()
+			IL_0007: ret
+		} // end of method '<>c__3`1'::'<SomeMethod>b__3_0'
+
+	} // end of class <>c__3`1
+
+
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			!T1 target,
+			!T2 source,
+			class [netstandard]System.Action`3<!T1, object, class [netstandard]System.EventArgs> onEventAction,
+			class [netstandard]System.Action`2<class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventListener`3<!T1, !T2, class [netstandard]System.EventArgs>, !T2> onAttachAction,
+			class [netstandard]System.Action`2<class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventListener`3<!T1, !T2, class [netstandard]System.EventArgs>, !T2> onDetachAction
+		) cil managed 
+	{
+		// Header size: 1
+		// Code size: 16 (0x10)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: ldarg.2
+		IL_0003: ldarg.3
+		IL_0004: ldarg.s onAttachAction
+		IL_0006: ldarg.s onDetachAction
+		IL_0008: call instance void class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventListener`3<!T1, !T2, class [netstandard]System.EventArgs>::.ctor(!0, !1, class [netstandard]System.Action`3<!0, object, !2>, class [netstandard]System.Action`2<class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventListener`3<!0, !1, !2>, !1>, class [netstandard]System.Action`2<class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventListener`3<!0, !1, !2>, !1>)
+		IL_000d: nop
+		IL_000e: nop
+		IL_000f: ret
+	} // end of method ComplexSampleClass`2::.ctor
+
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			!T1 target,
+			!T2 source,
+			class [netstandard]System.Action`3<!T1, object, class [netstandard]System.EventArgs> onEventAction
+		) cil managed 
+	{
+		// Header size: 1
+		// Code size: 14 (0xe)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: ldarg.2
+		IL_0003: ldarg.3
+		IL_0004: ldnull
+		IL_0005: ldnull
+		IL_0006: call instance void class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventListener`3<!T1, !T2, class [netstandard]System.EventArgs>::.ctor(!0, !1, class [netstandard]System.Action`3<!0, object, !2>, class [netstandard]System.Action`2<class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventListener`3<!0, !1, !2>, !1>, class [netstandard]System.Action`2<class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventListener`3<!0, !1, !2>, !1>)
+		IL_000b: nop
+		IL_000c: nop
+		IL_000d: ret
+	} // end of method ComplexSampleClass`2::.ctor
+
+	.method public hidebysig 
+		instance void AnotherMethod () cil managed 
+	{
+		// Header size: 12
+		// Code size: 17 (0x11)
+		.maxstack 2
+		.locals init (
+			[0] class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventListener`3<class [TomsToolbox.Essentials]TomsToolbox.Essentials.DelegateComparer`1<class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>>, object, class [netstandard]System.EventArgs>,
+			[1] class [TomsToolbox.Essentials]TomsToolbox.Essentials.DelegateComparer`1<class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>>
+		)
+
+		IL_0000: nop
+		IL_0001: ldnull
+		IL_0002: call !!0 [TomsToolbox.Essentials]TomsToolbox.Essentials.ObjectExtensions::SafeCast<class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventListener`3<class [TomsToolbox.Essentials]TomsToolbox.Essentials.DelegateComparer`1<class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>>, object, class [netstandard]System.EventArgs>>(object)
+		IL_0007: stloc.0
+		IL_0008: ldarg.0
+		IL_0009: ldloc.0
+		IL_000a: call instance !!0 class FodyTools.ComplexSampleClass`2<!T1, !T2>::SomeMethod<class [TomsToolbox.Essentials]TomsToolbox.Essentials.DelegateComparer`1<class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>>>(class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventListener`3<!!0, object, class [netstandard]System.EventArgs>)
+		IL_000f: stloc.1
+		IL_0010: ret
+	} // end of method ComplexSampleClass`2::AnotherMethod
+
+	.method public hidebysig 
+		instance !!T SomeMethod<(class [TomsToolbox.Essentials]TomsToolbox.Essentials.DelegateComparer`1<class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>>) T> (
+			class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<!T1, !T1> p1,
+			class [netstandard]System.Func`1<!T2> p2,
+			class [netstandard]System.Func`1<!!T> p3
+		) cil managed 
+	{
+		// Header size: 12
+		// Code size: 98 (0x62)
+		.maxstack 2
+		.locals init (
+			[0] class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>,
+			[1] class [netstandard]System.Collections.Generic.IEqualityComparer`1<int32>,
+			[2] class [netstandard]System.Collections.Generic.ICollection`1<int32>,
+			[3] bool,
+			[4] !!T,
+			[5] !!T
+		)
+
+		IL_0000: nop
+		IL_0001: ldsfld class [netstandard]System.Func`2<int32, string> class FodyTools.ComplexSampleClass`2/'<>c__2`1'<!T1, !T2, !!T>::'<>9__2_0'
+		IL_0006: dup
+		IL_0007: brtrue.s IL_0020
+
+		IL_0009: pop
+		IL_000a: ldsfld class FodyTools.ComplexSampleClass`2/'<>c__2`1'<!0, !1, !2> class FodyTools.ComplexSampleClass`2/'<>c__2`1'<!T1, !T2, !!T>::'<>9'
+		IL_000f: ldftn instance string class FodyTools.ComplexSampleClass`2/'<>c__2`1'<!T1, !T2, !!T>::'<SomeMethod>b__2_0'(int32)
+		IL_0015: newobj instance void class [netstandard]System.Func`2<int32, string>::.ctor(object, native int)
+		IL_001a: dup
+		IL_001b: stsfld class [netstandard]System.Func`2<int32, string> class FodyTools.ComplexSampleClass`2/'<>c__2`1'<!T1, !T2, !!T>::'<>9__2_0'
+
+		IL_0020: ldnull
+		IL_0021: newobj instance void class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>::.ctor(class [netstandard]System.Func`2<!0, !1>, class [netstandard]System.Collections.Generic.IEqualityComparer`1<!0>)
+		IL_0026: stloc.0
+		IL_0027: ldloc.0
+		IL_0028: callvirt instance class [netstandard]System.Collections.Generic.IEqualityComparer`1<!0> class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>::get_Comparer()
+		IL_002d: stloc.1
+		IL_002e: ldloc.0
+		IL_002f: callvirt instance class [netstandard]System.Collections.Generic.ICollection`1<!0> class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>::get_Keys()
+		IL_0034: stloc.2
+		IL_0035: ldloc.1
+		IL_0036: brfalse.s IL_0040
+
+		IL_0038: ldloc.2
+		IL_0039: callvirt instance bool class [netstandard]System.Collections.Generic.ICollection`1<int32>::get_IsReadOnly()
+		IL_003e: br.s IL_0041
+
+		IL_0040: ldc.i4.0
+
+		IL_0041: stloc.3
+		IL_0042: ldloc.3
+		IL_0043: brfalse.s IL_0051
+
+		IL_0045: nop
+		IL_0046: ldstr "never happens"
+		IL_004b: newobj instance void [netstandard]System.Exception::.ctor(string)
+		IL_0050: throw
+
+		IL_0051: ldloca.s 4
+		IL_0053: initobj !!T
+		IL_0059: ldloc.s 4
+		IL_005b: stloc.s 5
+		IL_005d: br.s IL_005f
+
+		IL_005f: ldloc.s 5
+		IL_0061: ret
+	} // end of method ComplexSampleClass`2::SomeMethod
+
+	.method public hidebysig 
+		instance !!T SomeMethod<(class [TomsToolbox.Essentials]TomsToolbox.Essentials.DelegateComparer`1<class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>>) T> (
+			class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventListener`3<!!T, object, class [netstandard]System.EventArgs> p1
+		) cil managed 
+	{
+		// Header size: 12
+		// Code size: 98 (0x62)
+		.maxstack 2
+		.locals init (
+			[0] class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>,
+			[1] class [netstandard]System.Collections.Generic.IEqualityComparer`1<int32>,
+			[2] class [netstandard]System.Collections.Generic.ICollection`1<int32>,
+			[3] bool,
+			[4] !!T,
+			[5] !!T
+		)
+
+		IL_0000: nop
+		IL_0001: ldsfld class [netstandard]System.Func`2<int32, string> class FodyTools.ComplexSampleClass`2/'<>c__3`1'<!T1, !T2, !!T>::'<>9__3_0'
+		IL_0006: dup
+		IL_0007: brtrue.s IL_0020
+
+		IL_0009: pop
+		IL_000a: ldsfld class FodyTools.ComplexSampleClass`2/'<>c__3`1'<!0, !1, !2> class FodyTools.ComplexSampleClass`2/'<>c__3`1'<!T1, !T2, !!T>::'<>9'
+		IL_000f: ldftn instance string class FodyTools.ComplexSampleClass`2/'<>c__3`1'<!T1, !T2, !!T>::'<SomeMethod>b__3_0'(int32)
+		IL_0015: newobj instance void class [netstandard]System.Func`2<int32, string>::.ctor(object, native int)
+		IL_001a: dup
+		IL_001b: stsfld class [netstandard]System.Func`2<int32, string> class FodyTools.ComplexSampleClass`2/'<>c__3`1'<!T1, !T2, !!T>::'<>9__3_0'
+
+		IL_0020: ldnull
+		IL_0021: newobj instance void class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>::.ctor(class [netstandard]System.Func`2<!0, !1>, class [netstandard]System.Collections.Generic.IEqualityComparer`1<!0>)
+		IL_0026: stloc.0
+		IL_0027: ldloc.0
+		IL_0028: callvirt instance class [netstandard]System.Collections.Generic.IEqualityComparer`1<!0> class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>::get_Comparer()
+		IL_002d: stloc.1
+		IL_002e: ldloc.0
+		IL_002f: callvirt instance class [netstandard]System.Collections.Generic.ICollection`1<!0> class [TomsToolbox.Essentials]TomsToolbox.Essentials.AutoWeakIndexer`2<int32, string>::get_Keys()
+		IL_0034: stloc.2
+		IL_0035: ldloc.1
+		IL_0036: brfalse.s IL_0040
+
+		IL_0038: ldloc.2
+		IL_0039: callvirt instance bool class [netstandard]System.Collections.Generic.ICollection`1<int32>::get_IsReadOnly()
+		IL_003e: br.s IL_0041
+
+		IL_0040: ldc.i4.0
+
+		IL_0041: stloc.3
+		IL_0042: ldloc.3
+		IL_0043: brfalse.s IL_0051
+
+		IL_0045: nop
+		IL_0046: ldstr "never happens"
+		IL_004b: newobj instance void [netstandard]System.Exception::.ctor(string)
+		IL_0050: throw
+
+		IL_0051: ldloca.s 4
+		IL_0053: initobj !!T
+		IL_0059: ldloc.s 4
+		IL_005b: stloc.s 5
+		IL_005d: br.s IL_005f
+
+		IL_005f: ldloc.s 5
+		IL_0061: ret
+	} // end of method ComplexSampleClass`2::SomeMethod
+
+} // end of class FodyTools.ComplexSampleClass`2
+
+.class public auto ansi beforefieldinit FodyTools.SimpleGenericClass`1<T>
+	extends [netstandard]System.Object
+	implements class [netstandard]System.Collections.Generic.IComparer`1<!T>
+{
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Header size: 1
+		// Code size: 8 (0x8)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Object::.ctor()
+		IL_0006: nop
+		IL_0007: ret
+	} // end of method SimpleGenericClass`1::.ctor
+
+	.method public hidebysig 
+		instance void Method (
+			class [netstandard]System.Func`1<!T> argument
+		) cil managed 
+	{
+		// Header size: 1
+		// Code size: 9 (0x9)
+		.maxstack 8
+
+		IL_0000: nop
+		IL_0001: ldarg.1
+		IL_0002: call void System.SR::GuardNotNull<class [netstandard]System.Func`1<!T>>(!!0)
+		IL_0007: nop
+		IL_0008: ret
+	} // end of method SimpleGenericClass`1::Method
+
+	.method public hidebysig 
+		instance void Method2<T1> (
+			class [netstandard]System.Func`1<!T> argument,
+			!!T1 arg1
+		) cil managed 
+	{
+		// Header size: 1
+		// Code size: 2 (0x2)
+		.maxstack 8
+
+		IL_0000: nop
+		IL_0001: ret
+	} // end of method SimpleGenericClass`1::Method2
+
+	.method private final hidebysig newslot virtual 
+		instance int32 'System.Collections.Generic.IComparer<T>.Compare' (
+			!T x,
+			!T y
+		) cil managed 
+	{
+		.override method instance int32 class [netstandard]System.Collections.Generic.IComparer`1<!T>::Compare(!0, !0)
+		// Header size: 12
+		// Code size: 28 (0x1c)
+		.maxstack 3
+		.locals init (
+			[0] int32
+		)
+
+		IL_0000: nop
+		IL_0001: ldsfld class [netstandard]System.Collections.Comparer [netstandard]System.Collections.Comparer::Default
+		IL_0006: ldarg.1
+		IL_0007: box !T
+		IL_000c: ldarg.2
+		IL_000d: box !T
+		IL_0012: callvirt instance int32 [netstandard]System.Collections.Comparer::Compare(object, object)
+		IL_0017: stloc.0
+		IL_0018: br.s IL_001a
+
+		IL_001a: ldloc.0
+		IL_001b: ret
+	} // end of method SimpleGenericClass`1::'System.Collections.Generic.IComparer<T>.Compare'
+
+} // end of class FodyTools.SimpleGenericClass`1
+
+.class public auto ansi beforefieldinit FodyTools.SimpleSampleClass
+	extends [netstandard]System.Object
+{
+	.custom instance void [netstandard]System.ComponentModel.TypeConverterAttribute::.ctor(class [netstandard]System.Type) = (
+	)
+	.custom instance void [TomsToolbox.Essentials]TomsToolbox.Essentials.SequenceAttribute::.ctor(float64) = (
+	)
+	// Nested Types
+	.class nested private auto ansi sealed beforefieldinit '<GetItems>d__8'
+		extends [netstandard]System.Object
+		implements class [netstandard]System.Collections.Generic.IEnumerable`1<valuetype ReferencedAssembly.Structure>,
+		           class [netstandard]System.Collections.Generic.IEnumerator`1<valuetype ReferencedAssembly.Structure>,
+		           [netstandard]System.Collections.IEnumerable,
+		           [netstandard]System.Collections.IEnumerator,
+		           [netstandard]System.IDisposable
+	{
+		.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+		)
+		// Fields
+		.field private int32 '<>1__state'
+		.field private valuetype ReferencedAssembly.Structure '<>2__current'
+		.field public class FodyTools.SimpleSampleClass '<>4__this'
+		.field private int32 '<>l__initialThreadId'
+
+		// Methods
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor (
+				int32 '<>1__state'
+			) cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+			)
+			// Header size: 1
+			// Code size: 26 (0x1a)
+			.maxstack 8
+
+			IL_0000: ldarg.0
+			IL_0001: call instance void [netstandard]System.Object::.ctor()
+			IL_0006: nop
+			IL_0007: ldarg.0
+			IL_0008: ldarg.1
+			IL_0009: stfld int32 FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>1__state'
+			IL_000e: ldarg.0
+			IL_000f: call int32 [netstandard]System.Environment::get_CurrentManagedThreadId()
+			IL_0014: stfld int32 FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>l__initialThreadId'
+			IL_0019: ret
+		} // end of method '<GetItems>d__8'::.ctor
+
+		.method private final hidebysig newslot virtual 
+			instance bool MoveNext () cil managed 
+		{
+			.override method instance bool [netstandard]System.Collections.IEnumerator::MoveNext()
+			// Header size: 12
+			// Code size: 131 (0x83)
+			.maxstack 3
+			.locals init (
+				[0] int32,
+				[1] valuetype ReferencedAssembly.Structure
+			)
+
+			IL_0000: ldarg.0
+			IL_0001: ldfld int32 FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>1__state'
+			IL_0006: stloc.0
+			IL_0007: ldloc.0
+			IL_0008: switch (IL_001b, IL_001d, IL_001f)
+
+			IL_0019: br.s IL_0021
+
+			IL_001b: br.s IL_0023
+
+			IL_001d: br.s IL_004f
+
+			IL_001f: br.s IL_007a
+
+			IL_0021: ldc.i4.0
+			IL_0022: ret
+
+			IL_0023: ldarg.0
+			IL_0024: ldc.i4.m1
+			IL_0025: stfld int32 FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>1__state'
+			IL_002a: nop
+			IL_002b: ldarg.0
+			IL_002c: ldloca.s 1
+			IL_002e: initobj ReferencedAssembly.Structure
+			IL_0034: ldloca.s 1
+			IL_0036: ldstr "V1"
+			IL_003b: stfld string ReferencedAssembly.Structure::Value1
+			IL_0040: ldloc.1
+			IL_0041: stfld valuetype ReferencedAssembly.Structure FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>2__current'
+			IL_0046: ldarg.0
+			IL_0047: ldc.i4.1
+			IL_0048: stfld int32 FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>1__state'
+			IL_004d: ldc.i4.1
+			IL_004e: ret
+
+			IL_004f: ldarg.0
+			IL_0050: ldc.i4.m1
+			IL_0051: stfld int32 FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>1__state'
+			IL_0056: ldarg.0
+			IL_0057: ldloca.s 1
+			IL_0059: initobj ReferencedAssembly.Structure
+			IL_005f: ldloca.s 1
+			IL_0061: ldstr "V2"
+			IL_0066: stfld string ReferencedAssembly.Structure::Value2
+			IL_006b: ldloc.1
+			IL_006c: stfld valuetype ReferencedAssembly.Structure FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>2__current'
+			IL_0071: ldarg.0
+			IL_0072: ldc.i4.2
+			IL_0073: stfld int32 FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>1__state'
+			IL_0078: ldc.i4.1
+			IL_0079: ret
+
+			IL_007a: ldarg.0
+			IL_007b: ldc.i4.m1
+			IL_007c: stfld int32 FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>1__state'
+			IL_0081: ldc.i4.0
+			IL_0082: ret
+		} // end of method '<GetItems>d__8'::MoveNext
+
+		.method private final hidebysig newslot virtual 
+			instance class [netstandard]System.Collections.Generic.IEnumerator`1<valuetype ReferencedAssembly.Structure> 'System.Collections.Generic.IEnumerable<ReferencedAssembly.Structure>.GetEnumerator' () cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+			)
+			.override method instance class [netstandard]System.Collections.Generic.IEnumerator`1<!0> class [netstandard]System.Collections.Generic.IEnumerable`1<valuetype ReferencedAssembly.Structure>::GetEnumerator()
+			// Header size: 12
+			// Code size: 55 (0x37)
+			.maxstack 2
+			.locals init (
+				[0] class FodyTools.SimpleSampleClass/'<GetItems>d__8'
+			)
+
+			IL_0000: ldarg.0
+			IL_0001: ldfld int32 FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>1__state'
+			IL_0006: ldc.i4.s -2
+			IL_0008: bne.un.s IL_0022
+
+			IL_000a: ldarg.0
+			IL_000b: ldfld int32 FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>l__initialThreadId'
+			IL_0010: call int32 [netstandard]System.Environment::get_CurrentManagedThreadId()
+			IL_0015: bne.un.s IL_0022
+
+			IL_0017: ldarg.0
+			IL_0018: ldc.i4.0
+			IL_0019: stfld int32 FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>1__state'
+			IL_001e: ldarg.0
+			IL_001f: stloc.0
+			IL_0020: br.s IL_0035
+
+			IL_0022: ldc.i4.0
+			IL_0023: newobj instance void FodyTools.SimpleSampleClass/'<GetItems>d__8'::.ctor(int32)
+			IL_0028: stloc.0
+			IL_0029: ldloc.0
+			IL_002a: ldarg.0
+			IL_002b: ldfld class FodyTools.SimpleSampleClass FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>4__this'
+			IL_0030: stfld class FodyTools.SimpleSampleClass FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>4__this'
+
+			IL_0035: ldloc.0
+			IL_0036: ret
+		} // end of method '<GetItems>d__8'::'System.Collections.Generic.IEnumerable<ReferencedAssembly.Structure>.GetEnumerator'
+
+		.method private final hidebysig specialname newslot virtual 
+			instance valuetype ReferencedAssembly.Structure 'System.Collections.Generic.IEnumerator<ReferencedAssembly.Structure>.get_Current' () cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+			)
+			.override method instance !0 class [netstandard]System.Collections.Generic.IEnumerator`1<valuetype ReferencedAssembly.Structure>::get_Current()
+			// Header size: 1
+			// Code size: 7 (0x7)
+			.maxstack 8
+
+			IL_0000: ldarg.0
+			IL_0001: ldfld valuetype ReferencedAssembly.Structure FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>2__current'
+			IL_0006: ret
+		} // end of method '<GetItems>d__8'::'System.Collections.Generic.IEnumerator<ReferencedAssembly.Structure>.get_Current'
+
+		.method private final hidebysig newslot virtual 
+			instance class [netstandard]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+			)
+			.override method instance class [netstandard]System.Collections.IEnumerator [netstandard]System.Collections.IEnumerable::GetEnumerator()
+			// Header size: 1
+			// Code size: 7 (0x7)
+			.maxstack 8
+
+			IL_0000: ldarg.0
+			IL_0001: call instance class [netstandard]System.Collections.Generic.IEnumerator`1<valuetype ReferencedAssembly.Structure> FodyTools.SimpleSampleClass/'<GetItems>d__8'::'System.Collections.Generic.IEnumerable<ReferencedAssembly.Structure>.GetEnumerator'()
+			IL_0006: ret
+		} // end of method '<GetItems>d__8'::System.Collections.IEnumerable.GetEnumerator
+
+		.method private final hidebysig specialname newslot virtual 
+			instance object System.Collections.IEnumerator.get_Current () cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+			)
+			.override method instance object [netstandard]System.Collections.IEnumerator::get_Current()
+			// Header size: 1
+			// Code size: 12 (0xc)
+			.maxstack 8
+
+			IL_0000: ldarg.0
+			IL_0001: ldfld valuetype ReferencedAssembly.Structure FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>2__current'
+			IL_0006: box ReferencedAssembly.Structure
+			IL_000b: ret
+		} // end of method '<GetItems>d__8'::System.Collections.IEnumerator.get_Current
+
+		.method private final hidebysig newslot virtual 
+			instance void System.Collections.IEnumerator.Reset () cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+			)
+			.override method instance void [netstandard]System.Collections.IEnumerator::Reset()
+			// Header size: 1
+			// Code size: 6 (0x6)
+			.maxstack 8
+
+			IL_0000: newobj instance void [netstandard]System.NotSupportedException::.ctor()
+			IL_0005: throw
+		} // end of method '<GetItems>d__8'::System.Collections.IEnumerator.Reset
+
+		.method private final hidebysig newslot virtual 
+			instance void System.IDisposable.Dispose () cil managed 
+		{
+			.custom instance void [netstandard]System.Diagnostics.DebuggerHiddenAttribute::.ctor() = (
+			)
+			.override method instance void [netstandard]System.IDisposable::Dispose()
+			// Header size: 1
+			// Code size: 1 (0x1)
+			.maxstack 8
+
+			IL_0000: ret
+		} // end of method '<GetItems>d__8'::System.IDisposable.Dispose
+
+		// Properties
+		.property instance valuetype ReferencedAssembly.Structure 'System.Collections.Generic.IEnumerator<ReferencedAssembly.Structure>.Current'()
+		{
+			.get instance valuetype ReferencedAssembly.Structure FodyTools.SimpleSampleClass/'<GetItems>d__8'::'System.Collections.Generic.IEnumerator<ReferencedAssembly.Structure>.get_Current'()
+		}
+		.property instance object System.Collections.IEnumerator.Current()
+		{
+			.get instance object FodyTools.SimpleSampleClass/'<GetItems>d__8'::System.Collections.IEnumerator.get_Current()
+		}
+
+	} // end of class <GetItems>d__8
+
+	.class nested private auto ansi beforefieldinit GetItemsImpl
+		extends [netstandard]System.Object
+		implements class [netstandard]System.Collections.Generic.IEnumerable`1<valuetype ReferencedAssembly.Structure>,
+		           class [netstandard]System.Collections.Generic.IEnumerator`1<valuetype ReferencedAssembly.Structure>,
+		           [netstandard]System.Collections.IEnumerable,
+		           [netstandard]System.Collections.IEnumerator,
+		           [netstandard]System.IDisposable
+	{
+		// Fields
+		.field private valuetype ReferencedAssembly.Structure _current
+
+		// Methods
+		.method public hidebysig specialname rtspecialname 
+			instance void .ctor () cil managed 
+		{
+			// Header size: 1
+			// Code size: 8 (0x8)
+			.maxstack 8
+
+			IL_0000: ldarg.0
+			IL_0001: call instance void [netstandard]System.Object::.ctor()
+			IL_0006: nop
+			IL_0007: ret
+		} // end of method GetItemsImpl::.ctor
+
+		.method public final hidebysig newslot virtual 
+			instance void Dispose () cil managed 
+		{
+			// Header size: 1
+			// Code size: 2 (0x2)
+			.maxstack 8
+
+			IL_0000: nop
+			IL_0001: ret
+		} // end of method GetItemsImpl::Dispose
+
+		.method private final hidebysig newslot virtual 
+			instance class [netstandard]System.Collections.Generic.IEnumerator`1<valuetype ReferencedAssembly.Structure> 'System.Collections.Generic.IEnumerable<ReferencedAssembly.Structure>.GetEnumerator' () cil managed 
+		{
+			.override method instance class [netstandard]System.Collections.Generic.IEnumerator`1<!0> class [netstandard]System.Collections.Generic.IEnumerable`1<valuetype ReferencedAssembly.Structure>::GetEnumerator()
+			// Header size: 12
+			// Code size: 7 (0x7)
+			.maxstack 1
+			.locals init (
+				[0] class [netstandard]System.Collections.Generic.IEnumerator`1<valuetype ReferencedAssembly.Structure>
+			)
+
+			IL_0000: nop
+			IL_0001: ldarg.0
+			IL_0002: stloc.0
+			IL_0003: br.s IL_0005
+
+			IL_0005: ldloc.0
+			IL_0006: ret
+		} // end of method GetItemsImpl::'System.Collections.Generic.IEnumerable<ReferencedAssembly.Structure>.GetEnumerator'
+
+		.method private final hidebysig specialname newslot virtual 
+			instance valuetype ReferencedAssembly.Structure 'System.Collections.Generic.IEnumerator<ReferencedAssembly.Structure>.get_Current' () cil managed 
+		{
+			.override method instance !0 class [netstandard]System.Collections.Generic.IEnumerator`1<valuetype ReferencedAssembly.Structure>::get_Current()
+			// Header size: 1
+			// Code size: 7 (0x7)
+			.maxstack 8
+
+			IL_0000: ldarg.0
+			IL_0001: ldfld valuetype ReferencedAssembly.Structure FodyTools.SimpleSampleClass/GetItemsImpl::_current
+			IL_0006: ret
+		} // end of method GetItemsImpl::'System.Collections.Generic.IEnumerator<ReferencedAssembly.Structure>.get_Current'
+
+		.method private final hidebysig newslot virtual 
+			instance class [netstandard]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed 
+		{
+			.override method instance class [netstandard]System.Collections.IEnumerator [netstandard]System.Collections.IEnumerable::GetEnumerator()
+			// Header size: 12
+			// Code size: 7 (0x7)
+			.maxstack 1
+			.locals init (
+				[0] class [netstandard]System.Collections.IEnumerator
+			)
+
+			IL_0000: nop
+			IL_0001: ldarg.0
+			IL_0002: stloc.0
+			IL_0003: br.s IL_0005
+
+			IL_0005: ldloc.0
+			IL_0006: ret
+		} // end of method GetItemsImpl::System.Collections.IEnumerable.GetEnumerator
+
+		.method private final hidebysig specialname newslot virtual 
+			instance object System.Collections.IEnumerator.get_Current () cil managed 
+		{
+			.override method instance object [netstandard]System.Collections.IEnumerator::get_Current()
+			// Header size: 1
+			// Code size: 12 (0xc)
+			.maxstack 8
+
+			IL_0000: ldarg.0
+			IL_0001: ldfld valuetype ReferencedAssembly.Structure FodyTools.SimpleSampleClass/GetItemsImpl::_current
+			IL_0006: box ReferencedAssembly.Structure
+			IL_000b: ret
+		} // end of method GetItemsImpl::System.Collections.IEnumerator.get_Current
+
+		.method private final hidebysig newslot virtual 
+			instance bool System.Collections.IEnumerator.MoveNext () cil managed 
+		{
+			.override method instance bool [netstandard]System.Collections.IEnumerator::MoveNext()
+			// Header size: 12
+			// Code size: 34 (0x22)
+			.maxstack 3
+			.locals init (
+				[0] valuetype ReferencedAssembly.Structure,
+				[1] bool
+			)
+
+			IL_0000: nop
+			IL_0001: ldarg.0
+			IL_0002: ldloca.s 0
+			IL_0004: initobj ReferencedAssembly.Structure
+			IL_000a: ldloca.s 0
+			IL_000c: ldstr "1"
+			IL_0011: stfld string ReferencedAssembly.Structure::Value1
+			IL_0016: ldloc.0
+			IL_0017: stfld valuetype ReferencedAssembly.Structure FodyTools.SimpleSampleClass/GetItemsImpl::_current
+			IL_001c: ldc.i4.1
+			IL_001d: stloc.1
+			IL_001e: br.s IL_0020
+
+			IL_0020: ldloc.1
+			IL_0021: ret
+		} // end of method GetItemsImpl::System.Collections.IEnumerator.MoveNext
+
+		.method private final hidebysig newslot virtual 
+			instance void System.Collections.IEnumerator.Reset () cil managed 
+		{
+			.override method instance void [netstandard]System.Collections.IEnumerator::Reset()
+			// Header size: 1
+			// Code size: 14 (0xe)
+			.maxstack 8
+
+			IL_0000: nop
+			IL_0001: ldarg.0
+			IL_0002: ldflda valuetype ReferencedAssembly.Structure FodyTools.SimpleSampleClass/GetItemsImpl::_current
+			IL_0007: initobj ReferencedAssembly.Structure
+			IL_000d: ret
+		} // end of method GetItemsImpl::System.Collections.IEnumerator.Reset
+
+		// Properties
+		.property instance valuetype ReferencedAssembly.Structure 'System.Collections.Generic.IEnumerator<ReferencedAssembly.Structure>.Current'()
+		{
+			.get instance valuetype ReferencedAssembly.Structure FodyTools.SimpleSampleClass/GetItemsImpl::'System.Collections.Generic.IEnumerator<ReferencedAssembly.Structure>.get_Current'()
+		}
+		.property instance object System.Collections.IEnumerator.Current()
+		{
+			.get instance object FodyTools.SimpleSampleClass/GetItemsImpl::System.Collections.IEnumerator.get_Current()
+		}
+
+	} // end of class GetItemsImpl
+
+
+	// Fields
+	.field private initonly class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventSource`1<class [netstandard]System.ComponentModel.CancelEventArgs> _eventSource
+	.custom instance void [TomsToolbox.Essentials]TomsToolbox.Essentials.SequenceAttribute::.ctor(float64) = (
+	)
+	.field private int32 _field
+	.custom instance void [TomsToolbox.Essentials]TomsToolbox.Essentials.SequenceAttribute::.ctor(float64) = (
+	)
+	.field private initonly class [TomsToolbox.Essentials]TomsToolbox.Essentials.RealTimeService _realTimeService
+	.field private static initonly int32[] _staticArray
+
+	// Methods
+	.method private hidebysig specialname rtspecialname static 
+		void .cctor () cil managed 
+	{
+		// Header size: 1
+		// Code size: 23 (0x17)
+		.maxstack 8
+
+		IL_0000: ldc.i4.5
+		IL_0001: newarr [netstandard]System.Int32
+		IL_0006: dup
+		IL_0007: ldtoken field valuetype '<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=20' '<PrivateImplementationDetails>'::'4F6ADDC9659D6FB90FE94B6688A79F2A1FA8D36EC43F8F3E1D9B6528C448A384'
+		IL_000c: call void [netstandard]System.Runtime.CompilerServices.RuntimeHelpers::InitializeArray(class [netstandard]System.Array, valuetype [netstandard]System.RuntimeFieldHandle)
+		IL_0011: stsfld int32[] FodyTools.SimpleSampleClass::_staticArray
+		IL_0016: ret
+	} // end of method SimpleSampleClass::.cctor
+
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Header size: 1
+		// Code size: 30 (0x1e)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: newobj instance void class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventSource`1<class [netstandard]System.ComponentModel.CancelEventArgs>::.ctor()
+		IL_0006: stfld class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventSource`1<class [netstandard]System.ComponentModel.CancelEventArgs> FodyTools.SimpleSampleClass::_eventSource
+		IL_000b: ldarg.0
+		IL_000c: newobj instance void [TomsToolbox.Essentials]TomsToolbox.Essentials.RealTimeService::.ctor()
+		IL_0011: stfld class [TomsToolbox.Essentials]TomsToolbox.Essentials.RealTimeService FodyTools.SimpleSampleClass::_realTimeService
+		IL_0016: ldarg.0
+		IL_0017: call instance void [netstandard]System.Object::.ctor()
+		IL_001c: nop
+		IL_001d: ret
+	} // end of method SimpleSampleClass::.ctor
+
+	.method public hidebysig specialname 
+		instance void add_SomeWeakEvent (
+			class [netstandard]System.EventHandler`1<class [netstandard]System.ComponentModel.CancelEventArgs> 'value'
+		) cil managed 
+	{
+		// Header size: 1
+		// Code size: 14 (0xe)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: ldfld class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventSource`1<class [netstandard]System.ComponentModel.CancelEventArgs> FodyTools.SimpleSampleClass::_eventSource
+		IL_0006: ldarg.1
+		IL_0007: callvirt instance void class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventSource`1<class [netstandard]System.ComponentModel.CancelEventArgs>::Subscribe(class [netstandard]System.EventHandler`1<!0>)
+		IL_000c: nop
+		IL_000d: ret
+	} // end of method SimpleSampleClass::add_SomeWeakEvent
+
+	.method public hidebysig static 
+		class FodyTools.SimpleGenericClass`1<!!T> FromSingleItemAndList<T, (!!T) TItem> (
+			!!T singleItem,
+			class [netstandard]System.Collections.Generic.IList`1<!!TItem> list
+		) cil managed 
+	{
+		// Header size: 12
+		// Code size: 41 (0x29)
+		.maxstack 2
+		.locals init (
+			[0] class FodyTools.SimpleGenericClass`1<!!T>
+		)
+
+		IL_0000: nop
+		IL_0001: ldtoken !!T
+		IL_0006: call class [netstandard]System.Type [netstandard]System.Type::GetTypeFromHandle(valuetype [netstandard]System.RuntimeTypeHandle)
+		IL_000b: ldtoken !!TItem
+		IL_0010: call class [netstandard]System.Type [netstandard]System.Type::GetTypeFromHandle(valuetype [netstandard]System.RuntimeTypeHandle)
+		IL_0015: call bool [netstandard]System.Type::op_Equality(class [netstandard]System.Type, class [netstandard]System.Type)
+		IL_001a: brtrue.s IL_001f
+
+		IL_001c: ldnull
+		IL_001d: br.s IL_0024
+
+		IL_001f: newobj instance void class FodyTools.SimpleGenericClass`1<!!T>::.ctor()
+
+		IL_0024: stloc.0
+		IL_0025: br.s IL_0027
+
+		IL_0027: ldloc.0
+		IL_0028: ret
+	} // end of method SimpleSampleClass::FromSingleItemAndList
+
+	.method private hidebysig 
+		instance object GetItem () cil managed 
+	{
+		// Header size: 12
+		// Code size: 32 (0x20)
+		.maxstack 2
+		.locals init (
+			[0] valuetype ReferencedAssembly.Structure,
+			[1] object
+		)
+
+		IL_0000: nop
+		IL_0001: ldloca.s 0
+		IL_0003: initobj ReferencedAssembly.Structure
+		IL_0009: ldloca.s 0
+		IL_000b: ldstr "V2"
+		IL_0010: stfld string ReferencedAssembly.Structure::Value2
+		IL_0015: ldloc.0
+		IL_0016: box ReferencedAssembly.Structure
+		IL_001b: stloc.1
+		IL_001c: br.s IL_001e
+
+		IL_001e: ldloc.1
+		IL_001f: ret
+	} // end of method SimpleSampleClass::GetItem
+
+	.method private hidebysig 
+		instance class [netstandard]System.Collections.Generic.IEnumerable`1<valuetype ReferencedAssembly.Structure> GetItems () cil managed 
+	{
+		.custom instance void [netstandard]System.Runtime.CompilerServices.IteratorStateMachineAttribute::.ctor(class [netstandard]System.Type) = (
+		)
+		// Header size: 1
+		// Code size: 15 (0xf)
+		.maxstack 8
+
+		IL_0000: ldc.i4.s -2
+		IL_0002: newobj instance void FodyTools.SimpleSampleClass/'<GetItems>d__8'::.ctor(int32)
+		IL_0007: dup
+		IL_0008: ldarg.0
+		IL_0009: stfld class FodyTools.SimpleSampleClass FodyTools.SimpleSampleClass/'<GetItems>d__8'::'<>4__this'
+		IL_000e: ret
+	} // end of method SimpleSampleClass::GetItems
+
+	.method public hidebysig 
+		instance void Method (
+			int32 param
+		) cil managed 
+	{
+		.custom instance void [TomsToolbox.Essentials]TomsToolbox.Essentials.SequenceAttribute::.ctor(float64) = (
+		)
+		// Header size: 12
+		// Code size: 96 (0x60)
+		.maxstack 3
+		.locals init (
+			[0] class [netstandard]System.Uri,
+			[1] bool,
+			[2] int32,
+			[3] int32
+		)
+
+		IL_0000: nop
+		IL_0001: ldarg.0
+		IL_0002: call instance class [netstandard]System.Type [netstandard]System.Object::GetType()
+		IL_0007: callvirt instance class [netstandard]System.Reflection.Assembly [netstandard]System.Type::get_Assembly()
+		IL_000c: call class [netstandard]System.Uri [TomsToolbox.Essentials]TomsToolbox.Essentials.AssemblyExtensions::GeneratePackUri(class [netstandard]System.Reflection.Assembly)
+		IL_0011: stloc.0
+		IL_0012: ldarg.0
+		IL_0013: ldarg.1
+		IL_0014: stfld int32 FodyTools.SimpleSampleClass::_field
+		IL_0019: ldarg.1
+		IL_001a: ldc.i4.1
+		IL_001b: add
+		IL_001c: starg.s param
+		IL_001e: ldarg.1
+		IL_001f: ldarg.0
+		IL_0020: ldfld int32 FodyTools.SimpleSampleClass::_field
+		IL_0025: ceq
+		IL_0027: stloc.1
+		IL_0028: ldloc.1
+		IL_0029: brfalse.s IL_003b
+
+		IL_002b: nop
+		IL_002c: ldarg.0
+		IL_002d: ldarg.0
+		IL_002e: ldfld int32 FodyTools.SimpleSampleClass::_field
+		IL_0033: ldc.i4.1
+		IL_0034: sub
+		IL_0035: stfld int32 FodyTools.SimpleSampleClass::_field
+		IL_003a: nop
+
+		IL_003b: ldarg.1
+		IL_003c: stloc.3
+		IL_003d: ldloc.3
+		IL_003e: stloc.2
+		IL_003f: ldloc.2
+		IL_0040: ldc.i4.1
+		IL_0041: beq.s IL_004b
+
+		IL_0043: br.s IL_0045
+
+		IL_0045: ldloc.2
+		IL_0046: ldc.i4.2
+		IL_0047: beq.s IL_004d
+
+		IL_0049: br.s IL_0054
+
+		IL_004b: br.s IL_005f
+
+		IL_004d: ldarg.1
+		IL_004e: ldc.i4.1
+		IL_004f: sub
+		IL_0050: starg.s param
+		IL_0052: br.s IL_005f
+
+		IL_0054: ldarg.0
+		IL_0055: ldarg.1
+		IL_0056: ldc.i4.2
+		IL_0057: sub
+		IL_0058: stfld int32 FodyTools.SimpleSampleClass::_field
+		IL_005d: br.s IL_005f
+
+		IL_005f: ret
+	} // end of method SimpleSampleClass::Method
+
+	.method public hidebysig 
+		instance void MethodWithExceptionHandler () cil managed 
+	{
+		// Header size: 12
+		// Code size: 30 (0x1e)
+		.maxstack 1
+
+		IL_0000: nop
+		.try
+		{
+			IL_0001: nop
+			IL_0002: call void ReferencedAssembly.StaticClass::Method1()
+			IL_0007: nop
+			IL_0008: nop
+			IL_0009: leave.s IL_001d
+		} // end .try
+		catch ReferencedAssembly.CustomException
+		{
+			IL_000b: pop
+			IL_000c: nop
+			IL_000d: ldstr "Test"
+			IL_0012: newobj instance void ReferencedAssembly.CustomException::.ctor(string)
+			IL_0017: throw
+		} // end handler
+		catch [netstandard]System.Object
+		{
+			IL_0018: pop
+			IL_0019: nop
+			IL_001a: nop
+			IL_001b: leave.s IL_001d
+		} // end handler
+
+		IL_001d: ret
+	} // end of method SimpleSampleClass::MethodWithExceptionHandler
+
+	.method public hidebysig specialname 
+		instance void remove_SomeWeakEvent (
+			class [netstandard]System.EventHandler`1<class [netstandard]System.ComponentModel.CancelEventArgs> 'value'
+		) cil managed 
+	{
+		// Header size: 1
+		// Code size: 14 (0xe)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: ldfld class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventSource`1<class [netstandard]System.ComponentModel.CancelEventArgs> FodyTools.SimpleSampleClass::_eventSource
+		IL_0006: ldarg.1
+		IL_0007: callvirt instance void class [TomsToolbox.Essentials]TomsToolbox.Essentials.WeakEventSource`1<class [netstandard]System.ComponentModel.CancelEventArgs>::Unsubscribe(class [netstandard]System.EventHandler`1<!0>)
+		IL_000c: nop
+		IL_000d: ret
+	} // end of method SimpleSampleClass::remove_SomeWeakEvent
+
+	// Events
+	.event class [netstandard]System.EventHandler`1<class [netstandard]System.ComponentModel.CancelEventArgs> SomeWeakEvent
+	{
+		.custom instance void [TomsToolbox.Essentials]TomsToolbox.Essentials.SequenceAttribute::.ctor(float64) = (
+		)
+		.addon instance void FodyTools.SimpleSampleClass::add_SomeWeakEvent(class [netstandard]System.EventHandler`1<class [netstandard]System.ComponentModel.CancelEventArgs>)
+		.removeon instance void FodyTools.SimpleSampleClass::remove_SomeWeakEvent(class [netstandard]System.EventHandler`1<class [netstandard]System.ComponentModel.CancelEventArgs>)
+	}
+
+
+} // end of class FodyTools.SimpleSampleClass
+
+.class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
+	extends [netstandard]System.Attribute
+{
+	.custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (
+	)
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	)
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Header size: 1
+		// Code size: 8 (0x8)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Attribute::.ctor()
+		IL_0006: nop
+		IL_0007: ret
+	} // end of method EmbeddedAttribute::.ctor
+
+} // end of class Microsoft.CodeAnalysis.EmbeddedAttribute
+
+.class private auto ansi serializable ReferencedAssembly.CustomException
+	extends [netstandard]System.Exception
+	implements [netstandard]System.Collections.IEnumerable
+{
+	.custom instance void ReferencedAssembly.SimpleAttribute::.ctor(valuetype ReferencedAssembly.SimpleEnum) = (
+	)
+	// Fields
+	.field private static initonly int32[] _staticArray
+
+	// Methods
+	.method private hidebysig specialname rtspecialname static 
+		void .cctor () cil managed 
+	{
+		// Header size: 1
+		// Code size: 35 (0x23)
+		.maxstack 8
+
+		IL_0000: ldc.i4.5
+		IL_0001: newarr [netstandard]System.Int32
+		IL_0006: dup
+		IL_0007: ldtoken field valuetype 'ReferencedAssembly.dll!<PrivateImplementationDetails>'/'__StaticArrayInitTypeSize=20' 'ReferencedAssembly.dll!<PrivateImplementationDetails>'::'9F6F066313FE3C753CCA95B263A3F9228A899ACAB758CC3A3AAE0E558D93DCC5'
+		IL_000c: call void [netstandard]System.Runtime.CompilerServices.RuntimeHelpers::InitializeArray(class [netstandard]System.Array, valuetype [netstandard]System.RuntimeFieldHandle)
+		IL_0011: stsfld int32[] ReferencedAssembly.CustomException::_staticArray
+		IL_0016: nop
+		IL_0017: ldstr ".cctor"
+		IL_001c: call void [netstandard]System.Console::WriteLine(string)
+		IL_0021: nop
+		IL_0022: ret
+	} // end of method CustomException::.cctor
+
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Header size: 1
+		// Code size: 21 (0x15)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Exception::.ctor()
+		IL_0006: nop
+		IL_0007: nop
+		IL_0008: call void System.SR::AnotherGuard()
+		IL_000d: nop
+		IL_000e: call void ReferencedAssembly.StaticClass::Method2()
+		IL_0013: nop
+		IL_0014: ret
+	} // end of method CustomException::.ctor
+
+	.method family hidebysig specialname rtspecialname 
+		instance void .ctor (
+			class [netstandard]System.Runtime.Serialization.SerializationInfo info,
+			valuetype [netstandard]System.Runtime.Serialization.StreamingContext context
+		) cil managed 
+	{
+		// Header size: 1
+		// Code size: 11 (0xb)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: ldarg.2
+		IL_0003: call instance void [netstandard]System.Exception::.ctor(class [netstandard]System.Runtime.Serialization.SerializationInfo, valuetype [netstandard]System.Runtime.Serialization.StreamingContext)
+		IL_0008: nop
+		IL_0009: nop
+		IL_000a: ret
+	} // end of method CustomException::.ctor
+
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			string message,
+			class [netstandard]System.Exception inner
+		) cil managed 
+	{
+		// Header size: 1
+		// Code size: 11 (0xb)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: ldarg.2
+		IL_0003: call instance void [netstandard]System.Exception::.ctor(string, class [netstandard]System.Exception)
+		IL_0008: nop
+		IL_0009: nop
+		IL_000a: ret
+	} // end of method CustomException::.ctor
+
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			string message
+		) cil managed 
+	{
+		// Header size: 1
+		// Code size: 17 (0x11)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: ldarg.1
+		IL_0002: call instance void [netstandard]System.Exception::.ctor(string)
+		IL_0007: nop
+		IL_0008: nop
+		IL_0009: ldarg.1
+		IL_000a: call void System.SR::GuardNotNull<string>(!!0)
+		IL_000f: nop
+		IL_0010: ret
+	} // end of method CustomException::.ctor
+
+	.method private final hidebysig newslot virtual 
+		instance class [netstandard]System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator () cil managed 
+	{
+		.override method instance class [netstandard]System.Collections.IEnumerator [netstandard]System.Collections.IEnumerable::GetEnumerator()
+		// Header size: 12
+		// Code size: 7 (0x7)
+		.maxstack 1
+		.locals init (
+			[0] class [netstandard]System.Collections.IEnumerator
+		)
+
+		IL_0000: nop
+		IL_0001: ldnull
+		IL_0002: stloc.0
+		IL_0003: br.s IL_0005
+
+		IL_0005: ldloc.0
+		IL_0006: ret
+	} // end of method CustomException::System.Collections.IEnumerable.GetEnumerator
+
+} // end of class ReferencedAssembly.CustomException
+
+.class private auto ansi beforefieldinit ReferencedAssembly.SimpleAttribute
+	extends [netstandard]System.Attribute
+{
+	.custom instance void [netstandard]System.AttributeUsageAttribute::.ctor(valuetype [netstandard]System.AttributeTargets) = (
+	)
+	// Fields
+	.field private initonly valuetype ReferencedAssembly.SimpleEnum '<SomeValue>k__BackingField'
+	.custom instance void [netstandard]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [netstandard]System.Diagnostics.DebuggerBrowsableState) = (
+	)
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	)
+
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor () cil managed 
+	{
+		// Header size: 1
+		// Code size: 9 (0x9)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Attribute::.ctor()
+		IL_0006: nop
+		IL_0007: nop
+		IL_0008: ret
+	} // end of method SimpleAttribute::.ctor
+
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			valuetype ReferencedAssembly.SimpleEnum someValue
+		) cil managed 
+	{
+		// Header size: 1
+		// Code size: 16 (0x10)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Attribute::.ctor()
+		IL_0006: nop
+		IL_0007: nop
+		IL_0008: ldarg.0
+		IL_0009: ldarg.1
+		IL_000a: stfld valuetype ReferencedAssembly.SimpleEnum ReferencedAssembly.SimpleAttribute::'<SomeValue>k__BackingField'
+		IL_000f: ret
+	} // end of method SimpleAttribute::.ctor
+
+} // end of class ReferencedAssembly.SimpleAttribute
+
+.class private auto ansi sealed ReferencedAssembly.SimpleEnum
+	extends [netstandard]System.Enum
+{
+	// Fields
+	.field public specialname rtspecialname int32 value__
+	.field public static literal valuetype ReferencedAssembly.SimpleEnum Value1 = int32(0)
+	.field public static literal valuetype ReferencedAssembly.SimpleEnum Value2 = int32(1)
+	.field public static literal valuetype ReferencedAssembly.SimpleEnum Value3 = int32(2)
+
+} // end of class ReferencedAssembly.SimpleEnum
+
+.class private auto ansi abstract sealed beforefieldinit ReferencedAssembly.StaticClass
+	extends [netstandard]System.Object
+{
+	// Methods
+	.method public hidebysig static 
+		void Method1 () cil managed 
+	{
+		// Header size: 1
+		// Code size: 13 (0xd)
+		.maxstack 8
+
+		IL_0000: nop
+		IL_0001: ldstr "Method1"
+		IL_0006: call void [netstandard]System.Console::WriteLine(string)
+		IL_000b: nop
+		IL_000c: ret
+	} // end of method StaticClass::Method1
+
+	.method public hidebysig static 
+		void Method2 () cil managed 
+	{
+		// Header size: 1
+		// Code size: 13 (0xd)
+		.maxstack 8
+
+		IL_0000: nop
+		IL_0001: ldstr "Method2"
+		IL_0006: call void [netstandard]System.Console::WriteLine(string)
+		IL_000b: nop
+		IL_000c: ret
+	} // end of method StaticClass::Method2
+
+} // end of class ReferencedAssembly.StaticClass
+
+.class private sequential ansi sealed serializable beforefieldinit ReferencedAssembly.Structure
+	extends [netstandard]System.ValueType
+{
+	// Fields
+	.field public string Value1
+	.field public string Value2
+
+} // end of class ReferencedAssembly.Structure
+
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NullableAttribute
+	extends [netstandard]System.Attribute
+{
+	.custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (
+	)
+	.custom instance void [netstandard]System.AttributeUsageAttribute::.ctor(valuetype [netstandard]System.AttributeTargets) = (
+	)
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	)
+	// Fields
+	.field public initonly uint8[] NullableFlags
+
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			uint8 ''
+		) cil managed 
+	{
+		// Header size: 1
+		// Code size: 24 (0x18)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Attribute::.ctor()
+		IL_0006: nop
+		IL_0007: ldarg.0
+		IL_0008: ldc.i4.1
+		IL_0009: newarr [netstandard]System.Byte
+		IL_000e: dup
+		IL_000f: ldc.i4.0
+		IL_0010: ldarg.1
+		IL_0011: stelem.i1
+		IL_0012: stfld uint8[] System.Runtime.CompilerServices.NullableAttribute::NullableFlags
+		IL_0017: ret
+	} // end of method NullableAttribute::.ctor
+
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			uint8[] ''
+		) cil managed 
+	{
+		// Header size: 1
+		// Code size: 15 (0xf)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Attribute::.ctor()
+		IL_0006: nop
+		IL_0007: ldarg.0
+		IL_0008: ldarg.1
+		IL_0009: stfld uint8[] System.Runtime.CompilerServices.NullableAttribute::NullableFlags
+		IL_000e: ret
+	} // end of method NullableAttribute::.ctor
+
+} // end of class System.Runtime.CompilerServices.NullableAttribute
+
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.NullableContextAttribute
+	extends [netstandard]System.Attribute
+{
+	.custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = (
+	)
+	.custom instance void [netstandard]System.AttributeUsageAttribute::.ctor(valuetype [netstandard]System.AttributeTargets) = (
+	)
+	.custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+	)
+	// Fields
+	.field public initonly uint8 Flag
+
+	// Methods
+	.method public hidebysig specialname rtspecialname 
+		instance void .ctor (
+			uint8 ''
+		) cil managed 
+	{
+		// Header size: 1
+		// Code size: 15 (0xf)
+		.maxstack 8
+
+		IL_0000: ldarg.0
+		IL_0001: call instance void [netstandard]System.Attribute::.ctor()
+		IL_0006: nop
+		IL_0007: ldarg.0
+		IL_0008: ldarg.1
+		IL_0009: stfld uint8 System.Runtime.CompilerServices.NullableContextAttribute::Flag
+		IL_000e: ret
+	} // end of method NullableContextAttribute::.ctor
+
+} // end of class System.Runtime.CompilerServices.NullableContextAttribute
+
+.class private auto ansi abstract sealed beforefieldinit System.SR
+	extends [netstandard]System.Object
+{
+	// Methods
+	.method public hidebysig static 
+		void AnotherGuard () cil managed 
+	{
+		// Header size: 1
+		// Code size: 2 (0x2)
+		.maxstack 8
+
+		IL_0000: nop
+		IL_0001: ret
+	} // end of method SR::AnotherGuard
+
+	.method public hidebysig static 
+		void GuardNotNull<class T> (
+			!!T 'value'
+		) cil managed 
+	{
+		// Header size: 12
+		// Code size: 21 (0x15)
+		.maxstack 2
+		.locals init (
+			[0] bool
+		)
+
+		IL_0000: nop
+		IL_0001: ldarg.0
+		IL_0002: box !!T
+		IL_0007: ldnull
+		IL_0008: ceq
+		IL_000a: stloc.0
+		IL_000b: ldloc.0
+		IL_000c: brfalse.s IL_0014
+
+		IL_000e: newobj instance void [netstandard]System.ArgumentNullException::.ctor()
+		IL_0013: throw
+
+		IL_0014: ret
+	} // end of method SR::GuardNotNull
+
+} // end of class System.SR
+

@@ -5,26 +5,24 @@ namespace FodyTools.Tests
     using System.Linq;
     using System.Runtime.CompilerServices;
 
-    using ApprovalTests;
-
     using FodyTools.Tests.Tools;
 
     using Mono.Cecil.Cil;
 
     using Xunit;
 
+    [UsesVerify]
     public class TypeExtensionMethodsTests
     {
         private static readonly Instruction[] _dummyInstructions = {
             Instruction.Create(OpCodes.Ldc_I4, 1),
             Instruction.Create(OpCodes.Ldc_I4, 2),
-            Instruction.Create(OpCodes.Add), 
-            Instruction.Create(OpCodes.Pop), 
+            Instruction.Create(OpCodes.Add),
+            Instruction.Create(OpCodes.Pop),
         };
 
         static TypeExtensionMethodsTests()
         {
-            ConfigurationNamer.Register();
         }
 
         public class SampleWithConstructorBase
@@ -78,57 +76,57 @@ namespace FodyTools.Tests
 
         [Fact]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void InsertIntoConstructorsTest()
+        public async Task InsertIntoConstructorsTest()
         {
             var type = ModuleHelper.LoadType<SampleWithConstructors>();
 
             type.InsertIntoConstructors(() => _dummyInstructions);
 
-            Approvals.Verify(type.Decompile());
+            await Verify(type.Decompile()).UniqueForAssemblyConfiguration();
         }
 
         [Fact]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void InsertIntoFinalizerTest()
+        public async Task InsertIntoFinalizerTest()
         {
             var type = ModuleHelper.LoadType<SampleWithConstructors>();
 
             type.InsertIntoFinalizer(_dummyInstructions);
 
-            Approvals.Verify(type.Decompile());
+            await Verify(type.Decompile()).UniqueForAssemblyConfiguration();
         }
 
         [Fact]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void InsertIntoExistingFinalizerTest()
+        public async Task InsertIntoExistingFinalizerTest()
         {
             var type = ModuleHelper.LoadType<SampleWithFinalizer>();
 
             type.InsertIntoFinalizer(_dummyInstructions);
 
-            Approvals.Verify(type.Decompile());
+            await Verify(type.Decompile()).UniqueForAssemblyConfiguration();
         }
 
         [Fact]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void InsertIntoStaticConstructorTest()
+        public async Task InsertIntoStaticConstructorTest()
         {
             var type = ModuleHelper.LoadType<SampleWithConstructors>();
 
             type.InsertIntoStaticConstructor(_dummyInstructions);
 
-            Approvals.Verify(type.Decompile());
+            await Verify(type.Decompile()).UniqueForAssemblyConfiguration();
         }
 
         [Fact]
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public void InsertIntoExistingStaticConstructorTest()
+        public async Task InsertIntoExistingStaticConstructorTest()
         {
             var type = ModuleHelper.LoadType<SampleWithStaticConstructor>();
 
             type.InsertIntoStaticConstructor(_dummyInstructions);
 
-            Approvals.Verify(type.Decompile());
+            await Verify(type.Decompile()).UniqueForAssemblyConfiguration();
         }
 
         [Fact]
@@ -157,9 +155,9 @@ namespace FodyTools.Tests
         {
             var type = ModuleHelper.LoadType<SampleWithConstructors>();
 
-            var expected = new []
+            var expected = new[]
             {
-                "FodyTools.Tests.TypeExtensionMethodsTests/SampleWithConstructors", 
+                "FodyTools.Tests.TypeExtensionMethodsTests/SampleWithConstructors",
                 "FodyTools.Tests.TypeExtensionMethodsTests/SampleWithConstructorBase",
                 "System.Object"
             };
@@ -173,7 +171,7 @@ namespace FodyTools.Tests
         {
             var type = ModuleHelper.LoadType<SampleWithConstructors>();
 
-            var expected = new []
+            var expected = new[]
             {
                 "FodyTools.Tests.TypeExtensionMethodsTests/SampleWithConstructorBase",
                 "System.Object"

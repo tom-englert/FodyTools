@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="TomsToolbox.Essentials" Version="2.3.0" />
+    <PackageReference Include="TomsToolbox.Essentials" Version="2.8.5" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ReferencedAssembly\ReferencedAssembly.csproj" />

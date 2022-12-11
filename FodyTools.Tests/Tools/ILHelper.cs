@@ -10,7 +10,7 @@
         public static string Decompile(this MethodDefinition method)
         {
             var buf = new StringBuilder();
-            
+
             buf.AppendLine(method.FullName);
 
             foreach (var instruction in method.Body.Instructions)
@@ -29,7 +29,7 @@
             buf.AppendLine(type.FullName);
             buf.AppendLine();
 
-            foreach (var method in type.Methods.OrderBy(m => m.FullName))
+            foreach (var method in type.Methods.OrderBy(m => m.FullName, StringComparer.Ordinal))
             {
                 buf.Append("  ");
                 buf.AppendLine(method.FullName);

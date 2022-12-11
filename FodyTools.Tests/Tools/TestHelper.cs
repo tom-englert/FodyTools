@@ -7,9 +7,11 @@
     using System.Linq;
     using System.Text.RegularExpressions;
 
-    using Mono.Cecil;
+    using ICSharpCode.Decompiler;
+    using ICSharpCode.Decompiler.Disassembler;
+    using ICSharpCode.Decompiler.Metadata;
 
-    using TomsToolbox.Core;
+    using Mono.Cecil;
 
     using Xunit;
     using Xunit.Abstractions;
@@ -26,7 +28,6 @@
         {
             get
             {
-
                 var tempPath = Path.Combine(Path.GetTempPath(), "CodeImporter", Framework);
                 Directory.CreateDirectory(tempPath);
                 return tempPath;
@@ -38,14 +39,14 @@
             ICollection<ModuleDefinition> importedModules,
             string targetAssemblyPath)
         {
-            VerifyTypes(importedTypes, importedModules, targetAssemblyPath, (assemblyName, source, target) => AssertIlStrict(source, target));
+            VerifyTypes(importedTypes, importedModules, targetAssemblyPath, Assert.Equal);
         }
 
         public static void VerifyTypes(
             IDictionary<TypeDefinition, TypeDefinition> importedTypes,
             ICollection<ModuleDefinition> importedModules,
             string targetAssemblyPath,
-            Action<string, string, string> assert)
+            Action<string, string> assert)
         {
             var assemblyPrefixes = importedModules
                 .Select(m => $"[{m.Assembly.Name.Name}]")
@@ -79,57 +80,14 @@
                         .Replace(prefix, string.Empty);
                 }
 
-                var normalizedDecompiledSource = FixSourceNamespaces(assemblyPrefixes, FixIndenting(FixAttributeOrder(decompiledSource)));
-                var normalizedDecompiledTarget = FixSystemNamespaces(FixIndenting(FixAttributeOrder(decompiledTarget)));
+                var normalizedDecompiledSource = FixSourceNamespaces(assemblyPrefixes, decompiledSource);
+                var normalizedDecompiledTarget = FixSystemNamespaces(decompiledTarget);
 
                 File.WriteAllText(Path.Combine(tempPath, "source.txt"), normalizedDecompiledSource);
                 File.WriteAllText(Path.Combine(tempPath, "target.txt"), normalizedDecompiledTarget);
 
-                assert(targetTypeName, normalizedDecompiledSource, normalizedDecompiledTarget);
+                assert(normalizedDecompiledSource, normalizedDecompiledTarget);
             }
-        }
-
-        private static readonly Regex _binaryDataRegex = new Regex("^[0-9A-F]{2} [0-9A-F]{2}", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-        public static bool IsNotBinaryData(string line)
-        {
-            if (line.Contains("Attribute::.ctor(class [System]System.Type)"))
-                return false;
-
-            if (_binaryDataRegex.Match(line).Success)
-                return false;
-
-            return true;
-        }
-
-        public static void AssertIlStrict(string decompiledSource, string decompiledTarget)
-        {
-            var expected = decompiledSource.Replace("\r\n", "\n").Split('\n').OrderBy(line => line).SkipWhile(string.IsNullOrWhiteSpace).Where(IsNotBinaryData); 
-            var target = decompiledTarget.Replace("\r\n", "\n").Split('\n').OrderBy(line => line).SkipWhile(string.IsNullOrWhiteSpace).Where(IsNotBinaryData);
-
-            var mismatches = Enumerate.AsTuples(expected, target)
-                .Select((tuple, index) => new { tuple.Item1, tuple.Item2, index })
-                .Where(tuple => tuple.Item1 != tuple.Item2)
-                .ToList();
-
-            Assert.Empty(mismatches);
-        }
-
-        public static string RemoveComments(this string il)
-        {
-            return string.Join("\r\n", il.Replace("\r\n", "\n").Split('\n').Where(IsData));
-        }
-
-        private static bool IsData(string value)
-        {
-            return !value.TrimStart().StartsWith("//");
-        }
-
-        private static string FixAttributeOrder(string value)
-        {
-            return value.Replace(
-                "  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) \r\n  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) ",
-                "  .custom instance void [mscorlib]System.Diagnostics.DebuggerBrowsableAttribute::.ctor(valuetype [mscorlib]System.Diagnostics.DebuggerBrowsableState) = ( 01 00 00 00 00 00 00 00 ) \r\n  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) ");
         }
 
         private static string FixSourceNamespaces(IEnumerable<string> assemblyPrefixes, string value)
@@ -150,20 +108,6 @@
             result = result.Replace("[WindowsBase]", "[System]");
 
             return result;
-        }
-
-        private static string FixIndenting(string value)
-        {
-            return string.Join(Environment.NewLine, value.Split(new[] { Environment.NewLine }, StringSplitOptions.None).Select(TrimIndent));
-        }
-
-        private static string TrimIndent(string line)
-        {
-            var spaces = new string(' ', 16);
-            if (line.StartsWith(spaces))
-                return line.TrimStart(' ');
-
-            return line;
         }
 
         public static class PEVerify
@@ -220,37 +164,38 @@
 
         public static class ILDasm
         {
-            private static readonly string _ilDasmPath = SdkTool.Find("ILDasm.exe");
+            private static readonly Regex RvaScrubber = new(@"[ \t]+// Method begins at RVA 0x[0-9A-F]+\r?\n", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            private static readonly Regex BinaryDataScrubber = new(@"[ \t]+[0-9A-F]{2}( [0-9A-F]{2})+\r?\n", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+            private static string Normalize(string value)
+            {
+                var s1 = RvaScrubber.Replace(value, string.Empty);
+                var s2 = BinaryDataScrubber.Replace(s1, string.Empty);
+                return s2;
+            }
 
             public static string Decompile(string assemblyPath)
             {
-                var startInfo = new ProcessStartInfo(_ilDasmPath, $"\"{assemblyPath}\" /text")
-                {
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
+                var output = new PlainTextOutput();
+                var disassembler = new ReflectionDisassembler(output, CancellationToken.None) { EntityProcessor = new SortByNameProcessor() };
+                using var peFile = new PEFile(assemblyPath);
 
-                using (var process = Process.Start(startInfo))
-                {
-                    return process?.StandardOutput.ReadToEnd() ?? "ILDasm did not start";
-                }
+                disassembler.WriteModuleContents(peFile);
+
+                return Normalize(output.ToString()); ;
             }
 
             public static string Decompile(string assemblyPath, string className)
             {
-                // var startInfo = new ProcessStartInfo(_ilDasmPath, $"\"{assemblyPath}\" /text /classlist /item:{className}")
-                var startInfo = new ProcessStartInfo(_ilDasmPath, $"\"{assemblyPath}\" /text /item:{className}")
-                {
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
+                var output = new PlainTextOutput();
+                var disassembler = new ReflectionDisassembler(output, CancellationToken.None) { EntityProcessor = new SortByNameProcessor() };
+                using var peFile = new PEFile(assemblyPath);
 
-                using (var process = Process.Start(startInfo))
-                {
-                    return process?.StandardOutput.ReadToEnd() ?? "ILDasm did not start";
-                }
+                var type = peFile.Metadata.TypeDefinitions.Single(handle => handle.GetFullTypeName(peFile.Metadata).ToILNameString() == className);
+
+                disassembler.DisassembleType(peFile, type);
+
+                return Normalize(output.ToString()); ;
             }
         }
 

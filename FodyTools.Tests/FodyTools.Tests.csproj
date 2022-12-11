@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
-    <ProjectTypeGuids>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC};{3AC096D0-A1C2-E12C-1390-A8335801FDAB}</ProjectTypeGuids>
+    <TargetFrameworks>net472;net6.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Binaries\*.*" />
@@ -18,13 +18,14 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ApprovalTests" Version="5.7.1" />
-    <PackageReference Include="FodyHelpers" Version="6.6.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-    <PackageReference Include="TomsToolbox.Core" Version="1.0.75" />
-    <PackageReference Include="Verify.Xunit" Version="14.0.1" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" PrivateAssets="All" />
+    <PackageReference Include="FodyHelpers" Version="6.6.4" />
+    <PackageReference Include="ICSharpCode.Decompiler" Version="8.0.0.7246-preview3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.0" />
+    <PackageReference Include="TomsToolbox.Essentials" Version="2.8.5" />
+    <PackageReference Include="Verify" Version="19.3.0" />
+    <PackageReference Include="Verify.Xunit" Version="19.3.0" />
+    <PackageReference Include="xunit" Version="2.4.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DummyAssembly\DummyAssembly.csproj" />

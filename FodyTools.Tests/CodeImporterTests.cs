@@ -20,6 +20,10 @@ namespace FodyTools.Tests
 
     using FodyTools.Tests.Tools;
 
+    using ICSharpCode.Decompiler;
+    using ICSharpCode.Decompiler.Disassembler;
+    using ICSharpCode.Decompiler.Metadata;
+
     using Mono.Cecil;
 
     using ReferencedAssembly;
@@ -56,7 +60,7 @@ namespace FodyTools.Tests
             var module = ModuleHelper.LoadModule<EmptyClass>();
 
             var moduleResolverInstance = moduleResolver == ModuleResolver.AssemblyModuleResolver
-                ? (IModuleResolver)new AssemblyModuleResolver(typeof(TomsToolbox.Core.AssemblyExtensions).Assembly, typeof(TomsToolbox.Core.DefaultValue).Assembly)
+                ? (IModuleResolver)new AssemblyModuleResolver(typeof(TomsToolbox.Essentials.AssemblyExtensions).Assembly, typeof(TomsToolbox.Essentials.DefaultValue).Assembly)
                 : new LocalReferenceModuleResolver();
 
             var targetAssemblyPath = Path.Combine(TestHelper.TempPath, "TargetAssembly1.dll");
@@ -91,11 +95,11 @@ namespace FodyTools.Tests
         }
 
         [Theory]
-        [InlineData(3, typeof(TomsToolbox.Core.WeakEventListener<,,>))]
-        [InlineData(3, typeof(TomsToolbox.Core.WeakEventSource<>))]
-        [InlineData(13, typeof(TomsToolbox.Core.WeakEventSource<>), typeof(TomsToolbox.Core.WeakEventListener<,,>), typeof(Test<>))]
-        [InlineData(4, typeof(TomsToolbox.Core.AutoWeakIndexer<,>))]
-        [InlineData(2, typeof(TomsToolbox.Core.CollectionExtensions))]
+        [InlineData(2, typeof(TomsToolbox.Essentials.WeakEventListener<,,>))]
+        [InlineData(3, typeof(TomsToolbox.Essentials.WeakEventSource<>))]
+        [InlineData(12, typeof(TomsToolbox.Essentials.WeakEventSource<>), typeof(TomsToolbox.Essentials.WeakEventListener<,,>), typeof(Test<>))]
+        [InlineData(4, typeof(TomsToolbox.Essentials.AutoWeakIndexer<,>))]
+        [InlineData(2, typeof(TomsToolbox.Essentials.CollectionExtensions))]
         public void ComplexTypesTest(int numberOfTypes, params Type[] types)
         {
             var module = ModuleHelper.LoadModule<EmptyClass>();
@@ -129,7 +133,7 @@ namespace FodyTools.Tests
 
             var importedTypes = target.ListImportedTypes();
 
-            if (importedTypes.Keys.Select(t => t.FullName).Contains("TomsToolbox.Core.NetStandardExtensions"))
+            if (importedTypes.Keys.Select(t => t.FullName).Contains("TomsToolbox.Essentials.NetStandardExtensions"))
             {
                 numberOfTypes += 1;
             }
@@ -182,21 +186,21 @@ namespace FodyTools.Tests
             Assert.Equal(".ctor", importedMethod1.Name);
         }
 
-        private class T : TomsToolbox.Core.DelegateComparer<TomsToolbox.Core.AutoWeakIndexer<int, string>>
+        private class T : TomsToolbox.Essentials.DelegateComparer<TomsToolbox.Essentials.AutoWeakIndexer<int, string>>
         {
             public T() : base(null)
             {
             }
         }
 
-        private class T2 : TomsToolbox.Core.ITimeService
+        private class T2 : TomsToolbox.Essentials.ITimeService
         {
             public DateTime Now { get; }
             public DateTime Today { get; }
             public DateTime UtcNow { get; }
         }
 
-        private class T1 : TomsToolbox.Core.DelegateComparer<T2>
+        private class T1 : TomsToolbox.Essentials.DelegateComparer<T2>
         {
             public T1(Func<T2, T2, int> comparer) : base(comparer)
             {
@@ -271,7 +275,7 @@ namespace FodyTools.Tests
             var codeImporter = new CodeImporter(module)
             {
                 HideImportedTypes = false,
-                ModuleResolver = new AssemblyModuleResolver(typeof(TomsToolbox.Core.AssemblyExtensions).Assembly, typeof(Structure).Assembly),
+                ModuleResolver = new AssemblyModuleResolver(typeof(TomsToolbox.Essentials.AssemblyExtensions).Assembly, typeof(Structure).Assembly),
                 NamespaceDecorator = ns => namespacePrefix + ns,
                 CompactMode = false
             };
@@ -302,7 +306,7 @@ namespace FodyTools.Tests
             // TODO: check why we get this when target is NetCore
             // [MD](0x80131252): Error: Token 0x0200001e following ELEMENT_TYPE_CLASS (_VALUETYPE) in signature is a ValueType (Class,respectively). [token:0x04000004]
 
-            Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper, "0x80131252"));
+            Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper, "0x80131252", "0x80131869"));
         }
 
         [Fact]
@@ -346,7 +350,7 @@ namespace FodyTools.Tests
             // TODO: check why we get this when target is NetCore
             // [MD](0x80131252): Error: Token 0x0200001e following ELEMENT_TYPE_CLASS (_VALUETYPE) in signature is a ValueType (Class,respectively). [token:0x04000004]
 
-            Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper, "0x80131252"));
+            Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper, "0x80131252", "0x80131869"));
         }
 
 #if NETFRAMEWORK
@@ -419,11 +423,11 @@ namespace FodyTools.Tests
             module.Assembly.Name.Name = "TargetAssembly2";
             module.Write(targetAssemblyPath);
 
-            var il = TestHelper.ILDasm.Decompile(targetAssemblyPath).RemoveComments();
+            var il = TestHelper.ILDasm.Decompile(targetAssemblyPath);
 
-            await Verifier.Verify(il).UniqueForRuntime().UniqueForAssemblyConfiguration();
+            await Verify(il).UniqueForRuntime().UniqueForAssemblyConfiguration();
 
-            Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper, "0x80131252"));
+            Assert.True(TestHelper.PEVerify.Verify(targetAssemblyPath, _testOutputHelper, "0x80131252", "0x80131869"));
         }
 
         private static void CopyLocalReferences(ModuleDefinition module, string targetPath)
@@ -474,7 +478,7 @@ namespace FodyTools.Tests
         {
             try
             {
-                TomsToolbox.Core.AssemblyExtensions.GeneratePackUri(GetType().Assembly, "Test");
+                TomsToolbox.Essentials.AssemblyExtensions.GeneratePackUri(GetType().Assembly, "Test");
                 return null;
             }
             catch (InvalidOperationException)
@@ -500,7 +504,7 @@ namespace FodyTools.Tests
             return default;
         }
 
-        public TomsToolbox.Core.ITimeService RealTimeService = new TomsToolbox.Core.RealTimeService();
+        public TomsToolbox.Essentials.ITimeService RealTimeService = new TomsToolbox.Essentials.RealTimeService();
     }
 
     internal class MyEventArgs : EventArgs, IEnumerable<string>

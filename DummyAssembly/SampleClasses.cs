@@ -1,4 +1,4 @@
-﻿using TomsToolbox.Core;
+﻿using TomsToolbox.Essentials;
 
 
 [assembly: PluginModule("1", "2", "3")]
@@ -13,7 +13,7 @@ namespace FodyTools
 
     using ReferencedAssembly;
 
-    [TypeConverter(typeof(TomsToolbox.Core.Disposable))]
+    [TypeConverter(typeof(TomsToolbox.Essentials.Disposable))]
     [Sequence(1)]
     public class SimpleSampleClass
     {
@@ -149,9 +149,9 @@ namespace FodyTools
 
     [SimpleAttribute]
     [SimpleAttribute(SimpleEnum.Value2)]
-    public class ComplexSampleClass<T1, T2> : TomsToolbox.Core.WeakEventListener<T1, T2, EventArgs>
-        where T1 : TomsToolbox.Core.DelegateComparer<T2>
-        where T2 : class, TomsToolbox.Core.ITimeService
+    public class ComplexSampleClass<T1, T2> : TomsToolbox.Essentials.WeakEventListener<T1, T2, EventArgs>
+        where T1 : TomsToolbox.Essentials.DelegateComparer<T2>
+        where T2 : class, TomsToolbox.Essentials.ITimeService
     {
         public ComplexSampleClass(T1 target, T2 source, Action<T1, object, EventArgs> onEventAction)
             : base(target, source, onEventAction, null, null)
@@ -163,13 +163,8 @@ namespace FodyTools
         {
         }
 
-        public ComplexSampleClass(T1 target, TomsToolbox.Core.WeakReference<T2> source, Action<T1, object, EventArgs> onEventAction, Action<WeakEventListener<T1, T2, EventArgs>, T2> onAttachAction, Action<WeakEventListener<T1, T2, EventArgs>, T2> onDetachAction)
-            : base(target, source, onEventAction, onAttachAction, onDetachAction)
-        {
-        }
-
-        public T SomeMethod<T>(TomsToolbox.Core.TryCastWorker<T1> p1, Func<T2> p2, Func<T> p3)
-            where T : TomsToolbox.Core.DelegateComparer<AutoWeakIndexer<int, string>>
+        public T SomeMethod<T>(TomsToolbox.Essentials.AutoWeakIndexer<T1, T1> p1, Func<T2> p2, Func<T> p3)
+            where T : TomsToolbox.Essentials.DelegateComparer<AutoWeakIndexer<int, string>>
         {
             var x = new AutoWeakIndexer<int, string>(i => i.ToString());
 
@@ -184,8 +179,8 @@ namespace FodyTools
             return default(T);
         }
 
-        public T SomeMethod<T>(TomsToolbox.Core.TryCastWorker<T> p1)
-            where T : TomsToolbox.Core.DelegateComparer<AutoWeakIndexer<int, string>>
+        public T SomeMethod<T>(TomsToolbox.Essentials.WeakEventListener<T, object, EventArgs> p1)
+            where T : TomsToolbox.Essentials.DelegateComparer<AutoWeakIndexer<int, string>>
         {
             var x = new AutoWeakIndexer<int, string>(i => i.ToString());
 
@@ -202,7 +197,7 @@ namespace FodyTools
 
         public void AnotherMethod()
         {
-            var y = default(TomsToolbox.Core.DelegateComparer<AutoWeakIndexer<int, string>>).TryCast();
+            var y = default(TomsToolbox.Essentials.DelegateComparer<AutoWeakIndexer<int, string>>).SafeCast<WeakEventListener<DelegateComparer<AutoWeakIndexer<int, string>>, object, EventArgs>>();
 
             var x = SomeMethod(y);
         }

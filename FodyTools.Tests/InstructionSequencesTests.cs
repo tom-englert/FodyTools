@@ -1,4 +1,6 @@
-﻿namespace FodyTools.Tests
+﻿#if DEBUG // sequences change in RELEASE due to optimization, 
+
+namespace FodyTools.Tests
 {
     using System;
     using System.Collections;
@@ -39,7 +41,7 @@
             Assert.Equal(6, sequence5.Count);
             Assert.Equal(instructions[7], sequence5[0]);
             Assert.Equal(OpCodes.Ldloc_0, sequence5[0].OpCode);
-            Assert.Equal(218, sequence5.Point?.StartLine);
+            Assert.Equal(220, sequence5.Point?.StartLine);
         }
 
         [Fact]
@@ -223,3 +225,4 @@
         }
     }
 }
+#endif // DEBUG
