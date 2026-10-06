@@ -1,7 +1,6 @@
 ﻿namespace PerformanceTest
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
@@ -16,7 +15,7 @@
 
     internal static class Program
     {
-        static void Main()
+        public static void Main()
         {
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
 

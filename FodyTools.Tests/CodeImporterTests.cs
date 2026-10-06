@@ -20,20 +20,12 @@ namespace FodyTools.Tests
 
     using FodyTools.Tests.Tools;
 
-    using ICSharpCode.Decompiler;
-    using ICSharpCode.Decompiler.Disassembler;
-    using ICSharpCode.Decompiler.Metadata;
-
     using Mono.Cecil;
 
     using ReferencedAssembly;
 
-    using VerifyXunit;
-
     using Xunit;
-    using Xunit.Abstractions;
 
-    [UsesVerify]
     public class CodeImporterTests
     {
         private readonly ITestOutputHelper _testOutputHelper;
@@ -355,7 +347,7 @@ namespace FodyTools.Tests
 
 #if NETFRAMEWORK
         [Fact]
-        public async void ILMerge2()
+        public async Task ILMerge2()
         {
             var module = ModuleHelper.LoadModule<ShellAssembly.Program>();
 
@@ -403,7 +395,7 @@ namespace FodyTools.Tests
 #endif
 
         [Fact]
-        public async void CompactModeTest()
+        public async Task CompactModeTest()
         {
             var module = ModuleHelper.LoadModule<SimpleSampleClass>();
 

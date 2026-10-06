@@ -14,7 +14,6 @@
     using Mono.Cecil;
 
     using Xunit;
-    using Xunit.Abstractions;
 
     public static class TestHelper
     {

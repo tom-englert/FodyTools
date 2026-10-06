@@ -4,6 +4,7 @@ namespace FodyTools.Tests
 {
     using System.Linq;
     using System.Runtime.CompilerServices;
+    using System.Threading.Tasks;
 
     using FodyTools.Tests.Tools;
 
@@ -11,7 +12,6 @@ namespace FodyTools.Tests
 
     using Xunit;
 
-    [UsesVerify]
     public class TypeExtensionMethodsTests
     {
         private static readonly Instruction[] _dummyInstructions = {
